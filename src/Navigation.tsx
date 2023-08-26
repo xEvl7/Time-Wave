@@ -20,6 +20,8 @@ import { useAppDispatch, useAppSelector } from "./hooks";
 import { loadUserDataFromStore } from "./features/userSlice";
 import Profile from "./screens/Profile";
 import CommunityInfo from "./screens/CommunityInfo";
+import RewardsDetail from "./screens/RewardsDetail";
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
