@@ -15,4 +15,13 @@ export type RootStackParamList = {
   SelectAdmin: undefined;
   Profile: undefined;
   CommunityInfo: CommunityProps;
+  TimeBankRewardsPage: undefined;
+  ActiveRewardsPage: undefined;
+  ActiveRewardsDetailPage: undefined;
+  MyRewardsPage: undefined;
+  MyRewardsDetailsPage: undefined;
+  PastRewardsPage: undefined;
+  PastRewardsDetailsPage: undefined;
+  CommunityPage: undefined;
+  MedicalServicesPage:undefined;
 };
