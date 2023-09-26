@@ -17,53 +17,41 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 //   password: string;
 // };
 
-export default function Login({
-  navigation,
-}: NativeStackScreenProps<RootStackParamList, "TimeWaveRewardsPage">) {
-  // const { control, handleSubmit } = useForm<FormData>({
-  //   defaultValues: {
-  //     emailAddress: "test@gmail.com",
-  //     password: "123456789",
-  //   },
-  // });
-
-  // const userData = useAppSelector((state) => state.user.data);
-  // const dispatch = useAppDispatch();
-
-  // const handleLogin = async (data: FormData) => {
-  //   // @todo Indicate sign in process is running in UI
-
-  //   console.log("Signing in user ...");
-
-  //   try {
-  //     const userCredential = await auth().signInWithEmailAndPassword(
-  //       data.emailAddress,
-  //       data.password
-  //     );
-
-  //     console.log(userCredential.user.email, "has successfully signed in.");
-  //   } catch (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-  //   // @todo Display error if login failed
-
-  //   console.log("Fetching user's data ...");
-
-  //   try {
-  //     await dispatch(fetchUserData(data.emailAddress)).unwrap();
-  //   } catch (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-  // };
+let numberofItems=6;
+const generateGridItems = (numberOfItems) => {
+  const gridItems = [];
+  for (let i = 0; i < numberOfItems; i++) {
+    gridItems.push(
+      <View style={styles.gridItem} key={i}>
+        <Image
+          source={require("../assets/my-rewards.png")}
+          style={styles.image}
+        />
+        <Text style={styles.text}>Grid Item {i + 1}</Text>
+      </View>
+    );
+  }
+  return gridItems;
+}
+const Grid = ({ numberOfItems }) => {
+  const gridItems = generateGridItems(numberOfItems);
 
   return (
+    <View style={styles.gridContainer}>
+      {gridItems}
+    </View>
+  );
+}
+
+
+export default function Login({
+  navigation,
+}: NativeStackScreenProps<RootStackParamList, "Community">) {
+  return (
     <View>
-      <BackgroundImageBox
-        style={{ height: "38%" }}
-        //source={require("../assets/background/login.png")}
-      ></BackgroundImageBox>
+      <View style={styles.gridContainer}>
+        {gridItems}
+      </View>
       <ContentContainer>
         <HeaderText>Level</HeaderText>
         
@@ -132,29 +120,33 @@ export default function Login({
 }
 
 const styles = StyleSheet.create({
-  alternativesContainer: {
-    alignItems: "center",
-    marginTop: 10,
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
-  thirdPartyAuthContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
+  gridItem: {
+    width: '48%',
+    height: 150,
+    position: 'relative',
+    overflow: 'hidden',
+    marginBottom: 10,
   },
-  registerContainer: {
-    flexDirection: "row",
-    minWidth: "78%",
-    justifyContent: "space-evenly",
-    marginTop: 40,
+  image: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
-  MyRewardsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  HeadingContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
+  text: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{translateX: -25}, {translateY: -8}],
   },
 });

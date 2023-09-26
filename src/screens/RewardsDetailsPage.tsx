@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View, Image ,ScrollView} from "react-native";
+import { Pressable, StyleSheet, Text, View, Image } from "react-native";
 import auth from "@react-native-firebase/auth";
 
 import TextButton from "../components/TextButton";
@@ -17,9 +17,9 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 //   password: string;
 // };
 
-export default function ActiveRewardsPage({
+export default function Login({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "My Rewards">) {
+}: NativeStackScreenProps<RootStackParamList, "MyRewardsDetailsPage">) {
   // const { control, handleSubmit } = useForm<FormData>({
   //   defaultValues: {
   //     emailAddress: "test@gmail.com",
@@ -65,36 +65,8 @@ export default function ActiveRewardsPage({
         //source={require("../assets/background/login.png")}
       ></BackgroundImageBox>
       <ContentContainer>
-        <HeaderText>Active Rewards</HeaderText>
+        <HeaderText>Link to Part 1</HeaderText>
         
-        <View style={{ flex: 1, padding: 10 }}>
-      {/* 标题区域 */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
-          Your Title
-        </Text>
-        <Pressable onPress={() => navigation.navigate('OtherPage')}>
-          <Text style={{ marginLeft: 10, color: 'blue' }}>
-            Go to Other Page
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* 水平滑动板块 */}
-      <ScrollView
-        horizontal={true}
-        contentContainerStyle={{ flexGrow: 1 }}
-        style={{ flex: 1 }}
-      >
-        {/* 板块内部的元素 */}
-        <View style={{ flexDirection: 'row' }}>
-          <View style={{ width: 200, height: 200, backgroundColor: 'red', marginRight: 10 }} />
-          <View style={{ width: 200, height: 200, backgroundColor: 'green', marginRight: 10 }} />
-          <View style={{ width: 200, height: 200, backgroundColor: 'blue' }} />
-        </View>
-      </ScrollView>
-    </View>
-
         {/* <ValidatedTextInput
           name={"emailAddress"}
           placeholder={"Email"}
@@ -152,7 +124,7 @@ export default function ActiveRewardsPage({
       </ContentContainer>
       <ContentContainer>
       <TextButton onPress={() => navigation.navigate("MyRewardsDetails")}>
-          Use now
+          Rewards Page
         </TextButton>
       </ContentContainer>
     </View>

@@ -20,7 +20,6 @@ import { useAppDispatch, useAppSelector } from "./hooks";
 import { loadUserDataFromStore } from "./features/userSlice";
 import Profile from "./screens/Profile";
 import CommunityInfo from "./screens/CommunityInfo";
-import RewardsDetail from "./screens/RewardsDetail";
 import TimeBankRewardsPage from "./screens/TimeBankRewardsPage";
 import ActiveRewardsPage from "./screens/ActiveRewardsPage";
 import ActiveRewardsDetailsPage from "./screens/ActiveRewardsDetailsPage";
@@ -30,6 +29,7 @@ import PastRewardsPage from "./screens/PastRewardsPage";
 import PastRewardsDetailsPage from "./screens/PastRewardsDetailsPage";
 import CommunityPage from "./screens/CommunityPage";
 import MedicalServicesPage from "./screens/MedicalServicesPage";
+import RewardsDetailsPage from "./screens/RewardsDetailsPage";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -107,6 +107,7 @@ const Navigation = () => {
             <Stack.Screen name="PastRewardsDetailsPage" component={PastRewardsDetailsPage} />
             <Stack.Screen name="CommunityPage" component={CommunityPage} />
             <Stack.Screen name="MedicalServicesPage" component={MedicalServicesPage} />
+            <Stack.Screen name="RewardsDetailsPage" component={RewardsDetailsPage} />
           </>
         )}
       </Stack.Navigator>
