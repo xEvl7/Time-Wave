@@ -12,61 +12,62 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 
-type FormData = {
-  emailAddress: string;
-  password: string;
-};
+// type FormData = {
+//   emailAddress: string;
+//   password: string;
+// };
 
-export default function Login({
+export default function RewardsDetailsPage({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "LogIn">) {
-  const { control, handleSubmit } = useForm<FormData>({
-    defaultValues: {
-      emailAddress: "test@gmail.com",
-      password: "123456789",
-    },
-  });
+}: NativeStackScreenProps<RootStackParamList, "RewardsDetailsPage">) {
+  // const { control, handleSubmit } = useForm<FormData>({
+  //   defaultValues: {
+  //     emailAddress: "test@gmail.com",
+  //     password: "123456789",
+  //   },
+  // });
 
-  const userData = useAppSelector((state) => state.user.data);
-  const dispatch = useAppDispatch();
+  // const userData = useAppSelector((state) => state.user.data);
+  // const dispatch = useAppDispatch();
 
-  const handleLogin = async (data: FormData) => {
-    // @todo Indicate sign in process is running in UI
+  // const handleLogin = async (data: FormData) => {
+  //   // @todo Indicate sign in process is running in UI
 
-    console.log("Signing in user ...");
+  //   console.log("Signing in user ...");
 
-    try {
-      const userCredential = await auth().signInWithEmailAndPassword(
-        data.emailAddress,
-        data.password
-      );
+  //   try {
+  //     const userCredential = await auth().signInWithEmailAndPassword(
+  //       data.emailAddress,
+  //       data.password
+  //     );
 
-      console.log(userCredential.user.email, "has successfully signed in.");
-    } catch (error) {
-      console.error(error);
-      return;
-    }
-    // @todo Display error if login failed
+  //     console.log(userCredential.user.email, "has successfully signed in.");
+  //   } catch (error) {
+  //     console.error(error);
+  //     return;
+  //   }
+  //   // @todo Display error if login failed
 
-    console.log("Fetching user's data ...");
+  //   console.log("Fetching user's data ...");
 
-    try {
-      await dispatch(fetchUserData(data.emailAddress)).unwrap();
-    } catch (error) {
-      console.error(error);
-      return;
-    }
-  };
+  //   try {
+  //     await dispatch(fetchUserData(data.emailAddress)).unwrap();
+  //   } catch (error) {
+  //     console.error(error);
+  //     return;
+  //   }
+  // };
 
   return (
     <View>
       <BackgroundImageBox
         style={{ height: "38%" }}
-        source={require("../assets/background/login.png")}
+        //source={require("../assets/background/login.png")}
       ></BackgroundImageBox>
       <ContentContainer>
-        <HeaderText>Sign In Now</HeaderText>
-        <ValidatedTextInput
+        <HeaderText>Regan's parts</HeaderText>
+        
+        {/* <ValidatedTextInput
           name={"emailAddress"}
           placeholder={"Email"}
           control={control}
@@ -105,7 +106,7 @@ export default function Login({
             <Pressable>
               <Image source={require("../assets/logo/apple-logo.png")}></Image>
             </Pressable>
-            <Pressable onPress={() => navigation.navigate("TimeBankRewardsPage")}>
+            <Pressable>
               <Image
                 source={require("../assets/logo/facebook-logo.png")}
               ></Image>
@@ -116,13 +117,15 @@ export default function Login({
             <Pressable onPress={() => navigation.navigate("SignUp")}>
               <Text style={{ color: "#7BB8A3" }}>
                 Click here to register now
-              </Text>
-             </Pressable>
-             <Pressable onPress={() => navigation.navigate("TimeBankRewardsPage")}>
-              <Image source={require("../assets/logo/google-logo.png")}></Image>
-            </Pressable>
+              </Text> */}
+            {/* </Pressable>
           </View>
-        </View>
+        </View> */}
+      </ContentContainer>
+      <ContentContainer>
+      <TextButton onPress={() => navigation.navigate("MyRewardsDetails")}>
+          Rewards Page
+        </TextButton>
       </ContentContainer>
     </View>
   );
@@ -143,5 +146,15 @@ const styles = StyleSheet.create({
     minWidth: "78%",
     justifyContent: "space-evenly",
     marginTop: 40,
+  },
+  MyRewardsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  HeadingContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
   },
 });

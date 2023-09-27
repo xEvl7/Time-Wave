@@ -20,6 +20,16 @@ import { useAppDispatch, useAppSelector } from "./hooks";
 import { loadUserDataFromStore } from "./features/userSlice";
 import Profile from "./screens/Profile";
 import CommunityInfo from "./screens/CommunityInfo";
+import TimeBankRewardsPage from "./screens/TimeBankRewardsPage";
+import ActiveRewardsPage from "./screens/ActiveRewardsPage";
+import ActiveRewardsDetailsPage from "./screens/ActiveRewardsDetailsPage";
+import MyRewardsPage from "./screens/MyRewardsPage";
+import MyRewardsDetailsPage from "./screens/MyRewardsDetailsPage";
+import PastRewardsPage from "./screens/PastRewardsPage";
+import PastRewardsDetailsPage from "./screens/PastRewardsDetailsPage";
+import CommunityPage from "./screens/CommunityPage";
+import MedicalServicesPage from "./screens/MedicalServicesPage";
+import RewardsDetailsPage from "./screens/RewardsDetailsPage";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -38,7 +48,7 @@ const Navigation = () => {
         initialRouteName="Welcome"
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#7BB8A3",
+            backgroundColor: "#FF8D13",
           },
           headerTintColor: "#F6F6F6",
           headerShadowVisible: false,
@@ -88,6 +98,16 @@ const Navigation = () => {
               component={DisclaimerPrivacy}
             />
             <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+            <Stack.Screen name="TimeBankRewardsPage" component={TimeBankRewardsPage} />
+            <Stack.Screen name="ActiveRewardsPage" component={ActiveRewardsPage} />
+            <Stack.Screen name="ActiveRewardsDetailsPage" component={ActiveRewardsDetailsPage} />
+            <Stack.Screen name="MyRewardsPage" component={MyRewardsPage} />
+            <Stack.Screen name="MyRewardsDetailsPage" component={MyRewardsDetailsPage} />
+            <Stack.Screen name="PastRewardsPage" component={PastRewardsPage} />
+            <Stack.Screen name="PastRewardsDetailsPage" component={PastRewardsDetailsPage} />
+            <Stack.Screen name="CommunityPage" component={CommunityPage} />
+            <Stack.Screen name="MedicalServicesPage" component={MedicalServicesPage} />
+            <Stack.Screen name="RewardsDetailsPage" component={RewardsDetailsPage} />
           </>
         )}
       </Stack.Navigator>
