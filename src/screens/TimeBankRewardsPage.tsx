@@ -44,7 +44,7 @@ export default function TimeBankRewardsPage({
                 source={require("../assets/my-rewards.png")}></Image>
             </Pressable>
           </View>                
-          </ContentContainer>
+        </ContentContainer>
       </View>
       
       
@@ -57,7 +57,7 @@ export default function TimeBankRewardsPage({
           </Pressable>
         </View>  
         
-        <View style={{flexDirection:'row',marginTop:10,justifyContent: "space-between",width: '100%',}}>
+        <View style={{flexDirection:'row',marginTop:"5%",marginLeft:"5%",justifyContent: "space-between",width: '80%',}}>
               <Text style={{fontSize:20,fontWeight:'bold'}}>
               Community
             </Text>
@@ -70,11 +70,11 @@ export default function TimeBankRewardsPage({
             </View>
             </View>
       
-        <View style={{marginTop:50}}>
+        <View style={{marginTop:'5%'}}>
             <ScrollView horizontal={true} 
             contentContainerStyle={{ flexGrow: 1 }} >    
               <View style={styles.gridItem}>
-              <Pressable onPress={() => navigation.navigate("CommunityPage")}>
+              <Pressable onPress={() => navigation.navigate("RewardsDetailsPage")}>
                 <View style={styles.imageBox}>
                   <Image
                     source={require("../assets/test1.png")}
@@ -143,7 +143,7 @@ export default function TimeBankRewardsPage({
 
             </ScrollView>
           </View>  
-          <View style={{ flexDirection: 'row',width :"100%",justifyContent: "space-between", marginTop:20,marginLeft:20}}>
+          <View style={{ flexDirection: 'row',marginTop:"5%",marginLeft:"5%",justifyContent: "space-between",width: '80%',}}>
             <View >
             <Text style={{fontSize:20,fontWeight:'bold'}}>
             Medical Services

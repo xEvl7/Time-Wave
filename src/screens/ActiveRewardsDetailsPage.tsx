@@ -12,126 +12,62 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 
-// type FormData = {
-//   emailAddress: string;
-//   password: string;
-// };
+let points = 120;
 
-export default function ActiveRewardsPage({
+export default function ActiveRewardsDetailsPage({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "My Rewards">) {
-  // const { control, handleSubmit } = useForm<FormData>({
-  //   defaultValues: {
-  //     emailAddress: "test@gmail.com",
-  //     password: "123456789",
-  //   },
-  // });
-
-  // const userData = useAppSelector((state) => state.user.data);
-  // const dispatch = useAppDispatch();
-
-  // const handleLogin = async (data: FormData) => {
-  //   // @todo Indicate sign in process is running in UI
-
-  //   console.log("Signing in user ...");
-
-  //   try {
-  //     const userCredential = await auth().signInWithEmailAndPassword(
-  //       data.emailAddress,
-  //       data.password
-  //     );
-
-  //     console.log(userCredential.user.email, "has successfully signed in.");
-  //   } catch (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-  //   // @todo Display error if login failed
-
-  //   console.log("Fetching user's data ...");
-
-  //   try {
-  //     await dispatch(fetchUserData(data.emailAddress)).unwrap();
-  //   } catch (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-  // };
-
+}: NativeStackScreenProps<RootStackParamList, "ActiveRewardsDetailsPage">) {
+  
   return (
-    <View>
-      <BackgroundImageBox
-        style={{ height: "38%" }}
-        //source={require("../assets/background/login.png")}
-      ></BackgroundImageBox>
-      <ContentContainer>
-        <HeaderText>Active Rewards</HeaderText>
-        
-        {/* <ValidatedTextInput
-          name={"emailAddress"}
-          placeholder={"Email"}
-          control={control}
-          rules={{
-            required: "Email Address is required.",
-            pattern: {
-              value: /^[\w-\.]+@([\w-]+\.)com$/,
-              message: "Invalid Email Address.",
-            },
-          }}
-        />
-        <ValidatedTextInput
-          name={"password"}
-          placeholder={"Password"}
-          control={control}
-          rules={{
-            required: "Password is required.",
-          }}
-          secureTextEntry
-        />
-        <TextButton
-          style={{ marginTop: 2 }}
-          onPress={handleSubmit(handleLogin)}
-        >
-          Login
-        </TextButton>
-        <View style={styles.alternativesContainer}>
-          <Pressable onPress={() => navigation.navigate("ForgotPassword")}>
-            <Text style={{ fontSize: 12 }}>Forgot Password</Text>
-          </Pressable>
-          <Text style={{ marginTop: 30, marginBottom: 20 }}>Log in with:</Text>
-          <View style={styles.thirdPartyAuthContainer}>
-            <Pressable>
-              <Image source={require("../assets/logo/google-logo.png")}></Image>
-            </Pressable>
-            <Pressable>
-              <Image source={require("../assets/logo/apple-logo.png")}></Image>
-            </Pressable>
-            <Pressable>
-              <Image
-                source={require("../assets/logo/facebook-logo.png")}
-              ></Image>
-            </Pressable>
-          </View>
-          <View style={styles.registerContainer}>
-            <Text>New member?</Text>
-            <Pressable onPress={() => navigation.navigate("SignUp")}>
-              <Text style={{ color: "#7BB8A3" }}>
-                Click here to register now
-              </Text> */}
-            {/* </Pressable>
-          </View>
-        </View> */}
-      </ContentContainer>
-      <ContentContainer>
-      <TextButton onPress={() => navigation.navigate("MyRewardsDetails")}>
-          Use now
-        </TextButton>
-      </ContentContainer>
+    <View>      
+        <View style={styles.BackgroundStyle}>
+          <View>
+            <Image       
+            source={require("../assets/test3.png")}
+            style={styles.image}/></View>
+          <ContentContainer>
+            <Text style={styles.Header}>
+              Medical Check Up
+            </Text>          
+            <View>
+            <Image
+              source={require("../assets/active-icon.png")}
+              style={{marginLeft:'40%',marginTop:10}}
+            />
+            </View>
+            <View style={{alignContent:'center'}}>      
+              <View style={styles.TabStyle}> 
+                <View>                  
+                    <Text style={styles.TabNavigateTextMajor}>Redeemed with           
+                    </Text>                     
+                    <Text style={{fontSize:17,fontWeight:'bold',marginTop:20,marginLeft:5}}>
+                    {points} Points
+                    </Text>                              
+                </View>
+                <View>                  
+                  <Text style={styles.TabNavigateTextMinor}>Expired on         
+                  </Text>          
+                  <Text style={{fontSize:20,fontWeight:'bold',marginTop:20}}>
+                    3 OCT 2023
+                  </Text>
+                  <Text style={{fontSize:20,fontWeight:'bold'}}>                    
+                    11:59 PM
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <TextButton style={styles.mainButton} textStyle={styles.mainButtonText}>
+             Use Now
+            </TextButton>
+               
+          </ContentContainer>
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create({  
   alternativesContainer: {
     alignItems: "center",
     marginTop: 10,
@@ -147,14 +83,42 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     marginTop: 40,
   },
-  MyRewardsContainer: {
+  BackgroundStyle: {
+    height: 150,
+    width: "100%",
+    backgroundColor:"#FF8D13" ,
+    //alignItems: "center",
+    //justifyContent: "center",
+  },
+  Header:{
+    alignSelf:'center',
+    fontSize:30,
+  },
+  image: {
+    alignSelf : "center" ,
+    marginTop:10,
+    marginBottom:30,
+    //position: 'absolute',
+    //top: 0,
+    //left: 0,
+  },
+  TabStyle:{
+    marginTop: 10,
     flexDirection: "row",
     justifyContent: "space-around",
-    width: "100%",
   },
-  HeadingContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
+  TabPressMajor:{
+    backgroundColor:"black",
+    height:2,
+    width:"90%",
+    marginTop:10,
   },
+  TabNavigateTextMajor:{
+    fontSize:18,
+  },
+  TabNavigateTextMinor:{
+    fontSize:18,
+  },
+  
+
 });

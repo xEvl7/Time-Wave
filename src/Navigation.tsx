@@ -100,7 +100,7 @@ const Navigation = () => {
             <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
             <Stack.Screen name="TimeBankRewardsPage" component={TimeBankRewardsPage} />
             <Stack.Screen name="ActiveRewardsPage" component={ActiveRewardsPage} />
-            <Stack.Screen name="ActiveRewardsDetailPage" component={ActiveRewardsDetailsPage} />
+            <Stack.Screen name="ActiveRewardsDetailsPage" component={ActiveRewardsDetailsPage} />
             <Stack.Screen name="MyRewardsPage" component={MyRewardsPage} />
             <Stack.Screen name="MyRewardsDetailsPage" component={MyRewardsDetailsPage} />
             <Stack.Screen name="PastRewardsPage" component={PastRewardsPage} />

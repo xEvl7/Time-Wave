@@ -17,9 +17,9 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 //   password: string;
 // };
 
-export default function Login({
+export default function RewardsDetailsPage({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "MyRewardsDetailsPage">) {
+}: NativeStackScreenProps<RootStackParamList, "RewardsDetailsPage">) {
   // const { control, handleSubmit } = useForm<FormData>({
   //   defaultValues: {
   //     emailAddress: "test@gmail.com",
@@ -65,7 +65,7 @@ export default function Login({
         //source={require("../assets/background/login.png")}
       ></BackgroundImageBox>
       <ContentContainer>
-        <HeaderText>Link to Part 1</HeaderText>
+        <HeaderText>Regan's parts</HeaderText>
         
         {/* <ValidatedTextInput
           name={"emailAddress"}

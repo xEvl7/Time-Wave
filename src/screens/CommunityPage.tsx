@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View, Image } from "react-native";
+import { Pressable, StyleSheet, Text, View, Image ,ScrollView} from "react-native";
 import auth from "@react-native-firebase/auth";
 
 import TextButton from "../components/TextButton";
@@ -17,44 +17,84 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 //   password: string;
 // };
 
-let numberofItems=6;
-const generateGridItems = (numberOfItems) => {
-  const gridItems = [];
-  for (let i = 0; i < numberOfItems; i++) {
-    gridItems.push(
-      <View style={styles.gridItem} key={i}>
-        <Image
-          source={require("../assets/my-rewards.png")}
-          style={styles.image}
-        />
-        <Text style={styles.text}>Grid Item {i + 1}</Text>
-      </View>
-    );
-  }
-  return gridItems;
-}
-const Grid = ({ numberOfItems }) => {
-  const gridItems = generateGridItems(numberOfItems);
-
-  return (
-    <View style={styles.gridContainer}>
-      {gridItems}
-    </View>
-  );
-}
-
-
-export default function Login({
+export default function ActiveRewardsPage({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "Community">) {
+}: NativeStackScreenProps<RootStackParamList, "My Rewards">) {
+  // const { control, handleSubmit } = useForm<FormData>({
+  //   defaultValues: {
+  //     emailAddress: "test@gmail.com",
+  //     password: "123456789",
+  //   },
+  // });
+
+  // const userData = useAppSelector((state) => state.user.data);
+  // const dispatch = useAppDispatch();
+
+  // const handleLogin = async (data: FormData) => {
+  //   // @todo Indicate sign in process is running in UI
+
+  //   console.log("Signing in user ...");
+
+  //   try {
+  //     const userCredential = await auth().signInWithEmailAndPassword(
+  //       data.emailAddress,
+  //       data.password
+  //     );
+
+  //     console.log(userCredential.user.email, "has successfully signed in.");
+  //   } catch (error) {
+  //     console.error(error);
+  //     return;
+  //   }
+  //   // @todo Display error if login failed
+
+  //   console.log("Fetching user's data ...");
+
+  //   try {
+  //     await dispatch(fetchUserData(data.emailAddress)).unwrap();
+  //   } catch (error) {
+  //     console.error(error);
+  //     return;
+  //   }
+  // };
+
   return (
     <View>
-      <View style={styles.gridContainer}>
-        {gridItems}
-      </View>
+      <BackgroundImageBox
+        style={{ height: "38%" }}
+        //source={require("../assets/background/login.png")}
+      ></BackgroundImageBox>
       <ContentContainer>
-        <HeaderText>Level</HeaderText>
+        <HeaderText>Active Rewards</HeaderText>
         
+        <View style={{ flex: 1, padding: 10 }}>
+      {/* 标题区域 */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
+          Your Title
+        </Text>
+        <Pressable onPress={() => navigation.navigate('OtherPage')}>
+          <Text style={{ marginLeft: 10, color: 'blue' }}>
+            Go to Other Page
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* 水平滑动板块 */}
+      <ScrollView
+        horizontal={true}
+        contentContainerStyle={{ flexGrow: 1 }}
+        style={{ flex: 1 }}
+      >
+        {/* 板块内部的元素 */}
+        <View style={{ flexDirection: 'row' }}>
+          <View style={{ width: 200, height: 200, backgroundColor: 'red', marginRight: 10 }} />
+          <View style={{ width: 200, height: 200, backgroundColor: 'green', marginRight: 10 }} />
+          <View style={{ width: 200, height: 200, backgroundColor: 'blue' }} />
+        </View>
+      </ScrollView>
+    </View>
+
         {/* <ValidatedTextInput
           name={"emailAddress"}
           placeholder={"Email"}
@@ -112,7 +152,7 @@ export default function Login({
       </ContentContainer>
       <ContentContainer>
       <TextButton onPress={() => navigation.navigate("MyRewardsDetails")}>
-          My Rewards Details
+          Use now
         </TextButton>
       </ContentContainer>
     </View>
@@ -120,33 +160,29 @@ export default function Login({
 }
 
 const styles = StyleSheet.create({
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  alternativesContainer: {
+    alignItems: "center",
+    marginTop: 10,
   },
-  gridItem: {
-    width: '48%',
-    height: 150,
-    position: 'relative',
-    overflow: 'hidden',
-    marginBottom: 10,
+  thirdPartyAuthContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
   },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-    position: 'absolute',
-    top: 0,
-    left: 0,
+  registerContainer: {
+    flexDirection: "row",
+    minWidth: "78%",
+    justifyContent: "space-evenly",
+    marginTop: 40,
   },
-  text: {
-    color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{translateX: -25}, {translateY: -8}],
+  MyRewardsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  HeadingContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
   },
 });

@@ -105,7 +105,7 @@ export default function Login({
             <Pressable>
               <Image source={require("../assets/logo/apple-logo.png")}></Image>
             </Pressable>
-            <Pressable>
+            <Pressable onPress={() => navigation.navigate("TimeBankRewardsPage")}>
               <Image
                 source={require("../assets/logo/facebook-logo.png")}
               ></Image>
