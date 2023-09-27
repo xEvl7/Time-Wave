@@ -155,7 +155,7 @@ const ProfileSection = ({ name, navigation }: ProfileSectionProps) => {
           style={styles.mainButton}
           textStyle={styles.mainButtonText}
           onPress={() => {
-            // navigation.navigate("RewardsPage");
+            navigation.navigate("RewardsPage");
           }}
         >
           My Rewards

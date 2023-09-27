@@ -15,4 +15,9 @@ export type RootStackParamList = {
   SelectAdmin: undefined;
   Profile: undefined;
   CommunityInfo: CommunityProps;
+  
+  RewardsPage: undefined;
+  PointsHistory: undefined;
+  PointsPolicy: undefined;
+  ContributionsHistory: undefined;
 };

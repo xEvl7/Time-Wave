@@ -21,6 +21,11 @@ import { loadUserDataFromStore } from "./features/userSlice";
 import Profile from "./screens/Profile";
 import CommunityInfo from "./screens/CommunityInfo";
 
+import RewardsPage from "./screens/RewardsPage";
+import PointsHistory from "./screens/PointsHistory";
+import PointsPolicy from "./screens/PointsPolicy";
+import ContributionsHistory from "./screens/ContributionsHistory";
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const Navigation = () => {
@@ -38,10 +43,14 @@ const Navigation = () => {
         initialRouteName="Welcome"
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#7BB8A3",
+            backgroundColor: "#FFFFFF",
           },
-          headerTintColor: "#F6F6F6",
+          headerTintColor: "#F37906",
           headerShadowVisible: false,
+          headerTitleStyle: {
+            color: "#000000", // Set the color you want for the header text
+          },
+          headerTitleAlign: "center",
         }}
       >
         {isSignedIn ? (
@@ -77,6 +86,35 @@ const Navigation = () => {
             />
             <Stack.Screen name="Profile" component={Profile} />
             <Stack.Screen name="CommunityInfo" component={CommunityInfo} />
+
+            <Stack.Screen
+              name="RewardsPage"
+              component={RewardsPage}
+              options={{
+                title: "Rewards",
+              }}
+            />
+            <Stack.Screen
+              name="PointsHistory"
+              component={PointsHistory}
+              options={{
+                title: "Points History",
+              }}
+            />
+            <Stack.Screen
+              name="PointsPolicy"
+              component={PointsPolicy}
+              options={{
+                title: "Points Policy",
+              }}
+            />
+            <Stack.Screen
+              name="ContributionsHistory"
+              component={ContributionsHistory}
+              options={{
+                title: "Contributions History",
+              }}
+            />
           </>
         ) : (
           <>
