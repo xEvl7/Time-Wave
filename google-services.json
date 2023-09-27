@@ -1,36 +1,26 @@
 {
   "project_info": {
-    "project_number": "666062417383",
-    "project_id": "time-wave-88653",
-    "storage_bucket": "time-wave-88653.appspot.com"
+    "project_number": "655663976059",
+    "project_id": "test-6d921",
+    "storage_bucket": "test-6d921.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:666062417383:android:493086e797f0bb59052142",
+        "mobilesdk_app_id": "1:655663976059:android:63535e3d3a8010ce3bdcde",
         "android_client_info": {
           "package_name": "com.stevenjj_chang.TimeWave"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "666062417383-tbs9e9pumegap8o4g1qdf488eq2mnfjr.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBWT9OfgrTCEE3SKq3aV1XGZHubzy7sP_A"
+          "current_key": "AIzaSyBpZo6UGsDItdiz3IFablET_IolgMseink"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "666062417383-dh8sr2qkkdt37avrum3b4tbiko51kh55.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

@@ -31,7 +31,7 @@ export default function TextButton({
 const styles = StyleSheet.create({
   button: {
     minHeight: 45,
-    backgroundColor: "#FF8D13",
+    backgroundColor: "#7BB8A3",
     borderRadius: 12,
     marginTop: 15,
   },

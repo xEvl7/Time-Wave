@@ -33,10 +33,13 @@ const styles = StyleSheet.create({
   box: {
     height: "43%",
     width: "100%",
-    backgroundColor: "#FF8D13",
+    backgroundColor: "#A3D1F8",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
+ 
 });
+
+

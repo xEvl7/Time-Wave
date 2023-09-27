@@ -118,6 +118,11 @@ export default function Login({
                 Click here to register now
               </Text>
             </Pressable>
+            <Pressable onPress={() => navigation.navigate("Reward")}>
+              <Text style={{ color: "#7BB8A3" }}>
+                let me skip
+              </Text>
+            </Pressable>
           </View>
         </View>
       </ContentContainer>

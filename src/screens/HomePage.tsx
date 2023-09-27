@@ -77,7 +77,9 @@ const NavigationBar = ({
       <NavigationItem
         itemSource={require("../assets/home-icon.png")}
         text="Home"
-        onPress={() => {}}
+        onPress={() => {
+          navigation.navigate("AppInfo");
+        }}
       />
       <NavigationItem
         itemSource={require("../assets/scan-icon.png")}
@@ -104,8 +106,7 @@ const ListSection = ({ title }: ListSectionProps) => {
       <FlatList
         style={styles.list}
         data={communities}
-        // renderItem={({ community }) => (
-        renderItem={({}) => (
+        renderItem={({ community }) => (
           <View style={styles.sectionItem}>
             <Text style={{ fontSize: 18 }}>Test</Text>
             <TextButton
@@ -143,24 +144,13 @@ const ProfileSection = ({ name, navigation }: ProfileSectionProps) => {
         </Pressable>
       </View>
       <View style={styles.mainButtonContainer}>
-        <TextButton
-          style={styles.mainButton}
-          textStyle={styles.mainButtonText}
-          onPress={() => {}}
-        >
+        <TextButton style={styles.mainButton} textStyle={styles.mainButtonText} onPress={() => {}}>
           All
         </TextButton>
-
-        <TextButton
-          style={styles.mainButton}
-          textStyle={styles.mainButtonText}
-          onPress={() => {
-            // navigation.navigate("RewardsPage");
-          }}
-        >
+        
+        <TextButton style={styles.mainButton} textStyle={styles.mainButtonText} onPress={() => {navigation.navigate("Reward")}}>
           My Rewards
         </TextButton>
-
         <TextButton
           style={styles.mainButton}
           textStyle={styles.mainButtonText}
@@ -178,7 +168,6 @@ export default HomePage;
 const styles = StyleSheet.create({
   listContainer: {
     flex: 1 / 3,
-    backgroundColor: "white",
   },
   sectionInfoContainer: {
     flexDirection: "row",
@@ -207,7 +196,7 @@ const styles = StyleSheet.create({
   profileSectionBackground: {
     width: "100%",
     flex: 1,
-    backgroundColor: "#FF8D13",
+    backgroundColor: "#7BB8A3",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
@@ -216,7 +205,7 @@ const styles = StyleSheet.create({
   },
   navigationBarContainer: {
     flex: 0.5,
-    backgroundColor: "#FF8D13",
+    backgroundColor: "#7BB8A3",
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
     marginTop: 20,

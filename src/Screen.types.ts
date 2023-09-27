@@ -3,6 +3,7 @@ import { CommunityProps } from "./features/communitySlice";
 export type RootStackParamList = {
   Welcome: undefined;
   LogIn: undefined;
+  Reward: undefined;
   SignUp: undefined;
   DisclaimerPrivacy: undefined;
   ForgotPassword: undefined;

@@ -2,12 +2,15 @@ import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+
 import Welcome from "./screens/Welcome";
+import reward from "./screens/reward";
 import Login from "./screens/Login";
 import SignUp from "./screens/SignUp";
 import AppInfo from "./screens/AppInfo";
 import Benefits from "./screens/Benefits";
 import HomePage from "./screens/HomePage";
+import Noenuogh from "./screens/noEnough";
 import DisclaimerPrivacy from "./screens/DisclaimerPrivacy";
 import ForgotPassword from "./screens/ForgotPassword";
 import ScanPage from "./screens/ScanPage";
@@ -88,6 +91,38 @@ const Navigation = () => {
               component={DisclaimerPrivacy}
             />
             <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+
+            
+            <Stack.Screen
+              name="ScanPage"
+              component={ScanPage}
+              options={{ title: "Scan QR Code" }}
+            />
+            <Stack.Screen name="AppInfo" component={AppInfo} />
+            <Stack.Screen name="Benefits" component={Benefits} />
+            <Stack.Screen
+              name="QrCodePage"
+              component={QrCodePage}
+              options={{ title: "Show QR Code" }}
+            />
+            <Stack.Screen name="HomePage" component={HomePage} />
+            <Stack.Screen name="Reward" component={reward} />
+            <Stack.Screen
+              name="CreateCommunity"
+              component={CreateCommunity}
+              options={{
+                title: "Create a community",
+              }}
+            />
+            <Stack.Screen
+              name="SelectAdmin"
+              component={SelectAdmin}
+              options={{
+                title: "Select admin",
+              }}
+            />
+            <Stack.Screen name="Profile" component={Profile} />
+            <Stack.Screen name="CommunityInfo" component={CommunityInfo} />
           </>
         )}
       </Stack.Navigator>
