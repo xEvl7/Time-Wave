@@ -105,7 +105,7 @@ export default function Login({
             <Pressable>
               <Image source={require("../assets/logo/apple-logo.png")}></Image>
             </Pressable>
-            <Pressable onPress={() => navigation.navigate("TimeBankRewardsPage")}>
+            <Pressable>
               <Image
                 source={require("../assets/logo/facebook-logo.png")}
               ></Image>
@@ -117,9 +117,6 @@ export default function Login({
               <Text style={{ color: "#7BB8A3" }}>
                 Click here to register now
               </Text>
-             </Pressable>
-             <Pressable onPress={() => navigation.navigate("TimeBankRewardsPage")}>
-              <Image source={require("../assets/logo/google-logo.png")}></Image>
             </Pressable>
           </View>
         </View>
