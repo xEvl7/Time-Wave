@@ -1,6 +1,7 @@
 import {TouchableOpacity, Alert,Pressable, StyleSheet, Text, View, Image } from "react-native";
 //import auth from "@react-native-firebase/auth";
 
+
 import TextButton from "../components/TextButton";
 import HeaderText from "../components/text_components/HeaderText";
 import BackgroundImageBox from "../components/BackgroundImageBox";
@@ -21,26 +22,30 @@ import React from "react";
 
 const testpoint=100;
 
+
+
+
+
 const showTip = () => {
   Alert.alert(
 
     'Redeemed with 100 points!',
-  'Use this reward by 3 Oct 2023  Remaining Balance: 13 points',
+  'Use this reward by '+ now.toLocaleDateString()+ '          Remaining Balance: 13 points',
   
   )
-}
+}//show message to confirm redeemed reward
 
 const showAlert = () =>{
   Alert.alert(
       'Get This Reward!',
-      'Redeem with 100 points?',
+      'Redeem with '+ sew.itemprice +' points?',
       [
           {text: 'Cancel', style: 'cancel'},
           {text: 'Confirm', onPress: () => showTip()},
       ],
       {cancelable: false}
   )
-}
+}//if point enough to redeem reward,show this message for last comfirm redeem
 
 export default function Reward({
   navigation,
@@ -55,7 +60,8 @@ export default function Reward({
     <View style={[styles.share]}>  
       
       <Image style={{ height: 50,width: 50,marginTop: 5, marginBottom: 5 ,marginRight: 5 ,resizeMode: 'contain'}} source={require("../assets/share.png")}></Image>
-    </View>
+  
+    </View> 
     
     <View style={[styles.box]}>
       <Image  source={require("../assets/background/sewing.png")}></Image>
@@ -64,19 +70,19 @@ export default function Reward({
     </View>
       
       <ContentContainer>
-        <HeaderText>Singer Sewing Machine</HeaderText>
+        <HeaderText>{sew.itemname}</HeaderText>
        
         <View style={styles.alternativesContainer}>
         <View style={styles.pointContainer}>
         <Text style={styles.boldtext}>Points</Text>
         
-        <Text style={{ fontSize: 20 }}>100  points</Text>
+        <Text style={{ fontSize: 20 }}>{sew.itemprice} points</Text>
         </View>
         
         <View style={styles.validityContainer}>
         <Text style={styles.boldtext}>Validity</Text>
     
-        <Text style={{ fontSize: 20}}>8 Aug 2023 to 3 Oct 2023</Text>
+        <Text style={{ fontSize: 20}}>{sew.validity}</Text>
         </View>
         </View>
 
@@ -84,13 +90,13 @@ export default function Reward({
           
           <View style={styles.textContainer}>
           <Text style={styles.boldtext}>Highlight</Text>
-          <Text style={{ marginTop: 10, marginBottom: 10 }}>"Although, either structural comparison, based on sequence analysis or hardware maintenance boosts the growth of The Benefit of Explicative Capacity" </Text>
+          <Text style={{ marginTop: 10, marginBottom: 10 }}>{sew.highlight} </Text>
           </View>
           <View style={styles.textContainer}>
           <Text style={styles.boldtext}>Terms & Conditions</Text>
           
 
-          <Text style={{ marginTop: 5, marginBottom: 10 }}>"Without a doubt, Barton Ashworth was right in saying that, the portion of the continuing support can be regarded as slowly insignificant. </Text>
+          <Text style={{ marginTop: 5, marginBottom: 10 }}>{sew.term}</Text>
             
             
           </View>
@@ -98,7 +104,7 @@ export default function Reward({
             
             <Text style={styles.boldtext}>Contact Info</Text>
   
-            <Text style={{ marginTop: 5, marginBottom: 10 }}>Official Mavecap </Text>
+            <Text style={{ marginTop: 5, marginBottom: 10 }}>{sew.contact} </Text>
               
               
             </View>
@@ -122,6 +128,35 @@ export default function Reward({
   );
 }
 
+class Item {
+  itemname: string;
+  itemprice: number;
+  validity: string;
+  highlight: string;
+  term: string;
+  contact: string;
+
+  constructor(itemname: string,itemprice: number, validity: string,highlight: string,term: string,contact: string){
+      this.itemname = itemname
+      this.itemprice = itemprice
+      this.validity = validity
+      this.highlight =highlight
+      this.term = term
+      this.contact =contact
+  }
+}//class of item
+
+const sew =new Item('Singer Sewing Machine',
+100,
+'8 Aug 2023 to 3 Oct 2023',
+"Although, either structural comparison, based on sequence analysis or hardware maintenance boosts the growth of The Benefit of Explicative Capacity" ,
+"Without a doubt, Barton Ashworth was right in saying that, the portion of the continuing support can be regarded as slowly insignificant.",
+'Official Mavecap');//sewing machine details
+
+
+
+const now = new Date();//get the current date
+
 const styles = StyleSheet.create({
   boldtext:{fontWeight: "bold",fontSize: 25},
   alternativesContainer: {
@@ -129,7 +164,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "space-evenly",
     marginTop: 10,
-  },
+  },//container
   pointContainer: {
     justifyContent: "space-evenly",
     width: "30%",
@@ -159,7 +194,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: 'center',
     marginTop: 50
-},
+},//dteails of button
 
   box: {
     flexDirection: "row",
