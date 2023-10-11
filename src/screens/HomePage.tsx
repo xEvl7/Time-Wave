@@ -104,12 +104,14 @@ const ListSection = ({ title }: ListSectionProps) => {
       <FlatList
         style={styles.list}
         data={communities}
-        renderItem={({ community }) => (
+        // renderItem={({ community }) => (
+        renderItem={({}) => (
           <View style={styles.sectionItem}>
             <Text style={{ fontSize: 18 }}>Test</Text>
             <TextButton
               style={styles.viewButton}
               textStyle={styles.viewButtonText}
+              onPress={() => {}}
             >
               View
             </TextButton>
@@ -141,12 +143,24 @@ const ProfileSection = ({ name, navigation }: ProfileSectionProps) => {
         </Pressable>
       </View>
       <View style={styles.mainButtonContainer}>
-        <TextButton style={styles.mainButton} textStyle={styles.mainButtonText}>
+        <TextButton
+          style={styles.mainButton}
+          textStyle={styles.mainButtonText}
+          onPress={() => {}}
+        >
           All
         </TextButton>
-        <TextButton style={styles.mainButton} textStyle={styles.mainButtonText}>
+
+        <TextButton
+          style={styles.mainButton}
+          textStyle={styles.mainButtonText}
+          onPress={() => {
+            // navigation.navigate("RewardsPage");
+          }}
+        >
           My Rewards
         </TextButton>
+
         <TextButton
           style={styles.mainButton}
           textStyle={styles.mainButtonText}
@@ -164,6 +178,7 @@ export default HomePage;
 const styles = StyleSheet.create({
   listContainer: {
     flex: 1 / 3,
+    backgroundColor: "white",
   },
   sectionInfoContainer: {
     flexDirection: "row",
@@ -192,7 +207,7 @@ const styles = StyleSheet.create({
   profileSectionBackground: {
     width: "100%",
     flex: 1,
-    backgroundColor: "#7BB8A3",
+    backgroundColor: "#FF8D13",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
@@ -201,7 +216,7 @@ const styles = StyleSheet.create({
   },
   navigationBarContainer: {
     flex: 0.5,
-    backgroundColor: "#7BB8A3",
+    backgroundColor: "#FF8D13",
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
     marginTop: 20,
