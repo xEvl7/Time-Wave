@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View, Image } from "react-native";
+import { Pressable, StyleSheet, Text, View, Image,ScrollView} from "react-native";
 import auth from "@react-native-firebase/auth";
 
 import TextButton from "../components/TextButton";
@@ -13,6 +13,8 @@ import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 
 let points = 120;
+let DescriptionText="To put it simply, any further consideration is getting more complicated against the backdrop of The Penetration of Autonomous Accomplishment ";
+let TermsAndConditionsText="Resulting from review or analysis of threats and opportunities, we can presume that components of the interpretation of the comprehensive set of policy statements particularly the potential role models or the effective time management the share of corporate responsibilities in terms of its dependence on The Strategy of Excellent Feature ";
 
 export default function ActiveRewardsDetailsPage({
   navigation,
@@ -44,6 +46,8 @@ export default function ActiveRewardsDetailsPage({
                     {points} Points
                     </Text>                              
                 </View>
+                <View style={{backgroundColor:'lightgrey',width:1,height:'90%',marginTop:5}}>                  
+                </View>
                 <View>                  
                   <Text style={styles.TabNavigateTextMinor}>Expired on         
                   </Text>          
@@ -53,13 +57,26 @@ export default function ActiveRewardsDetailsPage({
                   <Text style={{fontSize:20,fontWeight:'bold'}}>                    
                     11:59 PM
                   </Text>
-                </View>
+                </View>                
               </View>
             </View>
+            
+            <View style={{backgroundColor:'lightgrey',marginTop:10,height:1}}></View>
+            
+              <View>
+                <Text style={{fontWeight:'bold',marginBottom:8,marginTop:10}}>Description</Text>
+                <Text>{DescriptionText}</Text>
+              </View>
+              <View>
+                <Text style={{fontWeight:'bold',marginBottom:8,marginTop:12}}>Terms & Conditions</Text>
+                <Text>{TermsAndConditionsText}</Text>
+              </View>            
 
-            <TextButton style={styles.mainButton} textStyle={styles.mainButtonText}>
-             Use Now
-            </TextButton>
+            <View style={{backgroundColor:'lightgrey',marginTop:10,height:1}}></View>
+
+            <TextButton onPress={() => navigation.navigate("ActiveRewardsDetails_UseNowPage")}>
+                Use Now
+            </TextButton> 
                
           </ContentContainer>
       </View>
@@ -119,6 +136,15 @@ const styles = StyleSheet.create({
   TabNavigateTextMinor:{
     fontSize:18,
   },
-  
+  mainButton: {
+    backgroundColor: "#E3EAE7",
+    height: "60%",
+    minWidth: "20%",
+    paddingHorizontal: 20,
+    marginTop: 0,
+  },
+  mainButtonText: {
+    color: "#06090C",
+  },
 
 });

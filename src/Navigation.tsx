@@ -30,6 +30,7 @@ import PastRewardsDetailsPage from "./screens/PastRewardsDetailsPage";
 import CommunityPage from "./screens/CommunityPage";
 import MedicalServicesPage from "./screens/MedicalServicesPage";
 import RewardsDetailsPage from "./screens/RewardsDetailsPage";
+import ActiveRewardsDetails_UseNowPage from "./screens/ActiveRewardsDetails_UseNowPage";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -108,6 +109,7 @@ const Navigation = () => {
             <Stack.Screen name="CommunityPage" component={CommunityPage} />
             <Stack.Screen name="MedicalServicesPage" component={MedicalServicesPage} />
             <Stack.Screen name="RewardsDetailsPage" component={RewardsDetailsPage} />
+            <Stack.Screen name="ActiveRewardsDetails_UseNowPage" component={ActiveRewardsDetails_UseNowPage} />
           </>
         )}
       </Stack.Navigator>

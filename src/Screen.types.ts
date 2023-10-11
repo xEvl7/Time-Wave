@@ -24,4 +24,6 @@ export type RootStackParamList = {
   PastRewardsDetailsPage: undefined;
   CommunityPage: undefined;
   MedicalServicesPage:undefined;
+  RewardsDetailsPage:undefined;
+  ActiveRewardsDetails_UseNowPage:undefined;
 };

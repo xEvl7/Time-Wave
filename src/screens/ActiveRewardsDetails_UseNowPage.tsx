@@ -16,9 +16,9 @@ let points = 120;
 let DescriptionText="To put it simply, any further consideration is getting more complicated against the backdrop of The Penetration of Autonomous Accomplishment ";
 let TermsAndConditionsText="Resulting from review or analysis of threats and opportunities, we can presume that components of the interpretation of the comprehensive set of policy statements particularly the potential role models or the effective time management the share of corporate responsibilities in terms of its dependence on The Strategy of Excellent Feature ";
 
-export default function PastRewardsDetailsPage({
+export default function ActiveRewardsDetailsPage({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "PastRewardsDetailsPage">) {
+}: NativeStackScreenProps<RootStackParamList, "ActiveRewardsDetailsPage">) {
   
   return (
     <View>      
@@ -33,7 +33,7 @@ export default function PastRewardsDetailsPage({
             </Text>          
             <View>
             <Image
-              source={require("../assets/used.png")}
+              source={require("../assets/active-icon.png")}
               style={{marginLeft:'40%',marginTop:10}}
             />
             </View>
