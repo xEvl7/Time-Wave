@@ -191,7 +191,7 @@ const SignUp = ({
         <View style={styles.DisclaimerPrivacyLabel}>
           <Text>By continuing, I agree to the</Text>
           <Pressable onPress={() => navigation.navigate("DisclaimerPrivacy")}>
-            <Text style={{ color: "#7BB8A3" }}>
+            <Text style={{ color: "#FF8D13" }}>
               Disclaimer & Privacy Policy
             </Text>
           </Pressable>

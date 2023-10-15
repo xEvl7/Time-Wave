@@ -14,6 +14,28 @@ import { RootStackParamList } from "../Screen.types";
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
+import firestore from '@react-native-firebase/firestore';
+import { Timestamp } from "firebase/firestore";
+import { DateTime } from 'luxon';
+
+// type FormData = {
+//   userPointActivity_id: string;
+//   earned_points: number;
+//   used_points: number;
+//   timestamp: Timestamp;
+//   pointActivity_category: string;
+//   pointActivity_name: string;
+// };
+
+interface UserPointActivity {
+  earned_points: number;
+  pointActivity_category: string;
+  pointActivity_name: string;
+  timestamp: Timestamp;
+  used_points: number | null; // Or, if you expect it to be 'null', use 'null'
+  userPointActivity_id: string;
+}
+
 
 const PointsHistory = ({
   navigation,
@@ -38,12 +60,41 @@ const PointsHistory = ({
   // Initialize Cloud Firestore and get a reference to the service
   const db = getFirestore(app);
 
-  const handleData = async (data: FormData) => {
-    // const querySnapshot = await getDocs(collection(db, "users"));
-    // querySnapshot.forEach((doc) => {
-    //   console.log(`${doc.id} => ${doc.data()}`);
-    // });
-  };
+  // const handleData = async (data: FormData) => {
+  //   const querySnapshot = await getDocs(collection(db, "users"));
+  //   querySnapshot.forEach((doc) => {
+  //     console.log(`${doc.id} => ${doc.data()}`);
+  //   });
+  // };
+
+  const [userActivities, setUserActivities] = useState<UserPointActivity[]>([]);
+
+
+  useEffect(() => {
+    const userId = '8Unjvkx1JB2iOUlQrgAe'; // Replace with the actual user's ID
+
+    // Reference to the "Users" collection
+    const usersCollection = firestore().collection('Users');
+
+    // Reference to a specific user's "UserPointActivity" sub-collection
+    const userDocument = usersCollection.doc(userId);
+
+    // Query the sub-collection
+    const userPointActivityCollection = userDocument.collection('UserPointActivity');
+
+     // Fetch data from the sub-collection
+     userPointActivityCollection.get().then((querySnapshot) => {
+      const activities: UserPointActivity[] = [];
+      querySnapshot.forEach((doc) => {
+        // Get the data from the document and add it to the activities array
+        const activityData = doc.data() as UserPointActivity; // Cast the data to the correct type
+        activities.push(activityData);
+      });
+
+      // Now, the activities array is populated with data from Firestore
+      setUserActivities(activities);
+    });
+  }, []);
 
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"received" | "used">("received");
@@ -138,7 +189,7 @@ const PointsHistory = ({
 
   useEffect(() => {
     setTimeout(() => {
-      if (activeTab === "received") {
+      if (activeTab == "received") {
         setReceivedPointsData;
       } else {
         setUsedPointsData;
@@ -150,6 +201,17 @@ const PointsHistory = ({
   const handleTabChange = (tab: "received" | "used") => {
     setActiveTab(tab);
     setIsLoading(true);
+  };
+
+  const formatTimestamp = (timestamp: Timestamp) => {
+    // Convert timestamp to luxon DateTime object
+    const date = DateTime.fromJSDate(timestamp.toDate());
+
+    // Set the timezone to UTC+8
+    const formattedDate = date.setZone('Asia/Singapore').toFormat('EEE, d LLL yyyy');
+    const formattedTime = date.setZone('Asia/Singapore').toFormat('h:mm a');
+
+    return { date: formattedDate, time: formattedTime };
   };
 
   return (
@@ -200,22 +262,23 @@ const PointsHistory = ({
               {/* Content for Points Received */}
               <FlatList
                 contentContainerStyle={{ paddingBottom: 100 }}
-                data={receivedPointsData}
+                // data={receivedPointsData}
+                data={userActivities}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <View>
                     <View style={styles.listContainer1}>
-                      <Text style={styles.listDateText}>{item.date}</Text>
+                      <Text style={styles.listDateText}>{formatTimestamp(item.timestamp).date}</Text>
                     </View>
                     <View style={styles.listContainer2}>
-                      <Text style={styles.listTimeText}>{item.time}</Text>
+                      <Text style={styles.listTimeText}>{formatTimestamp(item.timestamp).time}</Text>
                       <Text style={styles.listCategoryText}>
-                        {item.category}
+                        {item.pointActivity_category}
                       </Text>
                       <View style={styles.tabContainer}>
-                        <Text style={styles.listNameText}>{item.name}</Text>
+                        <Text style={styles.listNameText}>{item.pointActivity_name}</Text>
                         <Text style={styles.listPointsText}>
-                          +{item.points}
+                          +{item.earned_points}
                         </Text>
                       </View>
                     </View>

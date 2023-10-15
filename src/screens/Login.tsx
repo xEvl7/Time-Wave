@@ -114,7 +114,7 @@ export default function Login({
           <View style={styles.registerContainer}>
             <Text>New member?</Text>
             <Pressable onPress={() => navigation.navigate("SignUp")}>
-              <Text style={{ color: "#7BB8A3" }}>
+              <Text style={{ color: "#FF8D13" }}>
                 Click here to register now
               </Text>
             </Pressable>
@@ -139,6 +139,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     minWidth: "78%",
     justifyContent: "space-evenly",
-    marginTop: 40,
+    // marginTop: 40,
   },
 });
