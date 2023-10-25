@@ -1,5 +1,5 @@
 import {TouchableOpacity, Alert,Pressable, StyleSheet, Text, View, Image } from "react-native";
-//import auth from "@react-native-firebase/auth";
+import auth from "@react-native-firebase/auth";
 
 
 import TextButton from "../components/TextButton";
@@ -20,31 +20,48 @@ import {
 } from "react-native";
 import React from "react";
 
-const testpoint=100;
+let testpoint=200;
 
 
 
 
 
 const showTip = () => {
+  testpoint -=sew.itemprice;
   Alert.alert(
 
     'Redeemed with 100 points!',
-  'Use this reward by '+ now.toLocaleDateString()+ '          Remaining Balance: 13 points',
+  'Use this reward by '+ now.toLocaleDateString()+ '          Remaining Balance:'+ testpoint+ 'points',
   
   )
+  
 }//show message to confirm redeemed reward
 
 const showAlert = () =>{
-  Alert.alert(
-      'Get This Reward!',
-      'Redeem with '+ sew.itemprice +' points?',
-      [
-          {text: 'Cancel', style: 'cancel'},
-          {text: 'Confirm', onPress: () => showTip()},
-      ],
-      {cancelable: false}
-  )
+  
+  if (testpoint >= sew.itemprice )
+  {
+    Alert.alert(
+    'Get This Reward!',
+    'Redeem with '+ sew.itemprice +' points?',
+    [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Confirm', onPress: () => showTip()},
+    ],
+    {cancelable: false}
+    )
+    
+ 
+  }
+  else
+  {
+    Alert.alert(
+
+      "You don't have enough points",
+    "Don't worry! The more time you contribute, the more timebank points you will earn.",
+    
+    )
+  }
 }//if point enough to redeem reward,show this message for last comfirm redeem
 
 export default function Reward({
