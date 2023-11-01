@@ -184,7 +184,7 @@ export default function ActiveRewardsPage({
           </View>
         </View>
       </View> */}
-            <View style={styles.tabContainer}>
+      <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[
             styles.tabButton,
@@ -216,42 +216,85 @@ export default function ActiveRewardsPage({
         </TouchableOpacity>
       </View>
 
-        
-
-
-
-    <View style={{marginTop:5}}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} >
-              
-              <Pressable onPress={() => navigation.navigate("ActiveRewardsDetailsPage")}>
-                <View style={styles.gridItem}>
-                  
-                    <View style={styles.imageBox}>
-                      <Image
-                        source={require("../assets/test3.png")}
-                        style={styles.image}
-                      />
-                    </View>
-                    <View style={styles.text}>                  
-                      <Text style={styles.subDescription}>Official Mavcap</Text>
-                      <Text style={styles.description}>Medical Checkup</Text>
-                      <View style={styles.pointContainer}>
-                        <Text style={styles.pointDesc}> Expires on {expireDate}</Text>
-                      <Image
-                          source={require("../assets/use-now.png")}
-                          style={{marginLeft:'40%',marginTop:10}}
-                        />
-                      </View>  
-                    </View>                  
-                </View>
-              </Pressable>                        
-              
-
-            </ScrollView>
-          </View>
-
-      <ContentContainer>
-      </ContentContainer>
+      {isLoading ? (
+        <ActivityIndicator
+          size="large"
+          color="#FF8D13"
+          style={styles.loadingIndicator}
+        />
+      ) : (
+        <View>
+          {activeTab === "received" ? (
+            // Render Points Received Fragment
+            <View>
+              {/* Content for Points Received */}
+              <FlatList
+                contentContainerStyle={{ paddingBottom: 100 }}
+                data={receivedPointsData}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <View>
+                    <Pressable onPress={() => navigation.navigate("ActiveRewardsDetailsPage")}>
+                      <View style={styles.gridItem}>
+                        
+                          <View style={styles.imageBox}>
+                            <Image
+                              source={require("../assets/test3.png")}
+                              style={styles.image}
+                            />
+                          </View>
+                          <View style={styles.text}>                  
+                            <Text style={styles.subDescription}>Official Mavcap</Text>
+                            <Text style={styles.description}>Medical Checkup</Text>
+                            <View style={styles.pointContainer}>
+                              <Text style={styles.pointDesc}> Expires on {expireDate}</Text>
+                            <Image
+                                source={require("../assets/use-now.png")}
+                                style={{marginLeft:'48%',marginTop:10}}
+                              />
+                            </View>  
+                          </View>                  
+                      </View>
+                    </Pressable>                        
+                  </View>
+                )}
+              />
+            </View>
+          ) : (
+            // Render Points Used Fragment
+            <View>
+              {/* Content for Points Used */}
+              <FlatList
+                contentContainerStyle={{ paddingBottom: 100 }}
+                data={usedPointsData}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <View>
+                    <Pressable onPress={() => navigation.navigate("PastRewardsDetailsPage")}>
+                      <View style={styles.gridItem}>                        
+                          <View style={styles.usedImageBox}>
+                            <Image
+                              source={require("../assets/test3.png")}
+                              style={styles.image}
+                            />
+                          </View>
+                          <View style={styles.text}>                  
+                            <Text style={styles.subDescription}>Official Mavcap</Text>
+                            <Text style={styles.description}>Medical Checkup</Text>
+                            <View style={styles.pointContainer}>
+                              <Text style={styles.pointDesc}> Expires on {expireDate}</Text>
+                              <Text style={styles.Used}>Used</Text>
+                            </View>  
+                          </View>                  
+                      </View>
+                    </Pressable>        
+                  </View>
+                )}
+              />
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -317,22 +360,23 @@ const styles = StyleSheet.create({
   imageBox: {
     marginLeft: 10,
     alignSelf : "center" ,
-    //resizeMode: 'cover',
-    height:'70%',
-    width:"40%",
+    height:'68%',
+    width:"35%",
     backgroundColor:'#F1CFA3',
-    //position: 'absolute',
-    //top: 0,
-    //left: 0,
-
+    borderRadius:10,
+  },
+  usedImageBox: {
+    marginLeft: 10,
+    alignSelf : "center" ,
+    height:'68%',
+    width:"35%",
+    backgroundColor:'#9E815B',
+    borderRadius:10,
   },
   image: {
     alignSelf : "center" ,
     resizeMode: 'cover',
     marginTop:10,
-    //position: 'absolute',
-    //top: 0,
-    //left: 0,
   },
   text: {
     backgroundColor:"#FFFFFF",
@@ -353,13 +397,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginTop:25,
   },
-  point: {
-    fontWeight:'bold',
-    fontSize: 15,
-    textAlign: 'left',
-    marginLeft: 10,
-    color:'#FF8D13',
-  },
   pointDesc: {
     marginLeft:8,
     marginTop:20,
@@ -369,6 +406,18 @@ const styles = StyleSheet.create({
   pointContainer:{
     //flexDirection:'row',
     //marginTop:10,
+  },
+  Used:{
+    textAlign:'center',
+    marginTop:3,
+    marginLeft:'61%',
+    fontWeight:'900',
+    fontSize:15,
+    color:'grey',
+    backgroundColor:'lightgrey',
+    width:'20%',
+    borderRadius:3,
+    padding:5
   },
   container: {
     flex: 1,

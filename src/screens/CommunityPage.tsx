@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View, Image ,ScrollView} from "react-native";
+import { Pressable, StyleSheet, FlatList, Text, View, Image ,ScrollView} from "react-native";
 import auth from "@react-native-firebase/auth";
 
 import TextButton from "../components/TextButton";
@@ -11,6 +11,8 @@ import { fetchUserData } from "../features/userSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
 
 // type FormData = {
 //   emailAddress: string;
@@ -20,43 +22,30 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 export default function ActiveRewardsPage({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "My Rewards">) {
-  // const { control, handleSubmit } = useForm<FormData>({
-  //   defaultValues: {
-  //     emailAddress: "test@gmail.com",
-  //     password: "123456789",
-  //   },
-  // });
+  const firebaseConfig = {
+    apiKey: "AIzaSyD7u8fTERnA_Co1MnpVeJ6t8ZumV0T59-Y",
+    authDomain: "time-wave-88653.firebaseapp.com",
+    projectId: "time-wave-88653",
+    storageBucket: "time-wave-88653.appspot.com",
+    messagingSenderId: "666062417383",
+    appId: "1:666062417383:web:8d8a8c4d4c0a3d55052142",
+    measurementId: "G-L7TTXFZ6DM",
+  };
 
-  // const userData = useAppSelector((state) => state.user.data);
-  // const dispatch = useAppDispatch();
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
 
-  // const handleLogin = async (data: FormData) => {
-  //   // @todo Indicate sign in process is running in UI
+  // Initialize Cloud Firestore and get a reference to the service
+  const db = getFirestore(app);
 
-  //   console.log("Signing in user ...");
-
-  //   try {
-  //     const userCredential = await auth().signInWithEmailAndPassword(
-  //       data.emailAddress,
-  //       data.password
-  //     );
-
-  //     console.log(userCredential.user.email, "has successfully signed in.");
-  //   } catch (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-  //   // @todo Display error if login failed
-
-  //   console.log("Fetching user's data ...");
-
-  //   try {
-  //     await dispatch(fetchUserData(data.emailAddress)).unwrap();
-  //   } catch (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-  // };
+  const handleData = async (data: FormData) => {
+    // const querySnapshot = await getDocs(collection(db, "users"));
+    // querySnapshot.forEach((doc) => {
+    //   console.log(`${doc.id} => ${doc.data()}`);
+    // });
+  };
+  
+  
 
   return (
     <View>
@@ -150,6 +139,37 @@ export default function ActiveRewardsPage({
           </View>
         </View> */}
       </ContentContainer>
+      // Render Points Used Fragment
+            <View>
+              {/* Content for Points Used */}
+              <FlatList
+                contentContainerStyle={{ paddingBottom: 100 }}
+                data={usedPointsData}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <View>
+                    <Pressable onPress={() => navigation.navigate("PastRewardsDetailsPage")}>
+                      <View style={styles.gridItem}>                        
+                          <View style={styles.usedImageBox}>
+                            <Image
+                              source={require("../assets/test3.png")}
+                              style={styles.image}
+                            />
+                          </View>
+                          <View style={styles.text}>                  
+                            <Text style={styles.subDescription}>Official Mavcap</Text>
+                            <Text style={styles.description}>Medical Checkup</Text>
+                            <View style={styles.pointContainer}>
+                              <Text style={styles.pointDesc}> Expires on {expireDate}</Text>
+                              <Text style={styles.Used}>Used</Text>
+                            </View>  
+                          </View>                  
+                      </View>
+                    </Pressable>        
+                  </View>
+                )}
+              />
+            </View>
       <ContentContainer>
       <TextButton onPress={() => navigation.navigate("MyRewardsDetails")}>
           Use now
