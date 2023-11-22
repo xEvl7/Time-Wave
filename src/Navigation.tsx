@@ -41,14 +41,20 @@ const Navigation = () => {
       <StatusBar />
       <Stack.Navigator
         initialRouteName="Welcome"
+        // screenOptions={{
+        //   headerStyle: {
+        //     backgroundColor: "#FF8D13",
+        //   },
+        //   headerTintColor: "#F6F6F6",
+        //   headerShadowVisible: false,
+        // }}
         screenOptions={{
           headerStyle: {
             backgroundColor: "#FFFFFF",
           },
-          headerTintColor: "#F37906",
           headerShadowVisible: false,
           headerTitleStyle: {
-            color: "#000000", // Set the color you want for the header text
+            color: "#000000", // Set the color for the header text
           },
           headerTitleAlign: "center",
         }}

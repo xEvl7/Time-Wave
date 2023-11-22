@@ -1,3 +1,10 @@
+Quick Start
+npm install
+npx expo run:android
+
+Requirements:
+Java 11 & below
+
 This is an Expo project. https://docs.expo.dev/
 
 A development build is required in order for the app to run properly.

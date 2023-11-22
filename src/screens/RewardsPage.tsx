@@ -11,15 +11,60 @@ import React, { useState, useEffect } from "react";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
+import firestore from "@react-native-firebase/firestore";
+import auth from "@react-native-firebase/auth";
+import { updateUserData } from "../features/userSlice";
+import { fetchUserData } from "../features/userSlice";
+import { useAppDispatch, useAppSelector } from "../hooks";
 
 const RewardsPage = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "RewardsPage">) => {
   const [isLoading, setIsLoading] = useState(true);
+  const userData = useAppSelector((state) => state.user.data);
+  const dispatch = useAppDispatch();
+
+  //const email = userData?.uemail;
+  const uid = userData?.uid;
 
   // user's contributed hours and rewards points need to get from firebase
   const [contributedHours, setContributedHours] = useState<number>(16);
-  const [rewardsPoints, setRewardsPoints] = useState<number>(113);
+  // const [contributedHours, setContributedHours] = useState([]);
+  // const [rewardsPoints, setRewardsPoints] = useState<number>(113);
+
+  const fetchUserData = async (uid: string | undefined) => {
+    const userCollection = firestore().collection("Users");
+
+    try {
+      const userDoc = await userCollection.doc(uid).get();
+
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        // You now have the user's data in the `userData` variable.
+        return userData;
+      } else {
+        console.log("User document not found.");
+        return null; // Handle this case appropriately in your code.
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      return null; // Handle this case appropriately in your code.
+    }
+  };
+
+  // Example of adding a contribution for January 2023
+  // const newContribution = {
+  //   totalCHours: 20,
+  //   updatedDate: new Date(Date.now()),
+  // };
+
+  // firestore()
+  //   .collection("Users")
+  //   .doc("0XsA0YrwZyjjzqhMi1ve")
+  //   .collection("UserContributions")
+  //   .doc("2023")
+  //   .collection("Jan")
+  //   .add(newContribution);
 
   const progressPercentage = contributedHours / 20;
   const progressBarWidth = `${progressPercentage * 100}%`;
@@ -45,16 +90,7 @@ const RewardsPage = ({
 
   useEffect(() => {
     // Simulate loading data
-    setTimeout(() => {
-      // Fetch user data from Firebase or perform any necessary async tasks
-      // Example: Firebase logic to fetch user data
-      // firebase.database().ref('users/' + userId).on('value', (snapshot) => {
-      //   const userData = snapshot.val();
-      //   setContributedHours(userData.contributedHours);
-      //   setRewardsPoints(userData.rewardsPoints);
-      // });
-
-      // Set isLoading to false when data loading is complete
+    setTimeout(async () => {
       setIsLoading(false);
     }, 500); // Simulated loading time (1 seconds in this example)
   }, []);
@@ -142,7 +178,8 @@ const RewardsPage = ({
           <View style={styles.subContainer}>
             <Text style={styles.Text1}>You have</Text>
             <View style={styles.rowContainer}>
-              <Text style={styles.Text2}>{rewardsPoints}</Text>
+              {/* <Text style={styles.Text2}>{rewardsPoints}</Text> */}
+              <Text style={styles.Text2}>{userData?.upoints}</Text>
               <Text style={styles.Text1}>TimeBank Rewards Points</Text>
             </View>
 

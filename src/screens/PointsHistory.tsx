@@ -80,7 +80,7 @@ const PointsHistory = ({
     const userDocument = usersCollection.doc(userId);
 
     // Query the sub-collection
-    const userPointActivityCollection = userDocument.collection('UserPointActivity');
+    const userPointActivityCollection = userDocument.collection('PointsActivity');
 
      // Fetch data from the sub-collection
      userPointActivityCollection.get().then((querySnapshot) => {

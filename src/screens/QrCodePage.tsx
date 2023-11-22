@@ -72,10 +72,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 14,
     minHeight: 20,
-    color: "#7BB8A3",
+    color: "#FF8D13",
   },
   text: {
     fontSize: 20,
-    fontWeight: 500,
+    fontWeight: "500",
   },
 });
