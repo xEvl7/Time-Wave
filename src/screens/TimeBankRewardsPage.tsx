@@ -342,5 +342,3 @@ const styles = StyleSheet.create({
 // }).catch((error) => {
 //   console.error('Error getting data:', error);
 // })
-
-// export Grid;
