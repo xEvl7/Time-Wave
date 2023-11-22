@@ -10,8 +10,8 @@ import { RootStackParamList } from "../Screen.types";
 const Profile = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "Profile">) => {
-  const name = useAppSelector((state) => state.user.data?.name);
-  const email = useAppSelector((state) => state.user.data?.emailAddress);
+  const name = useAppSelector((state) => state.user.data?.uname);
+  const email = useAppSelector((state) => state.user.data?.uemail);
 
   return (
     <ContentContainer style={{ flex: 1 }}>

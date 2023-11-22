@@ -1,39 +1,49 @@
-import { 
-  Pressable, 
+import {
+  View,
+  Text,
   StyleSheet,
   TouchableOpacity,
+  ScrollView,
   ActivityIndicator,
-  FlatList,  
-  Text, 
-  View, 
-  Image ,
-  ScrollView} from "react-native";
-import auth from "@react-native-firebase/auth";
+  FlatList,
+} from "react-native";
 import React, { useState, useEffect } from "react";
-import TextButton from "../components/TextButton";
-import HeaderText from "../components/text_components/HeaderText";
-import BackgroundImageBox from "../components/BackgroundImageBox";
-import ContentContainer from "../components/ContentContainer";
-import ValidatedTextInput from "../components/ValidatedTextInput";
-import { useForm } from "react-hook-form";
-import { fetchUserData } from "../features/userSlice";
+
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
-import { useAppDispatch, useAppSelector } from "../hooks";
+
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-
+import firestore from '@react-native-firebase/firestore';
+import { Timestamp } from "firebase/firestore";
+import { DateTime } from 'luxon';
 
 // type FormData = {
-//   emailAddress: string;
-//   password: string;
+//   userPointActivity_id: string;
+//   earned_points: number;
+//   used_points: number;
+//   timestamp: Timestamp;
+//   pointActivity_category: string;
+//   pointActivity_name: string;
 // };
-let expireDate ='19 AUG 2024';
 
-export default function ActiveRewardsPage({
+interface UserPointActivity {
+  earned_points: number;
+  pointActivity_category: string;
+  pointActivity_name: string;
+  timestamp: Timestamp;
+  used_points: number | null; // Or, if you expect it to be 'null', use 'null'
+  userPointActivity_id: string;
+}
+
+
+const PointsHistory = ({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "ActiveRewardsPage">) {
-  
+}: NativeStackScreenProps<RootStackParamList, "PointsHistory">) => {
+  const handlePressBack = () => {
+    navigation.navigate("RewardsPage");
+  };
+
   const firebaseConfig = {
     apiKey: "AIzaSyD7u8fTERnA_Co1MnpVeJ6t8ZumV0T59-Y",
     authDomain: "time-wave-88653.firebaseapp.com",
@@ -50,16 +60,44 @@ export default function ActiveRewardsPage({
   // Initialize Cloud Firestore and get a reference to the service
   const db = getFirestore(app);
 
-  const handleData = async (data: FormData) => {
-    // const querySnapshot = await getDocs(collection(db, "users"));
-    // querySnapshot.forEach((doc) => {
-    //   console.log(`${doc.id} => ${doc.data()}`);
-    // });
-  };
+  // const handleData = async (data: FormData) => {
+  //   const querySnapshot = await getDocs(collection(db, "users"));
+  //   querySnapshot.forEach((doc) => {
+  //     console.log(`${doc.id} => ${doc.data()}`);
+  //   });
+  // };
+
+  const [userActivities, setUserActivities] = useState<UserPointActivity[]>([]);
+
+
+  useEffect(() => {
+    const userId = '8Unjvkx1JB2iOUlQrgAe'; // Replace with the actual user's ID
+
+    // Reference to the "Users" collection
+    const usersCollection = firestore().collection('Users');
+
+    // Reference to a specific user's "UserPointActivity" sub-collection
+    const userDocument = usersCollection.doc(userId);
+
+    // Query the sub-collection
+    const userPointActivityCollection = userDocument.collection('PointsActivity');
+
+     // Fetch data from the sub-collection
+     userPointActivityCollection.get().then((querySnapshot) => {
+      const activities: UserPointActivity[] = [];
+      querySnapshot.forEach((doc) => {
+        // Get the data from the document and add it to the activities array
+        const activityData = doc.data() as UserPointActivity; // Cast the data to the correct type
+        activities.push(activityData);
+      });
+
+      // Now, the activities array is populated with data from Firestore
+      setUserActivities(activities);
+    });
+  }, []);
 
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"received" | "used">("received");
-  
   const [receivedPointsData, setReceivedPointsData] = useState([
     {
       date: "Tue, 1 Aug 2023",
@@ -151,7 +189,7 @@ export default function ActiveRewardsPage({
 
   useEffect(() => {
     setTimeout(() => {
-      if (activeTab === "received") {
+      if (activeTab == "received") {
         setReceivedPointsData;
       } else {
         setUsedPointsData;
@@ -164,26 +202,20 @@ export default function ActiveRewardsPage({
     setActiveTab(tab);
     setIsLoading(true);
   };
-  
+
+  const formatTimestamp = (timestamp: Timestamp) => {
+    // Convert timestamp to luxon DateTime object
+    const date = DateTime.fromJSDate(timestamp.toDate());
+
+    // Set the timezone to UTC+8
+    const formattedDate = date.setZone('Asia/Singapore').toFormat('EEE, d LLL yyyy');
+    const formattedTime = date.setZone('Asia/Singapore').toFormat('h:mm a');
+
+    return { date: formattedDate, time: formattedTime };
+  };
+
   return (
-    <View>
-     {/* <View style={{alignContent:'center'}}>      
-        <View style={styles.TabStyle}> 
-          <View>
-            <Pressable onPress={() => navigation.navigate("ActiveRewardsPage")}>
-              <Text style={styles.TabNavigateTextMajor}>Active Rewards           
-              </Text>                     
-            </Pressable>
-            <View style={styles.TabPressMajor}></View>            
-          </View>
-          <View>
-            <Pressable onPress={() => navigation.navigate("PastRewardsPage")}>
-              <Text style={styles.TabNavigateTextMinor}>Past Rewards           
-              </Text>            
-            </Pressable>          
-          </View>
-        </View>
-      </View> */}
+    <View style={styles.container}>
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[
@@ -198,7 +230,7 @@ export default function ActiveRewardsPage({
               activeTab === "received" && styles.activeTabText,
             ]}
           >
-            Active Rewards 
+            Points Received
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -211,7 +243,7 @@ export default function ActiveRewardsPage({
               activeTab === "used" && styles.activeTabText,
             ]}
           >
-            Past Rewards
+            Points Used
           </Text>
         </TouchableOpacity>
       </View>
@@ -230,32 +262,26 @@ export default function ActiveRewardsPage({
               {/* Content for Points Received */}
               <FlatList
                 contentContainerStyle={{ paddingBottom: 100 }}
-                data={receivedPointsData}
+                // data={receivedPointsData}
+                data={userActivities}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <View>
-                    <Pressable onPress={() => navigation.navigate("ActiveRewardsDetailsPage")}>
-                      <View style={styles.gridItem}>
-                        
-                          <View style={styles.imageBox}>
-                            <Image
-                              source={require("../assets/test3.png")}
-                              style={styles.image}
-                            />
-                          </View>
-                          <View style={styles.text}>                  
-                            <Text style={styles.subDescription}>Official Mavcap</Text>
-                            <Text style={styles.description}>Medical Checkup</Text>
-                            <View style={styles.pointContainer}>
-                              <Text style={styles.pointDesc}> Expires on {expireDate}</Text>
-                            <Image
-                                source={require("../assets/use-now.png")}
-                                style={{marginLeft:'48%',marginTop:10}}
-                              />
-                            </View>  
-                          </View>                  
+                    <View style={styles.listContainer1}>
+                      <Text style={styles.listDateText}>{formatTimestamp(item.timestamp).date}</Text>
+                    </View>
+                    <View style={styles.listContainer2}>
+                      <Text style={styles.listTimeText}>{formatTimestamp(item.timestamp).time}</Text>
+                      <Text style={styles.listCategoryText}>
+                        {item.pointActivity_category}
+                      </Text>
+                      <View style={styles.tabContainer}>
+                        <Text style={styles.listNameText}>{item.pointActivity_name}</Text>
+                        <Text style={styles.listPointsText}>
+                          +{item.earned_points}
+                        </Text>
                       </View>
-                    </Pressable>                        
+                    </View>
                   </View>
                 )}
               />
@@ -270,24 +296,21 @@ export default function ActiveRewardsPage({
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <View>
-                    <Pressable onPress={() => navigation.navigate("PastRewardsDetailsPage")}>
-                      <View style={styles.gridItem}>                        
-                          <View style={styles.usedImageBox}>
-                            <Image
-                              source={require("../assets/test3.png")}
-                              style={styles.image}
-                            />
-                          </View>
-                          <View style={styles.text}>                  
-                            <Text style={styles.subDescription}>Official Mavcap</Text>
-                            <Text style={styles.description}>Medical Checkup</Text>
-                            <View style={styles.pointContainer}>
-                              <Text style={styles.pointDesc}> Expires on {expireDate}</Text>
-                              <Text style={styles.Used}>Used</Text>
-                            </View>  
-                          </View>                  
+                    <View style={styles.listContainer1}>
+                      <Text style={styles.listDateText}>{item.date}</Text>
+                    </View>
+                    <View style={styles.listContainer2}>
+                      <Text style={styles.listTimeText}>{item.time}</Text>
+                      <Text style={styles.listCategoryText}>
+                        {item.category}
+                      </Text>
+                      <View style={styles.tabContainer}>
+                        <Text style={styles.listNameText}>{item.name}</Text>
+                        <Text style={styles.listPointsText}>
+                          -{item.points}
+                        </Text>
                       </View>
-                    </Pressable>        
+                    </View>
                   </View>
                 )}
               />
@@ -297,128 +320,9 @@ export default function ActiveRewardsPage({
       )}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  alternativesContainer: {
-    alignItems: "center",
-    marginTop: 10,
-  },
-  thirdPartyAuthContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  registerContainer: {
-    flexDirection: "row",
-    minWidth: "78%",
-    justifyContent: "space-evenly",
-    marginTop: 40,
-  },
-  MyRewardsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  HeadingContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  TabStyle:{
-    marginTop: 10,
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  TabPressMajor:{
-    backgroundColor:"#FF8D13",
-    height:'5%',
-    width:"100%",
-    marginTop:8,
-  },
-  TabNavigateTextMajor:{
-    fontWeight:'bold',
-    fontSize:22,
-    color:'#FF8D13',
-  },
-  TabNavigateTextMinor:{
-    fontWeight:'bold',
-    fontSize:22,
-    color:'#BABABA',
-  },
-  gridItem: {
-    //marginLeft:25,
-    width: '100%', // 两个格子并排，留出一些间隙
-    height: 170,
-    marginBottom: 10,
-    backgroundColor:"#FFFFFF",
-    //borderRadius: 20, 
-    flexDirection:"row",
-    borderColor:'#BDBDBD',
-    borderWidth: 1,
-  },
-  imageBox: {
-    marginLeft: 10,
-    alignSelf : "center" ,
-    height:'68%',
-    width:"35%",
-    backgroundColor:'#F1CFA3',
-    borderRadius:10,
-  },
-  usedImageBox: {
-    marginLeft: 10,
-    alignSelf : "center" ,
-    height:'68%',
-    width:"35%",
-    backgroundColor:'#9E815B',
-    borderRadius:10,
-  },
-  image: {
-    alignSelf : "center" ,
-    resizeMode: 'cover',
-    marginTop:10,
-  },
-  text: {
-    backgroundColor:"#FFFFFF",
-    height:'60%',
-    borderBottomLeftRadius: 20, 
-    borderBottomRightRadius: 20,    
-  },
-  description: {
-    fontSize: 22,
-    textAlign: 'left',
-    marginTop: 1,
-    marginLeft: 10,
-    fontWeight:'bold',
-  },
-  subDescription: {
-    fontSize: 13,
-    textAlign: 'left',
-    marginLeft: 10,
-    marginTop:25,
-  },
-  pointDesc: {
-    marginLeft:8,
-    marginTop:20,
-    fontSize: 15,
-    textAlign: 'left',
-  },
-  pointContainer:{
-    //flexDirection:'row',
-    //marginTop:10,
-  },
-  Used:{
-    textAlign:'center',
-    marginTop:3,
-    marginLeft:'61%',
-    fontWeight:'900',
-    fontSize:15,
-    color:'grey',
-    backgroundColor:'lightgrey',
-    width:'20%',
-    borderRadius:3,
-    padding:5
-  },
   container: {
     flex: 1,
     // padding: 8,
@@ -487,3 +391,5 @@ const styles = StyleSheet.create({
     color: "#FF8D13",
   },
 });
+
+export default PointsHistory;

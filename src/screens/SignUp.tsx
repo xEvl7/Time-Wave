@@ -156,12 +156,59 @@ const SignUp = ({
       console.log("Adding user document to firestore ...");
 
       try {
+        // const userData = {
+        //   uid: userCredential.user.uid,
+        //   name: data.name,
+        //   identityCardNumber: data.identityCardNumber,
+        //   phoneNumber: data.phoneNumber,
+        //   emailAddress: data.emailAddress,
+        // };
         const userData = {
           uid: userCredential.user.uid,
           name: data.name,
           identityCardNumber: data.identityCardNumber,
           phoneNumber: data.phoneNumber,
           emailAddress: data.emailAddress,
+          points: 0,
+
+          // UserContributions: {
+          //   "2023": { // Year
+          //     "Jan": { // Month
+          //       totalCHours: 20
+          //     },
+          //     "Feb": {
+          //       totalCHours: 15
+          //     },
+          //   },
+          // },
+          // UserActivities: {
+          //   "Activity1": {
+          //     action: "usePoints",
+          //     timestamp: 1629813600,
+          //     "details": {
+          //       UserRewards: "activeReward1",
+          //       name: "Time Rewards",
+          //       pointsUsed: 50.00
+          //     }
+          //   },
+          // },
+          // UserRewards: {
+          //   active: {
+          //     "ActiveReward1": {
+          //       Reward: "reward2",
+          //       redeemedDate: 1629888650,
+          //       expiredDate: 1629815454
+          //     },
+          //   },
+          //   used: {
+          //     "ActiveReward2": {
+          //       Reward: "reward1",
+          //       redeemedDate: 1629888650,
+          //       expiredDate: 1624674654,
+          //       usedDate: 1629813700
+          //     }
+          //   }
+          // }
         };
         await userCollection.add(userData);
 
@@ -191,7 +238,7 @@ const SignUp = ({
         <View style={styles.DisclaimerPrivacyLabel}>
           <Text>By continuing, I agree to the</Text>
           <Pressable onPress={() => navigation.navigate("DisclaimerPrivacy")}>
-            <Text style={{ color: "#7BB8A3" }}>
+            <Text style={{ color: "#FF8D13" }}>
               Disclaimer & Privacy Policy
             </Text>
           </Pressable>

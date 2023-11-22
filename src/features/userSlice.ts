@@ -10,6 +10,47 @@ type UserData = {
   identityCardNumber: string;
   phoneNumber: string;
   emailAddress: string;
+  points: number;
+  
+  // UserContributions: {
+  //   [year: string]: {
+  //     [month: string]: {
+  //       totalCHours: number;
+  //     };
+  //   };
+  // };
+  // UserActivities: {
+  //   [activityId: string]: {
+  //     action: string;
+  //     timestamp: number;
+  //     details: {
+  //       UserRewards?: string;
+  //       name: string;
+  //       pointsUsed?: number;
+  //       Community?: string;
+  //       startTime?: number;
+  //       endTime?: number;
+  //       hoursEarned?: number;
+  //     };
+  //   };
+  // };
+  // UserRewards: {
+  //   active: {
+  //     [activeRewardId: string]: {
+  //       Reward: string;
+  //       redeemedDate: number;
+  //       expiredDate: number;
+  //     };
+  //   };
+  //   used: {
+  //     [usedRewardId: string]: {
+  //       Reward: string;
+  //       redeemedDate: number;
+  //       expiredDate: number;
+  //       usedDate: number;
+  //     };
+  //   };
+  // };
 };
 
 type UserState = {
