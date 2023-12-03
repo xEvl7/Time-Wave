@@ -19,7 +19,7 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 
 export default function Login({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "TimeWaveRewardsPage">) {
+}: NativeStackScreenProps<RootStackParamList, "MyRewardsPage">) {
   // const { control, handleSubmit } = useForm<FormData>({
   //   defaultValues: {
   //     emailAddress: "test@gmail.com",

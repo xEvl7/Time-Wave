@@ -66,7 +66,7 @@ export default function RewardsDetailsPage({
       ></BackgroundImageBox>
       <ContentContainer>
         <HeaderText>Regan's parts</HeaderText>
-        
+
         {/* <ValidatedTextInput
           name={"emailAddress"}
           placeholder={"Email"}
@@ -118,12 +118,12 @@ export default function RewardsDetailsPage({
               <Text style={{ color: "#7BB8A3" }}>
                 Click here to register now
               </Text> */}
-            {/* </Pressable>
+        {/* </Pressable>
           </View>
         </View> */}
       </ContentContainer>
       <ContentContainer>
-      <TextButton onPress={() => navigation.navigate("MyRewardsDetails")}>
+        <TextButton onPress={() => navigation.navigate("MyRewardsDetails")}>
           Rewards Page
         </TextButton>
       </ContentContainer>

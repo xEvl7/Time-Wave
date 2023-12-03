@@ -26,7 +26,7 @@ let pointprice = 100;
 
 export default function TimeBankRewardsPage({
   navigation,
-}: NativeStackScreenProps<RootStackParamList >) {
+}: NativeStackScreenProps<RootStackParamList, "TimeBankRewardsPage" >) {
 
   return ( 
       <View>

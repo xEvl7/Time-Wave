@@ -11,7 +11,7 @@ type UserData = {
   phoneNumber: string;
   emailAddress: string;
   points: number;
-  
+
   // UserContributions: {
   //   [year: string]: {
   //     [month: string]: {

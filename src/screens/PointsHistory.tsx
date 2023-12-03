@@ -14,9 +14,9 @@ import { RootStackParamList } from "../Screen.types";
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import firestore from '@react-native-firebase/firestore';
+import firestore from "@react-native-firebase/firestore";
 import { Timestamp } from "firebase/firestore";
-import { DateTime } from 'luxon';
+import { DateTime } from "luxon";
 
 // type FormData = {
 //   userPointActivity_id: string;
@@ -35,7 +35,6 @@ interface UserPointActivity {
   used_points: number | null; // Or, if you expect it to be 'null', use 'null'
   userPointActivity_id: string;
 }
-
 
 const PointsHistory = ({
   navigation,
@@ -69,21 +68,21 @@ const PointsHistory = ({
 
   const [userActivities, setUserActivities] = useState<UserPointActivity[]>([]);
 
-
   useEffect(() => {
-    const userId = '8Unjvkx1JB2iOUlQrgAe'; // Replace with the actual user's ID
+    const userId = "8Unjvkx1JB2iOUlQrgAe"; // Replace with the actual user's ID
 
     // Reference to the "Users" collection
-    const usersCollection = firestore().collection('Users');
+    const usersCollection = firestore().collection("Users");
 
     // Reference to a specific user's "UserPointActivity" sub-collection
     const userDocument = usersCollection.doc(userId);
 
     // Query the sub-collection
-    const userPointActivityCollection = userDocument.collection('PointsActivity');
+    const userPointActivityCollection =
+      userDocument.collection("PointsActivity");
 
-     // Fetch data from the sub-collection
-     userPointActivityCollection.get().then((querySnapshot) => {
+    // Fetch data from the sub-collection
+    userPointActivityCollection.get().then((querySnapshot) => {
       const activities: UserPointActivity[] = [];
       querySnapshot.forEach((doc) => {
         // Get the data from the document and add it to the activities array
@@ -208,8 +207,10 @@ const PointsHistory = ({
     const date = DateTime.fromJSDate(timestamp.toDate());
 
     // Set the timezone to UTC+8
-    const formattedDate = date.setZone('Asia/Singapore').toFormat('EEE, d LLL yyyy');
-    const formattedTime = date.setZone('Asia/Singapore').toFormat('h:mm a');
+    const formattedDate = date
+      .setZone("Asia/Singapore")
+      .toFormat("EEE, d LLL yyyy");
+    const formattedTime = date.setZone("Asia/Singapore").toFormat("h:mm a");
 
     return { date: formattedDate, time: formattedTime };
   };
@@ -268,15 +269,21 @@ const PointsHistory = ({
                 renderItem={({ item }) => (
                   <View>
                     <View style={styles.listContainer1}>
-                      <Text style={styles.listDateText}>{formatTimestamp(item.timestamp).date}</Text>
+                      <Text style={styles.listDateText}>
+                        {formatTimestamp(item.timestamp).date}
+                      </Text>
                     </View>
                     <View style={styles.listContainer2}>
-                      <Text style={styles.listTimeText}>{formatTimestamp(item.timestamp).time}</Text>
+                      <Text style={styles.listTimeText}>
+                        {formatTimestamp(item.timestamp).time}
+                      </Text>
                       <Text style={styles.listCategoryText}>
                         {item.pointActivity_category}
                       </Text>
                       <View style={styles.tabContainer}>
-                        <Text style={styles.listNameText}>{item.pointActivity_name}</Text>
+                        <Text style={styles.listNameText}>
+                          {item.pointActivity_name}
+                        </Text>
                         <Text style={styles.listPointsText}>
                           +{item.earned_points}
                         </Text>

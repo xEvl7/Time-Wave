@@ -18,7 +18,7 @@ let TermsAndConditionsText="Resulting from review or analysis of threats and opp
 
 export default function ActiveRewardsDetailsPage({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "ActiveRewardsDetailsPage">) {
+}: NativeStackScreenProps<RootStackParamList, "ActiveRewardsDetailsUseNowPage">) {
   
   return (
     <View>      
@@ -74,7 +74,7 @@ export default function ActiveRewardsDetailsPage({
 
             <View style={{backgroundColor:'lightgrey',marginTop:10,height:1}}></View>
 
-            <TextButton onPress={() => navigation.navigate("ActiveRewardsDetails_UseNowPage")}>
+            <TextButton onPress={() => navigation.navigate("ActiveRewardsDetailsUseNowPage")}>
                 Copy Reward Code
             </TextButton> 
                

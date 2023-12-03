@@ -179,7 +179,7 @@ const RewardsPage = ({
             <Text style={styles.Text1}>You have</Text>
             <View style={styles.rowContainer}>
               {/* <Text style={styles.Text2}>{rewardsPoints}</Text> */}
-              <Text style={styles.Text2}>{userData?.upoints}</Text>
+              <Text style={styles.Text2}>{userData?.points}</Text>
               <Text style={styles.Text1}>TimeBank Rewards Points</Text>
             </View>
 

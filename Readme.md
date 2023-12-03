@@ -1,9 +1,22 @@
-Quick Start
-npm install
-npx expo run:android
+# How to run:
 
-Requirements:
-Java 11 & below
+1. clone this git repository
+2. npm install
+3. npx expo start --dev-client (if first time fails, just try again)
+
+# Requirements:
+
+- Java 11 & below
+
+# Development tips:
+
+1. press ctrl+m developer menu can quickly reload app in emulator
+
+# Github Tips:
+
+1. Always fetch the latest version of the code from github repo main branch and update
+
+---
 
 This is an Expo project. https://docs.expo.dev/
 
