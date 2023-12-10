@@ -11,66 +11,60 @@ import React, { useState, useEffect } from "react";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
-import firestore from "@react-native-firebase/firestore";
-import auth from "@react-native-firebase/auth";
-import { updateUserData } from "../features/userSlice";
-import { fetchUserData } from "../features/userSlice";
+import {
+  fetchUserData,
+  fetchUserContributionData,
+  // fetchContributionHours,
+} from "../features/userSlice";
 import { useAppDispatch, useAppSelector } from "../hooks";
+import { RootState } from "../store";
 
 const RewardsPage = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "RewardsPage">) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const userData = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
+  const [isLoading, setIsLoading] = useState(true);
 
-  //const email = userData?.uemail;
-  const uid = userData?.uid;
+  const userData = useAppSelector((state) => state.user.data);
+  const email = useAppSelector(
+    (state) => state.user.data?.emailAddress
+  ) as string;
+  // const [currentMonth, setCurrentMonth] = useState<string>("Oct");
 
-  // user's contributed hours and rewards points need to get from firebase
-  const [contributedHours, setContributedHours] = useState<number>(16);
-  // const [contributedHours, setContributedHours] = useState([]);
-  // const [rewardsPoints, setRewardsPoints] = useState<number>(113);
+  // 实现每进来一次都会重新从firebase获取数据
+  useEffect(() => {
+    dispatch(fetchUserData(email));
+    dispatch(fetchUserContributionData(email));
+    // dispatch(fetchContributionHours({ email, currentMonth}));
+  }, [dispatch]);
 
-  const fetchUserData = async (uid: string | undefined) => {
-    const userCollection = firestore().collection("Users");
+   // Access the data from the Redux store
+  const contributionData = useAppSelector((state: RootState) => state.user.contributionData);
 
-    try {
-      const userDoc = await userCollection.doc(uid).get();
+  console.log(contributionData);
+  
+  // Retrieve totalContrHours for a specific year and month
+  const selectedYear = '2023';
+  const selectedMonth = 'Oct';
+  const totalContrHours = contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours;
 
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        // You now have the user's data in the `userData` variable.
-        return userData;
-      } else {
-        console.log("User document not found.");
-        return null; // Handle this case appropriately in your code.
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      return null; // Handle this case appropriately in your code.
-    }
-  };
+  console.log(totalContrHours);
 
-  // Example of adding a contribution for January 2023
-  // const newContribution = {
-  //   totalCHours: 20,
-  //   updatedDate: new Date(Date.now()),
-  // };
+  // const contribution = useAppSelector(
+  //   (state) => state.user.contributionData?.contributionHours
+  // ) as unknown as number;
 
-  // firestore()
-  //   .collection("Users")
-  //   .doc("0XsA0YrwZyjjzqhMi1ve")
-  //   .collection("UserContributions")
-  //   .doc("2023")
-  //   .collection("Jan")
-  //   .add(newContribution);
+  // const [contributedHours, setContributedHours] = useState<number>(16);
+  const [contributedHours, setContributedHours] =
+    useState<any>(totalContrHours);
 
-  const progressPercentage = contributedHours / 20;
+  // const progressPercentage = contributedHours / 20;
+  const progressPercentage = 2 / 20;
   const progressBarWidth = `${progressPercentage * 100}%`;
 
   const [currentLevelMaxHours, setCurrentLevelMaxHours] = useState<number>(20); //到20.0就变level3
-  const hoursLeftToNextLevel = currentLevelMaxHours - contributedHours;
+  // const hoursLeftToNextLevel = currentLevelMaxHours - contributedHours;
+  const hoursLeftToNextLevel = currentLevelMaxHours - 2;
 
   /* Date Variable */
   const currentDate = new Date();
@@ -112,7 +106,8 @@ const RewardsPage = ({
           {/* Level Section */}
           <View style={styles.levelContainer}>
             <Text style={styles.levelText1}>
-              Level {calculateLevel(contributedHours)}
+              {/* Level {calculateLevel(contributedHours)} */}
+              Level 2
             </Text>
             <View style={styles.progressBar}>
               <View
@@ -124,8 +119,10 @@ const RewardsPage = ({
               />
             </View>
             <Text style={styles.levelText2}>
+              {/* Contribute {hoursLeftToNextLevel} more hours by {formattedLastDay}{" "}
+              to reach Level {calculateLevel(contributedHours) + 1} */}
               Contribute {hoursLeftToNextLevel} more hours by {formattedLastDay}{" "}
-              to reach Level {calculateLevel(contributedHours) + 1}
+              to reach Level {2}
             </Text>
 
             <View style={styles.policyButtonContainer}>
@@ -151,6 +148,7 @@ const RewardsPage = ({
             </Text>
             <View style={styles.rowContainer}>
               <Text style={styles.Text2}>{contributedHours}</Text>
+              {/* <Text style={styles.Text2}>{contributedHours}</Text> */}
               <Text style={styles.Text1}>TimeBank Rewards Hours</Text>
             </View>
 

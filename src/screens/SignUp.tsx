@@ -152,17 +152,9 @@ const SignUp = ({
       );
 
       console.log(userCredential.user.email, "Signed up successfully.");
-
       console.log("Adding user document to firestore ...");
 
       try {
-        // const userData = {
-        //   uid: userCredential.user.uid,
-        //   name: data.name,
-        //   identityCardNumber: data.identityCardNumber,
-        //   phoneNumber: data.phoneNumber,
-        //   emailAddress: data.emailAddress,
-        // };
         const userData = {
           uid: userCredential.user.uid,
           name: data.name,
@@ -170,49 +162,34 @@ const SignUp = ({
           phoneNumber: data.phoneNumber,
           emailAddress: data.emailAddress,
           points: 0,
-
-          // UserContributions: {
-          //   "2023": { // Year
-          //     "Jan": { // Month
-          //       totalCHours: 20
-          //     },
-          //     "Feb": {
-          //       totalCHours: 15
-          //     },
-          //   },
-          // },
-          // UserActivities: {
-          //   "Activity1": {
-          //     action: "usePoints",
-          //     timestamp: 1629813600,
-          //     "details": {
-          //       UserRewards: "activeReward1",
-          //       name: "Time Rewards",
-          //       pointsUsed: 50.00
-          //     }
-          //   },
-          // },
-          // UserRewards: {
-          //   active: {
-          //     "ActiveReward1": {
-          //       Reward: "reward2",
-          //       redeemedDate: 1629888650,
-          //       expiredDate: 1629815454
-          //     },
-          //   },
-          //   used: {
-          //     "ActiveReward2": {
-          //       Reward: "reward1",
-          //       redeemedDate: 1629888650,
-          //       expiredDate: 1624674654,
-          //       usedDate: 1629813700
-          //     }
-          //   }
-          // }
         };
-        await userCollection.add(userData);
 
+        // await userCollection.add(userData);
+
+        // Use the user's UID as the document ID
+        await userCollection.doc(userCredential.user.uid).set(userData); //**这样doc id和uid同步了不然好麻烦 */
         console.log("User's document has been added successfully.");
+
+        // Record user contribution in a subcollection
+        const userContributionCollection = userCollection
+          .doc(userCredential.user.uid)
+          .collection("UserContribution");
+
+        // Example user contribution data
+        const year = "2023";
+        const month = "Oct";
+        const UserContributionData = {
+          [month]: {
+            totalContrHours: 10,
+            updatedDate: new Date()
+          },
+        };
+
+        // Add the user contribution document to the subcollection
+        // await userContributionCollection.add(UserContributionData);
+        await userContributionCollection.doc(year).set(UserContributionData);
+
+        console.log("User contribution has been recorded.");
 
         dispatch(updateUserData(userData));
       } catch (error) {

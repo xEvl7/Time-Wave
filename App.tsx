@@ -13,7 +13,7 @@ export default function App() {
       <Provider store={store}>
         <Navigation />
         {/* Reset user data from Secure Store */}
-        <Reset />
+        {/* <Reset /> */}
       </Provider>
     </>
   );
