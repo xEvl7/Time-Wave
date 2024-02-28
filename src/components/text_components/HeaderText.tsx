@@ -8,5 +8,6 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 28,
     fontWeight: "bold",
+    color: "#FFFFFF"
   },
 });

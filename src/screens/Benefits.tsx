@@ -8,7 +8,7 @@ import ParagraphText from "../components/text_components/ParagraphText";
 const Benefits = () => {
   return (
     <>
-      <BackgroundImageBox />
+      <BackgroundImageBox source={0} />
       <ContentContainer>
         <HeaderText>Benefits of Time Wave</HeaderText>
         <Text style={styles.highlight}>

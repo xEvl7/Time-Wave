@@ -3,6 +3,7 @@ import firestore from "@react-native-firebase/firestore";
 import * as SecureStore from "expo-secure-store";
 import { USER_DATA } from "../constants";
 import { RootState } from "../store";
+import { DateTime } from "luxon";
 
 type UserData = {
   uid: string;
@@ -20,9 +21,28 @@ type UserContributionData = {
   };
 };
 
+type PointsReceivedData = {
+  date: any;
+  time: any;
+  points: number;
+};
+
+type PointsReceivedData2 = {
+  date: any;
+  points: number;
+};
+
+type PointsUsedData = {
+  date: any;
+  time: any;
+  points: number;
+};
+
 type UserState = {
   data?: UserData;
   contributionData?: { [year: string]: UserContributionData };
+  pointsReceivedData?: PointsReceivedData[];
+  pointsUsedData?: PointsUsedData[];
 };
 
 export const updateUserData = createAsyncThunk(
@@ -55,6 +75,18 @@ export const fetchUserData = createAsyncThunk(
   }
 );
 
+export const loadUserDataFromStore = createAsyncThunk(
+  "user/loadUserDataFromCache",
+  async () => {
+    let userDataJson: string | null = (await SecureStore.getItemAsync(
+      USER_DATA
+    )) as string | null;
+
+    if (userDataJson) return JSON.parse(userDataJson);
+    return userDataJson;
+  }
+);
+
 export const fetchUserContributionData = createAsyncThunk(
   "user/fetchUserContributionData",
   async (emailAddress: string) => {
@@ -71,12 +103,8 @@ export const fetchUserContributionData = createAsyncThunk(
 
     const userDocument = querySnapshot.docs[0];
     const userContributionCollection = await userDocument.ref
-      .collection("UserContribution")
+      .collection("Contributions")
       .get();
-
-    // Now you can process the documents in the subcollection
-    // const userContributionData: UserContributionData =
-    //   {} as UserContributionData;
 
     const contributionData: { [year: string]: UserContributionData } = {} as {
       [year: string]: UserContributionData;
@@ -94,13 +122,9 @@ export const fetchUserContributionData = createAsyncThunk(
       contributionData[year] = monthData;
     });
 
-    // Now userContributionData contains the data from the "UserContribution" subcollection
-    console.log(contributionData);
-    // console.log(contributionData["2023"]["Oct"].totalContrHours);
-
     // Check if the keys and values exist before accessing them
     const selectedYear = "2023";
-    const selectedMonth = "Oct";
+    const selectedMonth = "Dec";
 
     if (
       contributionData[selectedYear] &&
@@ -110,11 +134,6 @@ export const fetchUserContributionData = createAsyncThunk(
         contributionData[selectedYear][selectedMonth].totalContrHours;
 
       if (totalContrHours !== undefined) {
-        console.log(totalContrHours);
-
-        // Uncomment the following line if you want to store the entire contributionData
-        // await SecureStore.setItemAsync(USER_DATA, JSON.stringify(contributionData));
-
         return contributionData;
       }
     }
@@ -123,64 +142,140 @@ export const fetchUserContributionData = createAsyncThunk(
   }
 );
 
-// export const fetchContributionHours = createAsyncThunk(
-//   "user/fetchContributionHours",
-//   async ({ email, currentMonth }: { email: string; currentMonth: string }) => {
-//     const querySnapshot = await firestore()
-//       .collection("Users")
-//       .where("emailAddress", "==", email)
-//       .get();
+export const fetchPointsReceivedData = createAsyncThunk(
+  "user/fetchPointsReceivedData",
+  async (emailAddress: string) => {
+    const querySnapshot = await firestore()
+      .collection("Users")
+      .where("emailAddress", "==", emailAddress)
+      .get();
 
-//     if (querySnapshot.size !== 1) {
-//       throw new Error(`${email} Either has no data or more than 1 data.`);
-//     }
+    if (querySnapshot.size !== 1) {
+      throw new Error(
+        `${emailAddress} Either has no data or more than 1 data.`
+      );
+    }
 
-//     const userDocument = querySnapshot.docs[0];
+    const userDocument = querySnapshot.docs[0];
+    const PointsReceivedCollection = await userDocument.ref
+      .collection("PointsReceived")
+      .orderBy("date", "desc")
+      .get();
 
-//     // Reference to the UserContribution collection
-//     const userContributionCollectionRef =
-//       userDocument.ref.collection("UserContribution");
+    const activities: PointsReceivedData[] = [];
 
-//     // Query the 2023 subcollection
-//     const year2023Collection = await userContributionCollectionRef
-//       .doc("2023")
-//       .collection("Oct") // Assuming "Oct" is a subcollection
-//       .get();
+    // Iterate over each document in the "PointsReceived" sub-collection
+    PointsReceivedCollection.forEach((doc) => {
+      const firestoreTimestamp = doc.data().date; // Assuming this is the Timestamp field
+      const timestamp = new Date(
+        firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6
+      );
 
-//     const contributionData: { [year: string]: UserContributionData } = {};
+      const luxonDateTime =
+        DateTime.fromJSDate(timestamp).setZone("Asia/Singapore");
 
-//     year2023Collection.docs.forEach((doc) => {
-//       const year = doc.id;
-//       const monthData = doc.data() as UserContributionData;
+      const pointsReceivedData: PointsReceivedData = {
+        date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
+        time: luxonDateTime.toFormat("hh:mm a"), // "11:00 AM"
+        points: doc.data().points,
+      };
 
-//       // Convert Date to string for each month if updatedDate is present and is a Date object
-//       Object.keys(monthData).forEach((month) => {
-//         const monthEntry = monthData[month];
-//         if (monthEntry.updatedDate instanceof Date) {
-//           monthEntry.updatedDate = monthEntry.updatedDate.toString();
-//         }
-//       });
+      activities.push(pointsReceivedData);
+    });
 
-//       contributionData[year] = monthData;
-//     });
+    // Return the array of PointsReceivedData
+    return activities;
+  }
+);
 
-//     // Now userContributionData contains the data from the "UserContribution" subcollection
-//     console.log(contributionData);
+export const fetchPointsUsedData = createAsyncThunk(
+  "user/fetchPointsUsedData",
+  async (emailAddress: string) => {
+    const querySnapshot = await firestore()
+      .collection("Users")
+      .where("emailAddress", "==", emailAddress)
+      .get();
 
-//     // await SecureStore.setItemAsync(USER_DATA, JSON.stringify(contributionData));
-//     return contributionData;
-//   }
-// );
+    if (querySnapshot.size !== 1) {
+      throw new Error(
+        `${emailAddress} Either has no data or more than 1 data.`
+      );
+    }
 
-export const loadUserDataFromStore = createAsyncThunk(
-  "user/loadUserDataFromCache",
-  async () => {
-    let userDataJson: string | null = (await SecureStore.getItemAsync(
-      USER_DATA
-    )) as string | null;
+    const userDocument = querySnapshot.docs[0];
+    const PointsUsedCollection = await userDocument.ref
+      .collection("PointsUsed")
+      .orderBy("date", "desc")
+      .get();
 
-    if (userDataJson) return JSON.parse(userDataJson);
-    return userDataJson;
+    const activities: PointsUsedData[] = [];
+
+    // Iterate over each document in the "PointsUsed" sub-collection
+    PointsUsedCollection.forEach((doc) => {
+      const firestoreTimestamp = doc.data().date; // Assuming this is the Timestamp field
+      const timestamp = new Date(
+        firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6
+      );
+
+      const luxonDateTime =
+        DateTime.fromJSDate(timestamp).setZone("Asia/Singapore");
+
+      const pointsUsedData: PointsUsedData = {
+        date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
+        time: luxonDateTime.toFormat("hh:mm a"), // "11:00 AM"
+        points: doc.data().points,
+      };
+
+      activities.push(pointsUsedData);
+    });
+
+    // Return the array of PointsUsedData
+    return activities;
+  }
+);
+
+export const storePointsReceivedDataToFirebase = createAsyncThunk(
+  "user/storePointsReceivedDataToFirebase",
+  async (
+    pointsReceivedData: PointsReceivedData2,
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const state = getState() as RootState; // Explicitly define the type
+      const currentUser = state.user.data;
+
+      if (!currentUser) {
+        throw new Error("Current user data not available.");
+      }
+
+      // Convert Date to Firestore Timestamp
+      const firestoreTimestamp = firestore.Timestamp.fromDate(
+        pointsReceivedData.date
+      );
+
+      // Add other fields as needed
+      const serializedPointsReceivedData = {
+        date: firestoreTimestamp,
+        points: pointsReceivedData.points,
+      };
+
+      // Target the specific user document and PointsReceived subcollection
+      const userDocumentRef = firestore()
+        .collection("Users")
+        .doc(currentUser.uid);
+
+      await userDocumentRef
+        .collection("PointsReceived")
+        .add(serializedPointsReceivedData);
+
+      return pointsReceivedData;
+    } catch (error) {
+      // Explicitly type the error variable
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
+
+      return rejectWithValue(errorMessage);
+    }
   }
 );
 
@@ -196,7 +291,6 @@ const userSlice = createSlice({
         fetchUserData.fulfilled,
         (state, action: PayloadAction<UserData>) => {
           state.data = action.payload;
-
           console.log(`Successfully fetched ${state.data.name}'s data`);
         }
       )
@@ -205,11 +299,12 @@ const userSlice = createSlice({
       })
       .addCase(
         fetchUserContributionData.fulfilled,
-        (state, action: PayloadAction<UserState>) => {
-          // Ensure that you're correctly accessing the payload property
-          state.contributionData = action.payload.contributionData;
-
-          console.log(`Successfully fetched contribution data`);
+        (
+          state,
+          action: PayloadAction<{ [year: string]: UserContributionData }>
+        ) => {
+          state.contributionData = action.payload;
+          console.log(`Successfully fetched User Contribution's data`);
         }
       )
       .addCase(fetchUserContributionData.rejected, (_, action) => {
@@ -237,7 +332,40 @@ const userSlice = createSlice({
         (state, action: PayloadAction<UserData>) => {
           state.data = action.payload;
         }
-      );
+      )
+      .addCase(
+        fetchPointsReceivedData.fulfilled,
+        (state, action: PayloadAction<PointsReceivedData[]>) => {
+          state.pointsReceivedData = action.payload;
+          console.log(action.payload);
+          console.log(`Successfully fetched User Points Received's data`);
+        }
+      )
+      .addCase(fetchPointsReceivedData.rejected, (_, action) => {
+        console.error(action.error);
+      })
+      .addCase(
+        fetchPointsUsedData.fulfilled,
+        (state, action: PayloadAction<PointsUsedData[]>) => {
+          state.pointsUsedData = action.payload;
+          console.log(action.payload);
+          console.log(`Successfully fetched User Points Used's data`);
+        }
+      )
+      .addCase(
+        storePointsReceivedDataToFirebase.fulfilled,
+        (state, action: PayloadAction<PointsReceivedData2>) => {
+          // Update your state if needed
+          // state.pointsReceivedData = [...state.pointsReceivedData, action.payload];
+          console.log("Successfully stored points received data to Firebase");
+        }
+      )
+      .addCase(storePointsReceivedDataToFirebase.rejected, (_, action) => {
+        console.error(action.error);
+      })
+      .addCase(fetchPointsUsedData.rejected, (_, action) => {
+        console.error(action.error);
+      });
   },
 });
 

@@ -165,31 +165,42 @@ const SignUp = ({
         };
 
         // await userCollection.add(userData);
-
         // Use the user's UID as the document ID
         await userCollection.doc(userCredential.user.uid).set(userData); //**这样doc id和uid同步了不然好麻烦 */
         console.log("User's document has been added successfully.");
 
+        //****test for contribution */
         // Record user contribution in a subcollection
         const userContributionCollection = userCollection
           .doc(userCredential.user.uid)
-          .collection("UserContribution");
-
+          .collection("Contributions");
         // Example user contribution data
         const year = "2023";
-        const month = "Oct";
+        const month = "Dec";
         const UserContributionData = {
           [month]: {
             totalContrHours: 10,
-            updatedDate: new Date()
+            updatedDate: new Date(),
           },
         };
-
         // Add the user contribution document to the subcollection
         // await userContributionCollection.add(UserContributionData);
         await userContributionCollection.doc(year).set(UserContributionData);
-
         console.log("User contribution has been recorded.");
+
+        //****test for point history */
+        const pointsReceivedCollection = userCollection
+          .doc(userCredential.user.uid)
+          .collection("PointsReceived");
+        const PointsReceivedHistoryData = {
+          date: new Date(),
+          points: 12,
+        };
+        // need to add into the user's points also
+        // userData.points += PointsReceivedHistoryData.points;
+
+        await pointsReceivedCollection.doc().set(PointsReceivedHistoryData);
+        console.log("Points received history has been recorded.");
 
         dispatch(updateUserData(userData));
       } catch (error) {

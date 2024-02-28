@@ -11,9 +11,8 @@ import React, { useState, useEffect } from "react";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
-
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { useAppDispatch } from "../hooks";
+import { storePointsReceivedDataToFirebase } from "../features/userSlice";
 
 const PointsPolicy = ({
   navigation,
@@ -24,15 +23,19 @@ const PointsPolicy = ({
     navigation.navigate("RewardsPage");
   };
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyD7u8fTERnA_Co1MnpVeJ6t8ZumV0T59-Y",
-    authDomain: "time-wave-88653.firebaseapp.com",
-    projectId: "time-wave-88653",
-    storageBucket: "time-wave-88653.appspot.com",
-    messagingSenderId: "666062417383",
-    appId: "1:666062417383:web:8d8a8c4d4c0a3d55052142",
-    measurementId: "G-L7TTXFZ6DM",
+  // Inside your component or wherever you want to store points received data
+  const dispatch = useAppDispatch();
+
+  // Assuming pointsReceivedData is the data you want to store
+  const pointsReceivedData = {
+    date: new Date(), // Adjust the date as needed
+    points: 20, // Adjust the points value as needed
+    // Add other fields as needed
   };
+
+  useEffect(() => {
+    dispatch(storePointsReceivedDataToFirebase(pointsReceivedData));
+  }, [dispatch]);
 
   const [activeTab, setActiveTab] = useState<
     "level1" | "level2" | "level3" | "level4"

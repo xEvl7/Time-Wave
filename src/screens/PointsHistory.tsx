@@ -12,29 +12,13 @@ import React, { useState, useEffect } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
-import firestore from "@react-native-firebase/firestore";
-import { Timestamp } from "firebase/firestore";
 import { DateTime } from "luxon";
-
-// type FormData = {
-//   userPointActivity_id: string;
-//   earned_points: number;
-//   used_points: number;
-//   timestamp: Timestamp;
-//   pointActivity_category: string;
-//   pointActivity_name: string;
-// };
-
-interface UserPointActivity {
-  earned_points: number;
-  pointActivity_category: string;
-  pointActivity_name: string;
-  timestamp: Timestamp;
-  used_points: number | null; // Or, if you expect it to be 'null', use 'null'
-  userPointActivity_id: string;
-}
+import { useAppDispatch, useAppSelector } from "../hooks";
+import {
+  fetchPointsReceivedData,
+  fetchPointsUsedData,
+} from "../features/userSlice";
+import { RootState } from "../store";
 
 const PointsHistory = ({
   navigation,
@@ -43,156 +27,125 @@ const PointsHistory = ({
     navigation.navigate("RewardsPage");
   };
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyD7u8fTERnA_Co1MnpVeJ6t8ZumV0T59-Y",
-    authDomain: "time-wave-88653.firebaseapp.com",
-    projectId: "time-wave-88653",
-    storageBucket: "time-wave-88653.appspot.com",
-    messagingSenderId: "666062417383",
-    appId: "1:666062417383:web:8d8a8c4d4c0a3d55052142",
-    measurementId: "G-L7TTXFZ6DM",
-  };
+  const dispatch = useAppDispatch();
+  const userData = useAppSelector((state) => state.user.data);
+  const email = useAppSelector(
+    (state) => state.user.data?.emailAddress
+  ) as string;
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-
-  // Initialize Cloud Firestore and get a reference to the service
-  const db = getFirestore(app);
-
-  // const handleData = async (data: FormData) => {
-  //   const querySnapshot = await getDocs(collection(db, "users"));
-  //   querySnapshot.forEach((doc) => {
-  //     console.log(`${doc.id} => ${doc.data()}`);
-  //   });
-  // };
-
-  const [userActivities, setUserActivities] = useState<UserPointActivity[]>([]);
-
+  // 实现每进来一次都会重新从firebase获取数据
   useEffect(() => {
-    const userId = "8Unjvkx1JB2iOUlQrgAe"; // Replace with the actual user's ID
+    dispatch(fetchPointsReceivedData(email));
+    dispatch(fetchPointsUsedData(email));
+  }, [dispatch]);
 
-    // Reference to the "Users" collection
-    const usersCollection = firestore().collection("Users");
-
-    // Reference to a specific user's "UserPointActivity" sub-collection
-    const userDocument = usersCollection.doc(userId);
-
-    // Query the sub-collection
-    const userPointActivityCollection =
-      userDocument.collection("PointsActivity");
-
-    // Fetch data from the sub-collection
-    userPointActivityCollection.get().then((querySnapshot) => {
-      const activities: UserPointActivity[] = [];
-      querySnapshot.forEach((doc) => {
-        // Get the data from the document and add it to the activities array
-        const activityData = doc.data() as UserPointActivity; // Cast the data to the correct type
-        activities.push(activityData);
-      });
-
-      // Now, the activities array is populated with data from Firestore
-      setUserActivities(activities);
-    });
-  }, []);
+  // Access the data from the Redux store
+  const pointsReceivedData = useAppSelector(
+    (state: RootState) => state.user.pointsReceivedData
+  );
+  const pointsUsedData = useAppSelector(
+    (state: RootState) => state.user.pointsUsedData
+  );
 
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"received" | "used">("received");
-  const [receivedPointsData, setReceivedPointsData] = useState([
-    {
-      date: "Tue, 1 Aug 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 50,
-    },
-    {
-      date: "Sat, 1 Jul 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 75,
-    },
-    {
-      date: "Tue, 1 Aug 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 50,
-    },
-    {
-      date: "Sat, 1 Jul 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 75,
-    },
-    {
-      date: "Tue, 1 Aug 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 50,
-    },
-    {
-      date: "Sat, 1 Jul 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 75,
-    },
-  ]);
-  const [usedPointsData, setUsedPointsData] = useState([
-    {
-      date: "Sun, 6 Aug 2023",
-      time: "11:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 30,
-    },
-    {
-      date: "Tue, 27 Jun 2023",
-      time: "08:00 PM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 55,
-    },
-    {
-      date: "Sun, 6 Aug 2023",
-      time: "11:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 30,
-    },
-    {
-      date: "Tue, 27 Jun 2023",
-      time: "08:00 PM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 55,
-    },
-    {
-      date: "Sun, 6 Aug 2023",
-      time: "11:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 30,
-    },
-    {
-      date: "Tue, 27 Jun 2023",
-      time: "08:00 PM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 55,
-    },
-  ]);
+
+  // const [receivedPointsData, setReceivedPointsData] = useState([
+  //   {
+  //     date: "Tue, 1 Aug 2023",
+  //     time: "12:00 AM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 50,
+  //   },
+  //   {
+  //     date: "Sat, 1 Jul 2023",
+  //     time: "12:00 AM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 75,
+  //   },
+  //   {
+  //     date: "Tue, 1 Aug 2023",
+  //     time: "12:00 AM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 50,
+  //   },
+  //   {
+  //     date: "Sat, 1 Jul 2023",
+  //     time: "12:00 AM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 75,
+  //   },
+  //   {
+  //     date: "Tue, 1 Aug 2023",
+  //     time: "12:00 AM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 50,
+  //   },
+  //   {
+  //     date: "Sat, 1 Jul 2023",
+  //     time: "12:00 AM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 75,
+  //   },
+  // ]);
+  // const [usedPointsData, setUsedPointsData] = useState([
+  //   {
+  //     date: "Sun, 6 Aug 2023",
+  //     time: "11:00 AM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 30,
+  //   },
+  //   {
+  //     date: "Tue, 27 Jun 2023",
+  //     time: "08:00 PM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 55,
+  //   },
+  //   {
+  //     date: "Sun, 6 Aug 2023",
+  //     time: "11:00 AM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 30,
+  //   },
+  //   {
+  //     date: "Tue, 27 Jun 2023",
+  //     time: "08:00 PM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 55,
+  //   },
+  //   {
+  //     date: "Sun, 6 Aug 2023",
+  //     time: "11:00 AM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 30,
+  //   },
+  //   {
+  //     date: "Tue, 27 Jun 2023",
+  //     time: "08:00 PM",
+  //     category: "Time Points Rewards",
+  //     name: "TimeBank Rewards Points",
+  //     points: 55,
+  //   },
+  // ]);
 
   useEffect(() => {
     setTimeout(() => {
-      if (activeTab == "received") {
-        setReceivedPointsData;
-      } else {
-        setUsedPointsData;
-      }
+      // if (activeTab == "received") {
+      //   setReceivedPointsData;
+      // } else {
+      //   setUsedPointsData;
+      // }
       setIsLoading(false);
     }, 500);
   }, [activeTab]);
@@ -202,33 +155,20 @@ const PointsHistory = ({
     setIsLoading(true);
   };
 
-  const formatTimestamp = (timestamp: Timestamp) => {
-    // Convert timestamp to luxon DateTime object
-    const date = DateTime.fromJSDate(timestamp.toDate());
-
-    // Set the timezone to UTC+8
-    const formattedDate = date
-      .setZone("Asia/Singapore")
-      .toFormat("EEE, d LLL yyyy");
-    const formattedTime = date.setZone("Asia/Singapore").toFormat("h:mm a");
-
-    return { date: formattedDate, time: formattedTime };
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === "received" && styles.activeTab,
+            activeTab == "received" && styles.activeTab,
           ]}
           onPress={() => handleTabChange("received")}
         >
           <Text
             style={[
               styles.tabText,
-              activeTab === "received" && styles.activeTabText,
+              activeTab == "received" && styles.activeTabText,
             ]}
           >
             Points Received
@@ -241,7 +181,7 @@ const PointsHistory = ({
           <Text
             style={[
               styles.tabText,
-              activeTab === "used" && styles.activeTabText,
+              activeTab == "used" && styles.activeTabText,
             ]}
           >
             Points Used
@@ -257,35 +197,32 @@ const PointsHistory = ({
         />
       ) : (
         <View>
-          {activeTab === "received" ? (
+          {activeTab == "received" ? (
             // Render Points Received Fragment
             <View>
               {/* Content for Points Received */}
               <FlatList
                 contentContainerStyle={{ paddingBottom: 100 }}
-                // data={receivedPointsData}
-                data={userActivities}
+                data={pointsReceivedData}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <View>
                     <View style={styles.listContainer1}>
-                      <Text style={styles.listDateText}>
-                        {formatTimestamp(item.timestamp).date}
-                      </Text>
+                      <Text style={styles.listDateText}>{item.date}</Text>
                     </View>
                     <View style={styles.listContainer2}>
-                      <Text style={styles.listTimeText}>
-                        {formatTimestamp(item.timestamp).time}
-                      </Text>
+                      <Text style={styles.listTimeText}>{item.time}</Text>
                       <Text style={styles.listCategoryText}>
-                        {item.pointActivity_category}
+                        Time Points Rewards
+                        {/* {item.category} */}
                       </Text>
                       <View style={styles.tabContainer}>
                         <Text style={styles.listNameText}>
-                          {item.pointActivity_name}
+                          TimeBank Rewards Points
+                          {/* {item.name} */}
                         </Text>
                         <Text style={styles.listPointsText}>
-                          +{item.earned_points}
+                          +{item.points}
                         </Text>
                       </View>
                     </View>
@@ -299,7 +236,7 @@ const PointsHistory = ({
               {/* Content for Points Used */}
               <FlatList
                 contentContainerStyle={{ paddingBottom: 100 }}
-                data={usedPointsData}
+                data={pointsUsedData}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => (
                   <View>
@@ -309,10 +246,14 @@ const PointsHistory = ({
                     <View style={styles.listContainer2}>
                       <Text style={styles.listTimeText}>{item.time}</Text>
                       <Text style={styles.listCategoryText}>
-                        {item.category}
+                        Time Points Rewards
+                        {/* {item.category} */}
                       </Text>
                       <View style={styles.tabContainer}>
-                        <Text style={styles.listNameText}>{item.name}</Text>
+                        <Text style={styles.listNameText}>
+                          TimeBank Rewards Points
+                          {/* {item.name} */}
+                        </Text>
                         <Text style={styles.listPointsText}>
                           -{item.points}
                         </Text>

@@ -20,9 +20,6 @@ import { fetchUserData } from "../features/userSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
-
 
 // type FormData = {
 //   emailAddress: string;
@@ -44,11 +41,11 @@ export default function ActiveRewardsPage({
     measurementId: "G-L7TTXFZ6DM",
   };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+  // // Initialize Firebase
+  // const app = initializeApp(firebaseConfig);
 
-  // Initialize Cloud Firestore and get a reference to the service
-  const db = getFirestore(app);
+  // // Initialize Cloud Firestore and get a reference to the service
+  // const db = getFirestore(app);
 
   const handleData = async (data: FormData) => {
     // const querySnapshot = await getDocs(collection(db, "users"));

@@ -74,9 +74,9 @@ export default function ActiveRewardsDetailsPage({
 
             <View style={{backgroundColor:'lightgrey',marginTop:10,height:1}}></View>
 
-            <TextButton onPress={() => navigation.navigate("ActiveRewardsDetails_UseNowPage")}>
+            {/* <TextButton onPress={() => navigation.navigate("ActiveRewardsDetails_UseNowPage")}>
                 Use Now
-            </TextButton> 
+            </TextButton>  */}
                
           </ContentContainer>
       </View>

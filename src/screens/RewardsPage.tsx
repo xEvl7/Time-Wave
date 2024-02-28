@@ -6,6 +6,7 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  Animated,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 
@@ -33,38 +34,32 @@ const RewardsPage = ({
 
   // 实现每进来一次都会重新从firebase获取数据
   useEffect(() => {
+    console.log("Fetching user data...");
     dispatch(fetchUserData(email));
+    console.log("Fetching contribution data...");
     dispatch(fetchUserContributionData(email));
     // dispatch(fetchContributionHours({ email, currentMonth}));
   }, [dispatch]);
 
-   // Access the data from the Redux store
-  const contributionData = useAppSelector((state: RootState) => state.user.contributionData);
+  // Access the data from the Redux store
+  const contributionData = useAppSelector(
+    (state: RootState) => state.user.contributionData
+  );
 
-  console.log(contributionData);
-  
   // Retrieve totalContrHours for a specific year and month
-  const selectedYear = '2023';
-  const selectedMonth = 'Oct';
-  const totalContrHours = contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours;
+  const selectedYear = "2023";
+  const selectedMonth = "Dec";
+  const totalContrHours =
+    contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours;
 
-  console.log(totalContrHours);
-
-  // const contribution = useAppSelector(
-  //   (state) => state.user.contributionData?.contributionHours
-  // ) as unknown as number;
-
-  // const [contributedHours, setContributedHours] = useState<number>(16);
   const [contributedHours, setContributedHours] =
     useState<any>(totalContrHours);
-
-  // const progressPercentage = contributedHours / 20;
-  const progressPercentage = 2 / 20;
+  const progressPercentage = contributedHours / 20;
   const progressBarWidth = `${progressPercentage * 100}%`;
 
-  const [currentLevelMaxHours, setCurrentLevelMaxHours] = useState<number>(20); //到20.0就变level3
-  // const hoursLeftToNextLevel = currentLevelMaxHours - contributedHours;
-  const hoursLeftToNextLevel = currentLevelMaxHours - 2;
+  const [currentLevelMaxHours, setCurrentLevelMaxHours] = useState<number>(11);
+  // const [currentLevelMaxHours, setCurrentLevelMaxHours] = useState<number>(21);
+  const hoursLeftToNextLevel = currentLevelMaxHours - contributedHours;
 
   /* Date Variable */
   const currentDate = new Date();
@@ -77,7 +72,7 @@ const RewardsPage = ({
 
   const lastDate = lastDay.getDate();
   const lastMonth = lastDay.toLocaleString("default", { month: "short" });
-  const lastYear = month === 11 ? year + 1 : year;
+  const lastYear = month == 11 ? year + 1 : year;
 
   const formattedLastDay = `${lastDate} ${lastMonth} ${lastYear}`;
   /* Date Variable End*/
@@ -86,173 +81,177 @@ const RewardsPage = ({
     // Simulate loading data
     setTimeout(async () => {
       setIsLoading(false);
-    }, 500); // Simulated loading time (1 seconds in this example)
+    }, 500); // Simulated loading time
   }, []);
+
+  // Use useEffect to check when data is available
+  useEffect(() => {
+    if (userData && contributionData) {
+      setIsLoading(false);
+    }
+  }, [userData, contributionData]);
 
   const handlePressBack = () => {
     navigation.navigate("HomePage");
   };
 
+  if (isLoading) {
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#FF8D13"
+        style={styles.loadingIndicator}
+      />
+    );
+  }
+
   return (
-    <ScrollView contentContainerStyle={styles.scrollViewContent}>
-      {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          color="#FF8D13"
-          style={styles.loadingIndicator}
-        />
-      ) : (
-        <View style={styles.container}>
-          {/* Level Section */}
-          <View style={styles.levelContainer}>
-            <Text style={styles.levelText1}>
-              {/* Level {calculateLevel(contributedHours)} */}
-              Level 2
-            </Text>
-            <View style={styles.progressBar}>
-              <View
-                style={{
-                  width: progressBarWidth,
-                  height: 5,
-                  backgroundColor: "white",
-                }}
-              />
-            </View>
-            <Text style={styles.levelText2}>
-              {/* Contribute {hoursLeftToNextLevel} more hours by {formattedLastDay}{" "}
-              to reach Level {calculateLevel(contributedHours) + 1} */}
-              Contribute {hoursLeftToNextLevel} more hours by {formattedLastDay}{" "}
-              to reach Level {2}
-            </Text>
-
-            <View style={styles.policyButtonContainer}>
-              <TouchableOpacity
-                style={styles.policyButton}
-                onPress={() => {
-                  navigation.navigate("PointsPolicy");
-                }}
-              >
-                <Text style={styles.policyButtonText}>View Points Policy</Text>
-                <Image
-                  source={require("../assets/next_icon_white.png")}
-                  style={{ width: 20, height: 20 }}
-                />
-              </TouchableOpacity>
-            </View>
+    <ScrollView
+      contentContainerStyle={styles.scrollViewContent}
+      scrollEventThrottle={16}
+    >
+      <View style={styles.container}>
+        {/* Level Section */}
+        <View style={styles.levelContainer}>
+          <Text style={styles.levelText1}>
+            Level {calculateLevel(contributedHours)}
+            {/* Level 2 */}
+          </Text>
+          <View style={styles.progressBar}>
+            <View
+              style={{
+                width: progressBarWidth,
+                height: 5,
+                backgroundColor: "white",
+              }}
+            />
           </View>
+          <Text style={styles.levelText2}>
+            Contribute {hoursLeftToNextLevel} more hours by {formattedLastDay}{" "}
+            to reach Level {calculateLevel(contributedHours) + 1}
+          </Text>
 
-          {/* Contributions Section */}
-          <View style={styles.subContainer}>
-            <Text style={styles.Text1}>
-              So far this month, you have contributed
-            </Text>
-            <View style={styles.rowContainer}>
-              <Text style={styles.Text2}>{contributedHours}</Text>
-              {/* <Text style={styles.Text2}>{contributedHours}</Text> */}
-              <Text style={styles.Text1}>TimeBank Rewards Hours</Text>
-            </View>
-
-            <View style={styles.line}></View>
-
+          <View style={styles.policyButtonContainer}>
             <TouchableOpacity
-              style={styles.historyButton}
+              style={styles.policyButton}
               onPress={() => {
-                navigation.navigate("ContributionsHistory");
+                navigation.navigate("PointsPolicy");
               }}
             >
-              <Text style={styles.historyButtonText}>
-                View my contributions history
-              </Text>
+              <Text style={styles.policyButtonText}>View Points Policy</Text>
               <Image
-                source={require("../assets/next_icon_orange.png")}
+                source={require("../assets/next_icon_white.png")}
                 style={{ width: 20, height: 20 }}
               />
-            </TouchableOpacity>
-
-            <View style={styles.line}></View>
-          </View>
-
-          {/* Points Section */}
-          <View style={styles.subContainer}>
-            <Text style={styles.Text1}>You have</Text>
-            <View style={styles.rowContainer}>
-              {/* <Text style={styles.Text2}>{rewardsPoints}</Text> */}
-              <Text style={styles.Text2}>{userData?.points}</Text>
-              <Text style={styles.Text1}>TimeBank Rewards Points</Text>
-            </View>
-
-            <View style={styles.line}></View>
-
-            <TouchableOpacity
-              style={styles.historyButton}
-              onPress={() => {
-                // Handle the "View my points history" button click
-                navigation.navigate("PointsHistory");
-              }}
-            >
-              <Text style={styles.historyButtonText}>
-                View my points history
-              </Text>
-              <Image
-                source={require("../assets/next_icon_orange.png")}
-                style={{ width: 20, height: 20 }}
-              />
-            </TouchableOpacity>
-
-            <View style={styles.line}></View>
-          </View>
-
-          {/* Latest Rewards */}
-          <View style={styles.subContainer}>
-            <Text style={styles.lrText1}>Latest Rewards</Text>
-
-            <TouchableOpacity
-              onPress={() => {
-                // Handle button click
-              }}
-            >
-              <View style={styles.lrContainer}>
-                <Image
-                  source={require("../assets/sewing_machine.png")}
-                  style={styles.lrImage}
-                />
-                <View>
-                  <Text style={styles.lrText2}>Singer Sewing Machine</Text>
-                  <Text style={styles.lrText3}>Official Mavcap</Text>
-                  <View style={styles.lrButton}>
-                    <Image
-                      source={require("../assets/diamond.png")}
-                      style={styles.lrIcon}
-                    />
-                    <Text style={styles.lrText4}>100</Text>
-                    <Text style={styles.lrText5}> Points</Text>
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.line}></View>
-
-            {/* All Rewards */}
-            <TouchableOpacity
-              style={styles.rButton}
-              onPress={() => {
-                // Handle the "View All Rewards" button click
-              }}
-            >
-              <Text style={styles.rButtonText}>View All Rewards</Text>
             </TouchableOpacity>
           </View>
         </View>
-      )}
+
+        {/* Contributions Section */}
+        <View style={styles.subContainer}>
+          <Text style={styles.Text1}>
+            So far this month, you have contributed
+          </Text>
+          <View style={styles.rowContainer}>
+            <Text style={styles.Text2}>{contributedHours}</Text>
+            <Text style={styles.Text1}>TimeBank Rewards Hours</Text>
+          </View>
+
+          <View style={styles.line}></View>
+
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={() => {
+              navigation.navigate("ContributionsHistory");
+            }}
+          >
+            <Text style={styles.historyButtonText}>
+              View my contributions history
+            </Text>
+            <Image
+              source={require("../assets/next_icon_orange.png")}
+              style={{ width: 20, height: 20 }}
+            />
+          </TouchableOpacity>
+
+          <View style={styles.line}></View>
+        </View>
+
+        {/* Points Section */}
+        <View style={styles.subContainer}>
+          <Text style={styles.Text1}>You have</Text>
+          <View style={styles.rowContainer}>
+            <Text style={styles.Text2}>{userData?.points}</Text>
+            <Text style={styles.Text1}>TimeBank Rewards Points</Text>
+          </View>
+
+          <View style={styles.line}></View>
+
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={() => {
+              // Handle the "View my points history" button click
+              navigation.navigate("PointsHistory");
+            }}
+          >
+            <Text style={styles.historyButtonText}>View my points history</Text>
+            <Image
+              source={require("../assets/next_icon_orange.png")}
+              style={{ width: 20, height: 20 }}
+            />
+          </TouchableOpacity>
+
+          <View style={styles.line}></View>
+        </View>
+
+        {/* Latest Rewards */}
+        <View style={styles.subContainer}>
+          <Text style={styles.lrText1}>Latest Rewards</Text>
+
+          <TouchableOpacity
+            onPress={() => {
+              // Handle button click
+            }}
+          >
+            <View style={styles.lrContainer}>
+              <Image
+                source={require("../assets/sewing_machine.png")}
+                style={styles.lrImage}
+              />
+              <View>
+                <Text style={styles.lrText2}>Singer Sewing Machine</Text>
+                <Text style={styles.lrText3}>Official Mavcap</Text>
+                <View style={styles.lrButton}>
+                  <Image
+                    source={require("../assets/diamond.png")}
+                    style={styles.lrIcon}
+                  />
+                  <Text style={styles.lrText4}>100</Text>
+                  <Text style={styles.lrText5}> Points</Text>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.line}></View>
+
+          {/* All Rewards */}
+          <TouchableOpacity
+            style={styles.rButton}
+            onPress={() => {
+              // Handle the "View All Rewards" button click
+            }}
+          >
+            <Text style={styles.rButtonText}>View All Rewards</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </ScrollView>
   );
 };
 
 const calculateLevel = (hours: number) => {
-  // Implement your logic to calculate the level based on contributed hours here
-  // Example: return Math.floor(hours / 10); // Assuming 10 hours per level
-  return 2; // Replace this with your actual logic
+  return Math.floor(hours / 10);
 };
 
 const styles = StyleSheet.create({
