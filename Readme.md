@@ -1,20 +1,21 @@
-# How to run:
+# Time Wave App
+This is a React Native app using Expo framework and written in Typescript.
 
-1. clone this git repository
-2. npm install
-3. npx expo start --dev-client (if first time fails, just try again)
+## Prerequisites
 
-# Requirements:
+- Java 11.0.21
+- Nodejs v16.20.2
+- Android emulator
 
-- Java 11 & below
+## Run project in development
 
-# Development tips:
+1. Clone this git repository
+2. Install dependencies: `npm install`
+3. Run on Android: `npx expo run:android`
 
-1. press ctrl+m developer menu can quickly reload app in emulator
+# Development tips
 
-# Github Tips:
-
-1. Always fetch the latest version of the code from github repo main branch and update
+1. Press ctrl+m developer menu can quickly reload app in emulator
 
 ---
 

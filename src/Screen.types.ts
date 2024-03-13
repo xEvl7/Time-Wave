@@ -1,20 +1,25 @@
 import { CommunityProps } from "./features/communitySlice";
 
 export type RootStackParamList = {
-  Welcome: undefined;
-  LogIn: undefined;
   SignUp: undefined;
-  DisclaimerPrivacy: undefined;
+  LogIn: undefined;
   ForgotPassword: undefined;
+  DisclaimerPrivacy: undefined;
+
+  Welcome: undefined;
   AppInfo: undefined;
   Benefits: undefined;
+
   HomePage: undefined;
+
   ScanPage: undefined;
   QrCodePage: undefined;
+
   CreateCommunity: undefined;
   SelectAdmin: undefined;
-  Profile: undefined;
   CommunityInfo: CommunityProps;
+
+  Profile: undefined;
 
   RewardsPage: undefined;
   PointsHistory: undefined;

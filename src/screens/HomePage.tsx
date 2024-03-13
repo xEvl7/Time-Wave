@@ -33,7 +33,7 @@ const HomePage = ({
   navigation,
   route,
 }: NativeStackScreenProps<RootStackParamList, "HomePage">) => {
-  // const [activePage, setActivePage] = useState("HomePage"); // initialize the navigation
+  const [activePage, setActivePage] = useState("HomePage"); // initialize the navigation
   const name = useAppSelector(selectUserName);
 
   return (
@@ -51,11 +51,11 @@ const HomePage = ({
         </ScrollView>
       </View>
 
-      {/* <NavigationBar
+      <NavigationBar
         navigation={navigation}
         activePage={activePage}
         route={route}
-      /> */}
+      />
     </>
   );
 };
@@ -78,27 +78,27 @@ const NavigationItem = ({
     <Pressable
       style={{
         alignItems: "center",
-        height: "75%",
+        height: "65%",
       }}
       onPress={onPress}
     >
       <Image source={itemSource} style={{ aspectRatio: 1, height: "65%" }} />
-      <Text style={{ fontSize: 12, color: "white", textAlign: "center" }}>
+      <Text style={{ fontSize: 14, color: "white", textAlign: "center" }}>
         {text}
       </Text>
-      {/* {isActive && (
+      {isActive && (
         <View
           style={{
             position: "absolute",
             top: 0,
             right: 0,
-            backgroundColor: "pink",
+            backgroundColor: "red",
             width: 5,
             height: 5,
             borderRadius: 5,
           }}
         />
-      )} */}
+      )}
     </Pressable>
   );
 };
@@ -111,24 +111,24 @@ const NavigationBar = ({
 }) => {
   return (
     <View style={styles.navigationBarContainer}>
-      {/* <NavigationItem
+      <NavigationItem
         itemSource={require("../assets/home-icon.png")}
         text="Home"
         onPress={() => {
           navigation.navigate("HomePage");
         }}
         isActive={activePage == "HomePage"}
-      /> */}
+      />
       <NavigationItem
         itemSource={require("../assets/history-icon.png")}
         text={"History"}
-        onPress={() => {}}
+        onPress={() => { }}
         isActive={activePage == "HistoryPage"}
       />
       <NavigationItem
         itemSource={require("../assets/activity-icon.png")}
         text={"Activity"}
-        onPress={() => {}}
+        onPress={() => { }}
         isActive={activePage == "ActivityPage"}
       />
       {/* <NavigationItem
@@ -181,7 +181,7 @@ const renderCommunitiesItem = ({
   navigation: any;
 }) => (
   <Pressable
-    onPress={() => navigation.navigate("CommunityProfilePage", { item })}
+    onPress={() => navigation.navigate("CommunityInfo", { item })}
   >
     <View style={styles.gridItem}>
       <View style={styles.imageBox}>
@@ -410,7 +410,7 @@ const renderHistoryItem = ({
 }) => (
   <Pressable
     onPress={() =>
-      navigation.navigate("CommunityActivityDetailsPage", { item })
+      navigation.navigate("TimeBankRewardsPage", { item })
     }
   >
     <View style={styles.gridItem}>
@@ -519,7 +519,7 @@ export default HomePage;
 
 const styles = StyleSheet.create({
   headerContainer: {
-    paddingTop: 50,
+    paddingTop: 5,
     backgroundColor: "#FF8D13",
     // borderBottomLeftRadius: 20,
     // borderBottomRightRadius: 20,
@@ -564,12 +564,12 @@ const styles = StyleSheet.create({
   },
 
   navigationBarContainer: {
-    flex: 0.3,
+    flex: 0.13,
     backgroundColor: "#FF8D13",
     flexDirection: "row",
     justifyContent: "space-around", // 调整为 space-around
     alignItems: "center",
-    marginTop: 20,
+    // marginTop: 20,
     // borderTopRightRadius: 20,
     // borderTopLeftRadius: 20,
   },
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
   },
   gridItem: {
     marginLeft: 25,
-    width: 200, // 两个格子并排，留出一些间隙
+    width: 200,
     height: 200,
     marginBottom: 10,
     backgroundColor: "#F1CFA3",

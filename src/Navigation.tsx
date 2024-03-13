@@ -25,6 +25,8 @@ import RewardsPage from "./screens/RewardsPage";
 import PointsHistory from "./screens/PointsHistory";
 import PointsPolicy from "./screens/PointsPolicy";
 import ContributionsHistory from "./screens/ContributionsHistory";
+import RewardsDetailsPage from "./screens/RewardsDetailsPage";
+import TimeBankRewardsPage from "./screens/TimeBankRewardsPage";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -50,11 +52,11 @@ const Navigation = () => {
         // }}
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#FFFFFF",
+            backgroundColor: "#FF8D13",
           },
           headerShadowVisible: false,
           headerTitleStyle: {
-            color: "#000000", // Set the color for the header text
+            color: "#FFFFFF", // Set the color for the header text
           },
           headerTitleAlign: "center",
         }}
@@ -119,6 +121,21 @@ const Navigation = () => {
               component={ContributionsHistory}
               options={{
                 title: "Contributions History",
+              }}
+            />
+
+            <Stack.Screen
+              name="RewardsDetailsPage"
+              component={RewardsDetailsPage}
+              options={{
+                title: "Rewards Details Page",
+              }}
+            />
+            <Stack.Screen
+              name="TimeBankRewardsPage"
+              component={TimeBankRewardsPage}
+              options={{
+                title: "Time Bank Rewards Page",
               }}
             />
           </>
