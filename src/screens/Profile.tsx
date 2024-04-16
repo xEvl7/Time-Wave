@@ -28,7 +28,6 @@ const Profile = ({
       await SecureStore.deleteItemAsync(USER_DATA);
       await auth().signOut();  
       console.log("reset Root");
-      console.log("parent of profile is ", parent);
       dispatch(logOut());      
 
       console.log("has successfully signed out.");
