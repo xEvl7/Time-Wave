@@ -24,7 +24,6 @@ const Profile = ({
 
   const HandleLogout = async () =>{
     console.log("logout button activated");
-    console.log(`state out?: `,userData);
     try {          
       await SecureStore.deleteItemAsync(USER_DATA);
       await auth().signOut();  
