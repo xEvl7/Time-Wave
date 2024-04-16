@@ -1,4 +1,4 @@
-import { StyleSheet, Image, View, Text } from "react-native";
+import { StyleSheet, Image, View, Text, Pressable } from "react-native";
 import React from "react";
 import PrimaryText from "../components/text_components/PrimaryText";
 import ContentContainer from "../components/ContentContainer";
