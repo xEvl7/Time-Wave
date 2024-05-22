@@ -287,12 +287,20 @@ export const storePointsReceivedDataToFirebase = createAsyncThunk(
   }
 );
 
+export const logOut = () => ({
+  type:'user/logOut',
+});
+
 const initialState = {} as UserState;
 
 const userSlice = createSlice({
   name: "user",
   initialState,
-  reducers: {},
+  reducers: {   
+    logOut(state,action){
+      return initialState;
+    }
+  },
   extraReducers(builder) {
     builder
       .addCase(
