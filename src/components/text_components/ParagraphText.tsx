@@ -12,9 +12,10 @@ const ParagraphText = ({ style, children }: ParagraphTextProps) => {
       <Text
         style={[
           {
-            fontSize: 14,
+            fontSize: 15,
             marginVertical: 7.5,
             lineHeight: 20,
+            textAlign: "justify",
           },
           style,
         ]}

@@ -24,7 +24,8 @@ export default function TextButton({
   return (
     <Pressable
       style={[styles.button, style]}
-      onPress={onPress}>
+      onPress={onPress}
+    >
       <Text style={[styles.buttonText, textStyle]}>{children}</Text>
     </Pressable>
   );
@@ -32,11 +33,11 @@ export default function TextButton({
 
 const styles = StyleSheet.create({
   button: {
-    // minHeight: 45,
-    padding: 10,
+    minHeight: 45,
     backgroundColor: "#FF8D13",
     borderRadius: 12,
-    marginTop: 20,
+    marginBottom: "auto",
+    marginTop: 15,
   },
   buttonText: {
     color: "white",

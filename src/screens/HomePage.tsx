@@ -47,7 +47,7 @@ const HomePage = ({
             navigation={navigation}
           />
           <RewardsListSection title={"Rewards"} navigation={navigation} />
-          <HistoryListSection title={"History"} navigation={navigation} />
+          {/* <HistoryListSection title={"History"} navigation={navigation} /> */}
         </ScrollView>
       </View>
 
@@ -372,126 +372,126 @@ const RewardsListSection = ({ title, navigation }: ListSectionProps) => {
   );
 };
 
-const history = [
-  {
-    id: 1,
-    name: "History 1",
-    organization: "Organization 1",
-    pointprice: 100,
-  },
-  {
-    id: 2,
-    name: "History 2",
-    organization: "Organization 2",
-    pointprice: 150,
-  },
-  {
-    id: 3,
-    name: "History 3",
-    organization: "Organization 3",
-    pointprice: 250,
-  },
-];
+// const history = [
+//   {
+//     id: 1,
+//     name: "History 1",
+//     organization: "Organization 1",
+//     pointprice: 100,
+//   },
+//   {
+//     id: 2,
+//     name: "History 2",
+//     organization: "Organization 2",
+//     pointprice: 150,
+//   },
+//   {
+//     id: 3,
+//     name: "History 3",
+//     organization: "Organization 3",
+//     pointprice: 250,
+//   },
+// ];
 
-type HistoryType = {
-  image: string;
-  name: string;
-  supplierName: string;
-  price: number;
-};
+// type HistoryType = {
+//   image: string;
+//   name: string;
+//   supplierName: string;
+//   price: number;
+// };
 
 // Display rewards item that fetch from firebase
-const renderHistoryItem = ({
-  item,
-  navigation,
-}: {
-  item: HistoryType;
-  navigation: any;
-}) => (
-  <Pressable
-    onPress={() =>
-      navigation.navigate("TimeBankRewardsPage", { item })
-    }
-  >
-    <View style={styles.gridItem}>
-      <View style={styles.imageBox}>
-        <View style={styles.imageBox}>
-          <Image source={{ uri: item.image }} style={styles.image} />
-        </View>
-      </View>
-      <View style={styles.text}>
-        <Text style={styles.description}>{item.name}</Text>
-        <Text style={styles.subDescription}>{item.supplierName}</Text>
-        <View style={styles.pointContainer}>
-          <Text style={styles.point}>{item.price}</Text>
-          <Text style={styles.pointDesc}> points</Text>
-        </View>
-      </View>
-    </View>
-  </Pressable>
-);
+// const renderHistoryItem = ({
+//   item,
+//   navigation,
+// }: {
+//   item: HistoryType;
+//   navigation: any;
+// }) => (
+//   <Pressable
+//     onPress={() =>
+//       navigation.navigate("TimeBankRewardsPage", { item })
+//     }
+//   >
+//     <View style={styles.gridItem}>
+//       <View style={styles.imageBox}>
+//         <View style={styles.imageBox}>
+//           <Image source={{ uri: item.image }} style={styles.image} />
+//         </View>
+//       </View>
+//       <View style={styles.text}>
+//         <Text style={styles.description}>{item.name}</Text>
+//         <Text style={styles.subDescription}>{item.supplierName}</Text>
+//         <View style={styles.pointContainer}>
+//           <Text style={styles.point}>{item.price}</Text>
+//           <Text style={styles.pointDesc}> points</Text>
+//         </View>
+//       </View>
+//     </View>
+//   </Pressable>
+// );
 
-const HistoryListSection = ({ title, navigation }: ListSectionProps) => {
-  const [historyData, setHistoryData] = useState<
-    FirebaseFirestoreTypes.DocumentData[]
-  >([]);
+// const HistoryListSection = ({ title, navigation }: ListSectionProps) => {
+//   const [historyData, setHistoryData] = useState<
+//     FirebaseFirestoreTypes.DocumentData[]
+//   >([]);
 
-  useEffect(() => {
-    // get History data from firebase (query part - can be declared what data to show)
-    const fetchHistoryData = async () => {
-      try {
-        const response = await firebase.firestore().collection("Rewards").get();
-        const fetchedHistoryData = response.docs.map((doc) => doc.data());
-        setHistoryData(fetchedHistoryData);
-      } catch (error) {
-        console.error("Error fetching history data:", error);
-      }
-    };
+//   useEffect(() => {
+//     // get History data from firebase (query part - can be declared what data to show)
+//     const fetchHistoryData = async () => {
+//       try {
+//         const response = await firebase.firestore().collection("Rewards").get();
+//         const fetchedHistoryData = response.docs.map((doc) => doc.data());
+//         setHistoryData(fetchedHistoryData);
+//       } catch (error) {
+//         console.error("Error fetching history data:", error);
+//       }
+//     };
 
-    fetchHistoryData();
-  }, []);
+//     fetchHistoryData();
+//   }, []);
 
-  // to limit how many History data to show in home page
-  const limit = 5;
-  const limitedHistoryData = historyData.slice(0, limit);
+//   // to limit how many History data to show in home page
+//   const limit = 5;
+//   const limitedHistoryData = historyData.slice(0, limit);
 
-  // see all button
-  const handleSeeAllPress = () => {
-    // navigation.navigate("HistoryPage");
-  };
-  return (
-    <View>
-      <View style={styles.listHeader}>
-        <PrimaryText>{title}</PrimaryText>
-        <Pressable onPress={handleSeeAllPress}>
-          <ButtonText>See all</ButtonText>
-        </Pressable>
-      </View>
+//   // see all button
+//   const handleSeeAllPress = () => {
+//     // navigation.navigate("HistoryPage");
+//   };
+//   return (
+//     <View>
+//       <View style={styles.listHeader}>
+//         <PrimaryText>{title}</PrimaryText>
+//         <Pressable onPress={handleSeeAllPress}>
+//           <ButtonText>See all</ButtonText>
+//         </Pressable>
+//       </View>
 
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        // data={history}
-        data={limitedHistoryData} // data from firebase
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => renderHistoryItem({ item, navigation })}
-        contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
-        ListEmptyComponent={() => (
-          <Text
-            style={{
-              color: "red",
-              textAlign: "center",
-              marginBottom: 20,
-              marginLeft: 20,
-            }}
-          >
-            No data available
-          </Text>
-        )}
-      />
-    </View>
-  );
-};
+//       <FlatList
+//         horizontal
+//         showsHorizontalScrollIndicator={false}
+//         // data={history}
+//         data={limitedHistoryData} // data from firebase
+//         keyExtractor={(item, index) => index.toString()}
+//         renderItem={({ item }) => renderHistoryItem({ item, navigation })}
+//         contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
+//         ListEmptyComponent={() => (
+//           <Text
+//             style={{
+//               color: "red",
+//               textAlign: "center",
+//               marginBottom: 20,
+//               marginLeft: 20,
+//             }}
+//           >
+//             No data available
+//           </Text>
+//         )}
+//       />
+//     </View>
+//   );
+// };
 
 type HeaderSectionProps = {
   name: string;
