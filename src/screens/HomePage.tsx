@@ -86,19 +86,19 @@ const NavigationItem = ({
       <Text style={{ fontSize: 14, color: "white", textAlign: "center" }}>
         {text}
       </Text>
-      {isActive && (
+      {/* {isActive && (
         <View
           style={{
             position: "absolute",
             top: 0,
             right: 0,
-            backgroundColor: "red",
+            backgroundColor: "green",
             width: 5,
             height: 5,
             borderRadius: 5,
           }}
         />
-      )}
+      )} */}
     </Pressable>
   );
 };

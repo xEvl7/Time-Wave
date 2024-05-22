@@ -1,45 +1,44 @@
 import React from "react";
 import { StyleSheet, Image, View, Text, Pressable } from "react-native";
+
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useAppSelector } from "../hooks";
+import { RootStackParamList } from "../Screen.types";
+
+import { useAppSelector, useAppDispatch } from "../hooks";
+import { USER_DATA } from "../constants";
+import auth from "@react-native-firebase/auth";
+import * as SecureStore from "expo-secure-store";
+
+import { logOut } from "../features/userSlice";
+
 import PrimaryText from "../components/text_components/PrimaryText";
 import ContentContainer from "../components/ContentContainer";
 import RightDrop from "../components/RightDrop";
-import { RootStackParamList } from "../Screen.types";
-import { USER_DATA } from "../constants"; 
-import { useAppDispatch } from "../hooks";
-import auth from "@react-native-firebase/auth";
-import * as SecureStore from "expo-secure-store";
-import { logOut } from "../features/userSlice";
-
 import SecondaryText from "../components/text_components/SecondaryText";
 
 const Profile = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "Profile">) => {
 
-  const { name, emailAddress } = useAppSelector((state) => state.user.data) || {};  
+  const { name, emailAddress } = useAppSelector((state) => state.user.data) || {};
   const dispatch = useAppDispatch();
 
-  
-
-  const HandleLogout = async () =>{
+  const HandleLogout = async () => {
     console.log("logout button activated");
-    try {          
+    try {
       await SecureStore.deleteItemAsync(USER_DATA);
-      await auth().signOut();  
+      await auth().signOut();
       console.log("reset Root");
-      dispatch(logOut());      
+      dispatch(logOut());
 
       console.log("has successfully signed out.");
     } catch (error) {
       console.error(error);
       console.log("error signing out");
       return;
-    } 
+    }
   };
 
-  
   return (
     <ContentContainer>
       <View style={styles.centered}>
@@ -55,11 +54,6 @@ const Profile = ({
         Create a new community
       </RightDrop>
 
-       <Pressable onPress={HandleLogout}>
-          <Text style={{ color: "#7BB8A3" }}>
-            Click here to Logout
-          </Text>
-      </Pressable>      
       <View style={styles.divider}></View>
       <RightDrop
         onNavigate={() => navigation.navigate("RewardsPage")}
@@ -95,11 +89,12 @@ const Profile = ({
         Banefits of the App
       </RightDrop>
       <View style={styles.divider}></View>
-      <RightDrop
-        onNavigate={() => navigation.navigate("Logout")}
-        title="" children={"Logout"}
-      >
-      </RightDrop>
+
+      <Pressable onPress={HandleLogout}>
+        <Text style={{ color: "#7BB8A3" }}>
+          Click here to Logout
+        </Text>
+      </Pressable>
     </ContentContainer>
   );
 };
