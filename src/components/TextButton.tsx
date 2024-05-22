@@ -22,7 +22,9 @@ export default function TextButton({
   children,
 }: TextButtonProps) {
   return (
-    <Pressable style={[styles.button, style]} onPress={onPress}>
+    <Pressable
+      style={[styles.button, style]}
+      onPress={onPress}>
       <Text style={[styles.buttonText, textStyle]}>{children}</Text>
     </Pressable>
   );
@@ -30,10 +32,11 @@ export default function TextButton({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 45,
+    // minHeight: 45,
+    padding: 10,
     backgroundColor: "#FF8D13",
     borderRadius: 12,
-    marginTop: 15,
+    marginTop: 20,
   },
   buttonText: {
     color: "white",

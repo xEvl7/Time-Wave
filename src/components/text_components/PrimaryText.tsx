@@ -7,7 +7,7 @@ type PrimaryTextProp = {
 
 const PrimaryText = ({ children }: PrimaryTextProp) => {
   return (
-    <Text style={{ fontSize: 18, fontWeight: "500", color: "#45474E" }}>
+    <Text style={{ fontSize: 18, fontWeight: "600", color: "#45474E" }}>
       {children}
     </Text>
   );

@@ -15,11 +15,11 @@ type ValidatedTextInputProps = {
   placeholder: string;
   secureTextEntry?: boolean;
   rules?:
-    | Omit<
-        RegisterOptions<FieldValues, any>,
-        "valueAsNumber" | "valueAsDate" | "setValueAs" | "disabled"
-      >
-    | undefined;
+  | Omit<
+    RegisterOptions<FieldValues, any>,
+    "valueAsNumber" | "valueAsDate" | "setValueAs" | "disabled"
+  >
+  | undefined;
   style?: StyleProp<TextStyle>;
 } & Record<string, any>;
 

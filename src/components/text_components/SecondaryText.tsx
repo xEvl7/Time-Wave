@@ -3,7 +3,7 @@ import React from "react";
 
 const SecondaryText = ({ children }) => {
   return (
-    <Text style={{ fontSize: 14, color: "#000000", fontWeight: "bold" }}>
+    <Text style={{ fontSize: 16, color: "#000000", fontWeight: "normal" }}>
       {children}
     </Text>
   );

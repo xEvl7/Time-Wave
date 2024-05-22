@@ -1,8 +1,8 @@
-import { StyleProp, View, ViewStyle } from "react-native";
 import React from "react";
+import { StyleProp, View, ViewStyle } from "react-native";
 
 type ContentContainerProps = {
-  children: React.JSX.Element[];
+  children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -11,13 +11,21 @@ const ContentContainer = ({ children, style }: ContentContainerProps) => {
     <View
       style={[
         {
-          marginHorizontal: 25,
-          marginVertical: 15,
+          flex: 1,
+          backgroundColor: "white",
         },
         style,
       ]}
     >
-      {children}
+      <View
+        style={{
+          flex: 1,
+          marginHorizontal: 25,
+          marginVertical: 15,
+        }}
+      >
+        {children}
+      </View>
     </View>
   );
 };

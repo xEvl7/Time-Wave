@@ -1,4 +1,4 @@
-import { Pressable, Image, View } from "react-native";
+import { Pressable, Image, View, StyleSheet } from "react-native";
 import React from "react";
 import PrimaryText from "./text_components/PrimaryText";
 import SecondaryText from "./text_components/SecondaryText";
@@ -11,18 +11,33 @@ type RightDropProps = {
 
 const RightDrop = ({ onNavigate, title, children }: RightDropProps) => {
   return (
-    <View style={{ flex: 0.5, justifyContent: "center" }}>
-      <Pressable onPress={onNavigate}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <View>
-            <PrimaryText>{title}</PrimaryText>
-            <SecondaryText>{children}</SecondaryText>
-          </View>
-          <Image source={require("../assets/navigate-button.png")} />
-        </View>
-      </Pressable>
-    </View>
+    <Pressable onPress={onNavigate} style={styles.container}>
+      <View style={styles.textContainer}>
+        <PrimaryText>{title}</PrimaryText>
+        <SecondaryText>{children}</SecondaryText>
+      </View>
+      <Image source={require("../assets/next_icon_orange.png")} style={styles.icon} />
+    </Pressable>
   );
 };
 
 export default RightDrop;
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    // padding: 15,
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#ddd',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    tintColor: '#f57c00',
+  },
+});

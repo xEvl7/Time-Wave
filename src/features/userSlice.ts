@@ -87,6 +87,14 @@ export const loadUserDataFromStore = createAsyncThunk(
   }
 );
 
+// 定义用于清除用户数据的 Redux Thunk 函数
+export const clearUserData = createAsyncThunk(
+  "user/clearUserData",
+  async () => {
+    await SecureStore.deleteItemAsync(USER_DATA);
+  }
+);
+
 export const fetchUserContributionData = createAsyncThunk(
   "user/fetchUserContributionData",
   async (emailAddress: string) => {

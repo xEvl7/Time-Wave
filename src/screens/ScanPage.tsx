@@ -43,12 +43,12 @@ const ScanPage = ({
           Scan Again
         </TextButton>
       )}
-      <TextButton
+      {/* <TextButton
         style={{ marginHorizontal: 20, marginTop: 100 }}
         onPress={() => navigation.navigate("QrCodePage")}
       >
         Show QR Code
-      </TextButton>
+      </TextButton> */}
     </View>
   );
 };
@@ -57,10 +57,8 @@ export default ScanPage;
 
 const styles = StyleSheet.create({
   scanner: {
-    height: 400,
-    width: "80%",
-    marginLeft: "auto",
-    marginRight: "auto",
-    marginTop: 20,
+    height: 700,
+    width: "100%",
+    margin: "auto",
   },
 });

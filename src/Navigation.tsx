@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
 import Welcome from "./screens/Welcome";
 import Login from "./screens/Login";
@@ -27,6 +28,7 @@ import PointsPolicy from "./screens/PointsPolicy";
 import ContributionsHistory from "./screens/ContributionsHistory";
 import RewardsDetailsPage from "./screens/RewardsDetailsPage";
 import TimeBankRewardsPage from "./screens/TimeBankRewardsPage";
+import AdminControl from "./screens/AdminControl";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -77,6 +79,11 @@ const Navigation = () => {
               name="QrCodePage"
               component={QrCodePage}
               options={{ title: "Show QR Code" }}
+            />
+             <Stack.Screen
+              name="AdminControl"
+              component={AdminControl}
+              options={{ title: "Admin Control" }}
             />
             <Stack.Screen
               name="CreateCommunity"
