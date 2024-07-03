@@ -20,6 +20,11 @@ export type RootStackParamList = {
   CreateCommunity: { selectedAdmins: Array<{ id: number; name: string; avatar: any }> };
   SelectAdmin: undefined;
   CommunityInfo: CommunityProps;
+  Comunities: undefined;
+  CommunityProfile: undefined;
+  ActivityInfo: undefined;
+  ComingActivities: undefined;
+
 
   Profile: undefined;
 

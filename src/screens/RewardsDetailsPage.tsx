@@ -12,11 +12,6 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 
-// type FormData = {
-//   emailAddress: string;
-//   password: string;
-// };
-
 export default function RewardsDetailsPage({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "RewardsDetailsPage">) {

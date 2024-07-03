@@ -21,6 +21,10 @@ import { useAppDispatch, useAppSelector } from "./hooks";
 import { loadUserDataFromStore } from "./features/userSlice";
 import Profile from "./screens/Profile";
 import CommunityInfo from "./screens/CommunityInfo";
+import Communities from "./screens/Communities";
+import ActivityInfo from "./screens/ActivityInfo";
+import ComingActivities from "./screens/ComingActivities";
+import CommunityProfile from "./screens/CommunityProfile";
 
 import RewardsPage from "./screens/RewardsPage";
 import PointsHistory from "./screens/PointsHistory";
@@ -101,6 +105,10 @@ const Navigation = () => {
             />
             <Stack.Screen name="Profile" component={Profile} />
             <Stack.Screen name="CommunityInfo" component={CommunityInfo} />
+            <Stack.Screen name="Communities" component={Communities} />
+            <Stack.Screen name="CommunityProfile" component={CommunityProfile} />
+            <Stack.Screen name="ActivityInfo" component={ActivityInfo} />
+            <Stack.Screen name="ComingActivities" component={ComingActivities} />  
 
             <Stack.Screen
               name="RewardsPage"
