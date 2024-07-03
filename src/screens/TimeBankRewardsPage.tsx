@@ -36,7 +36,7 @@ export default function TimeBankRewardsPage({
   return (
     <View>
       <View style={styles.BackgroundStyle}>
-        <ContentContainer>
+        {/* <ContentContainer> */}
           <View>
             <Text
               style={{
@@ -70,7 +70,7 @@ export default function TimeBankRewardsPage({
                 source={require("../assets/my-rewards.png")}></Image> */}
             </Pressable>
           </View>
-        </ContentContainer>
+        {/* </ContentContainer> */}
       </View>
 
       <View style={styles.PressBackground}>
@@ -317,6 +317,8 @@ const styles = StyleSheet.create({
   BackgroundStyle: {
     height: 150,
     width: "100%",
+    padding: 30,
+    paddingTop: 40,
     backgroundColor: "#FF8D13",
     //alignItems: "center",
     //justifyContent: "center",

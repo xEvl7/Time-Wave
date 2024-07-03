@@ -11,7 +11,7 @@ export default function HeaderText({ style, children }: HeaderTextProps) {
 
 const styles = StyleSheet.create({
   header: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#000000"
   },
