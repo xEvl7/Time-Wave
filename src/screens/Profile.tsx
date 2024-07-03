@@ -19,8 +19,8 @@ import SecondaryText from "../components/text_components/SecondaryText";
 const Profile = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "Profile">) => {
-
-  const { name, emailAddress } = useAppSelector((state) => state.user.data) || {};
+  const { name, emailAddress } =
+    useAppSelector((state) => state.user.data) || {};
   const dispatch = useAppDispatch();
 
   const HandleLogout = async () => {
@@ -40,11 +40,13 @@ const Profile = ({
   };
 
   return (
-    <ContentContainer>
+    <View style={styles.container}>
       <View style={styles.centered}>
         <Image source={require("../assets/profile-picture.png")} />
-        <Field label="Name">{name}</Field>
-        <Field label="Email Address">{emailAddress}</Field>
+        <View style={styles.centeredChild}>
+          <Field label="Name">{name}</Field>
+          <Field label="Email Address">{emailAddress}</Field>
+        </View>
       </View>
       <View style={styles.divider}></View>
       <RightDrop
@@ -82,20 +84,15 @@ const Profile = ({
       >
         App Info
       </RightDrop>
-      <RightDrop
-        onNavigate={() => navigation.navigate("Benefits")}
-        title=""
-      >
+      <RightDrop onNavigate={() => navigation.navigate("Benefits")} title="">
         Banefits of the App
       </RightDrop>
       <View style={styles.divider}></View>
 
       <Pressable onPress={HandleLogout}>
-        <Text style={{ color: "#7BB8A3" }}>
-          Click here to Logout
-        </Text>
+        <Text style={{ color: "#7BB8A3" }}>Click here to Logout</Text>
       </Pressable>
-    </ContentContainer>
+    </View>
   );
 };
 
@@ -118,11 +115,25 @@ const Field = ({ label, children }: FieldProps) => {
 };
 
 const styles = StyleSheet.create({
-  centered: {
+  container: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    paddingHorizontal: 20,
     alignItems: "center",
   },
+  centered: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 50,
+  },
+  centeredChild: {
+    flexDirection: "column",
+    marginTop: 20,
+    width: "60%",
+  },
   fieldContainer: {
-    marginBottom: 10,
+    marginBottom: 5,
   },
   labelContainer: {
     alignItems: "center",
@@ -134,8 +145,7 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: "lightgray",
     marginVertical: 10,
-  }
+  },
 });
-
 
 export default Profile;

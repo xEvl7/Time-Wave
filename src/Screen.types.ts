@@ -10,14 +10,16 @@ export type RootStackParamList = {
   AppInfo: undefined;
   Benefits: undefined;
 
-  HomePage: undefined;
+  HomeTabs: undefined; // This is the nested tab navigator
 
   ScanPage: undefined;
   QrCodePage: undefined;
   AdminControl: undefined;
 
   // CreateCommunity: undefined;
-  CreateCommunity: { selectedAdmins: Array<{ id: number; name: string; avatar: any }> };
+  CreateCommunity: {
+    selectedAdmins: Array<{ id: number; name: string; avatar: any }>;
+  };
   SelectAdmin: undefined;
   CommunityInfo: CommunityProps;
 
@@ -40,12 +42,9 @@ export type RootStackParamList = {
   TimeBankRewardsPage: undefined;
 };
 
-// export type BottomTabParamList = {
- 
-//   HomePage: undefined;
-//   PointsHistory: undefined;
-//   ContributionsHistory: undefined;
-//   RewardsPage: undefined;
-//   Profile: undefined;
-
-//  };
+export type BottomTabParamList = {
+  HomePage: undefined;
+  PointsHistory: undefined;
+  TimeBankRewardsPage: undefined;
+  Profile: undefined;
+};

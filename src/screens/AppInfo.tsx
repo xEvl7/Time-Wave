@@ -12,7 +12,7 @@ const AppInfo = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "AppInfo">) => {
   const handlePressBack = () => {
-    navigation.navigate("HomePage");
+    navigation.navigate("HomeTabs");
   };
 
   return (

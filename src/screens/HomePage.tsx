@@ -28,6 +28,8 @@ import {
   firebase,
 } from "@react-native-firebase/firestore";
 import ButtonText from "../components/text_components/ButtonText";
+import Icon from "react-native-vector-icons/Ionicons";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const HomePage = ({
   navigation,
@@ -46,20 +48,16 @@ const HomePage = ({
             title={"Communities Around You"}
             navigation={navigation}
           />
-          <RewardsListSection title={"Rewards"} navigation={navigation} />
+          <RewardsListSection
+            title={"Time Bank Rewards"}
+            navigation={navigation}
+          />
           {/* <HistoryListSection title={"History"} navigation={navigation} /> */}
         </ScrollView>
       </View>
-
-      <NavigationBar
-        navigation={navigation}
-        activePage={activePage}
-        route={route}
-      />
     </>
   );
 };
-
 
 type NavigationItemProps = {
   itemSource: ImageSourcePropType;
@@ -68,97 +66,96 @@ type NavigationItemProps = {
   isActive: boolean;
 };
 
-const NavigationItem = ({
-  itemSource,
-  text,
-  onPress,
-  isActive,
-}: NavigationItemProps) => {
-  return (
-    <Pressable
-      style={{
-        alignItems: "center",
-        height: "65%",
-      }}
-      onPress={onPress}
-    >
-      <Image source={itemSource} style={{ aspectRatio: 1, height: "65%" }} />
-      <Text style={{ fontSize: 14, color: "white", textAlign: "center" }}>
-        {text}
-      </Text>
-      {/* {isActive && (
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            backgroundColor: "green",
-            width: 5,
-            height: 5,
-            borderRadius: 5,
-          }}
-        />
-      )} */}
-    </Pressable>
-  );
-};
+// const NavigationItem = ({
+//   itemSource,
+//   text,
+//   onPress,
+//   isActive,
+// }: NavigationItemProps) => {
+//   return (
+//     <Pressable
+//       style={{
+//         alignItems: "center",
+//         height: "65%",
+//       }}
+//       onPress={onPress}
+//     >
+//       <Image source={itemSource} style={{ aspectRatio: 1, height: "65%" }} />
+//       <Text style={{ fontSize: 14, color: "white", textAlign: "center" }}>
+//         {text}
+//       </Text>
+//       {/* {isActive && (
+//         <View
+//           style={{
+//             position: "absolute",
+//             top: 0,
+//             right: 0,
+//             backgroundColor: "green",
+//             width: 5,
+//             height: 5,
+//             borderRadius: 5,
+//           }}
+//         />
+//       )} */}
+//     </Pressable>
+//   );
+// };
 
-const NavigationBar = ({
-  navigation,
-  activePage,
-}: NativeStackScreenProps<RootStackParamList, "HomePage"> & {
-  activePage: string;
-}) => {
-  return (
-    <View style={styles.navigationBarContainer}>
-      <NavigationItem
-        itemSource={require("../assets/home-icon.png")}
-        text="Home"
-        onPress={() => {
-          navigation.navigate("HomePage");
-        }}
-        isActive={activePage == "HomePage"}
-      />
-      <NavigationItem
-        itemSource={require("../assets/history-icon.png")}
-        text={"History"}
-        onPress={() => { }}
-        isActive={activePage == "HistoryPage"}
-      />
-      <NavigationItem
-        itemSource={require("../assets/activity-icon.png")}
-        text={"Activity"}
-        onPress={() => { }}
-        isActive={activePage == "ActivityPage"}
-      />
-      {/* <NavigationItem
-        itemSource={require("../assets/time-icon.png")}
-        text="TimeBRewards"
-        onPress={() => {
-          navigation.navigate("TimeBankRewardsPage");
-        }}
-        isActive={activePage == "TimeBankRewardsPage"}
-      /> */}
-      <NavigationItem
-        itemSource={require("../assets/reward-icon.png")}
-        text="Rewards"
-        onPress={() => {
-          navigation.navigate("RewardsPage");
-        }}
-        isActive={activePage == "RewardsPage"}
-      />
-      <NavigationItem
-        itemSource={require("../assets/profile-picture.png")}
-        text="Account"
-        onPress={() => {
-          navigation.navigate("Profile");
-        }}
-        isActive={activePage == "Profile"}
-      />
-    </View>
-  );
-};
-
+// const NavigationBar = ({
+//   navigation,
+//   activePage,
+// }: NativeStackScreenProps<RootStackParamList, "HomePage"> & {
+//   activePage: string;
+// }) => {
+//   return (
+//     <View style={styles.navigationBarContainer}>
+//       <NavigationItem
+//         itemSource={require("../assets/home-icon.png")}
+//         text="Home"
+//         onPress={() => {
+//           navigation.navigate("HomePage");
+//         }}
+//         isActive={activePage == "HomePage"}
+//       />
+//       <NavigationItem
+//         itemSource={require("../assets/history-icon.png")}
+//         text={"History"}
+//         onPress={() => { }}
+//         isActive={activePage == "HistoryPage"}
+//       />
+//       <NavigationItem
+//         itemSource={require("../assets/activity-icon.png")}
+//         text={"Activity"}
+//         onPress={() => { }}
+//         isActive={activePage == "ActivityPage"}
+//       />
+//       {/* <NavigationItem
+//         itemSource={require("../assets/time-icon.png")}
+//         text="TimeBRewards"
+//         onPress={() => {
+//           navigation.navigate("TimeBankRewardsPage");
+//         }}
+//         isActive={activePage == "TimeBankRewardsPage"}
+//       /> */}
+//       <NavigationItem
+//         itemSource={require("../assets/reward-icon.png")}
+//         text="Rewards"
+//         onPress={() => {
+//           navigation.navigate("RewardsPage");
+//         }}
+//         isActive={activePage == "RewardsPage"}
+//       />
+//       <NavigationItem
+//         itemSource={require("../assets/profile-picture.png")}
+//         text="Account"
+//         onPress={() => {
+//           navigation.navigate("Profile");
+//         }}
+//         isActive={activePage == "Profile"}
+//       />
+//     </View>
+//   );
+// };
 
 type ListSectionProps = {
   title: string;
@@ -180,9 +177,7 @@ const renderCommunitiesItem = ({
   item: CommunityType;
   navigation: any;
 }) => (
-  <Pressable
-    onPress={() => navigation.navigate("CommunityInfo", { item })}
-  >
+  <Pressable onPress={() => navigation.navigate("CommunityInfo", { item })}>
     <View style={styles.gridItem}>
       <View style={styles.imageBox}>
         <View style={styles.imageBox}>
@@ -274,6 +269,7 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
 };
 
 type RewardType = {
+  RID: string;
   image: string;
   name: string;
   supplierName: string;
@@ -299,6 +295,7 @@ const renderRewardsItem = ({
       </View>
       <View style={styles.text}>
         <Text style={styles.description}>{item.name}</Text>
+        <Text style={styles.description}>{item.RID}</Text>
         <Text style={styles.subDescription}>{item.supplierName}</Text>
         <View style={styles.pointContainer}>
           <Text style={styles.point}>{item.price}</Text>
@@ -320,6 +317,7 @@ const RewardsListSection = ({ title, navigation }: ListSectionProps) => {
       try {
         const response = await firebase.firestore().collection("Rewards").get();
         const fetchedRewardsData = response.docs.map((doc) => doc.data());
+        // console.log("fetchedRewardsData", fetchedRewardsData);
         setRewardsData(fetchedRewardsData);
       } catch (error) {
         console.error("Error fetching rewards data:", error);
@@ -502,13 +500,14 @@ const HeaderSection = ({ name, navigation }: HeaderSectionProps) => {
   return (
     <View style={styles.headerContainer}>
       <View style={styles.headerInfo}>
-        <HeaderText>Hello, {name}</HeaderText>
+        <Text style={styles.headerWelcomeText}>Hello, {name}</Text>
         <Pressable
           onPress={() => {
             navigation.navigate("ScanPage");
           }}
+          style={styles.iconButton}
         >
-          <Image source={require("../assets/scan-icon.png")} />
+          <Ionicons name="scan-outline" size={28} color="#FFF" />
         </Pressable>
       </View>
     </View>
@@ -519,10 +518,15 @@ export default HomePage;
 
 const styles = StyleSheet.create({
   headerContainer: {
-    paddingTop: 5,
+    paddingTop: 50,
     backgroundColor: "#FF8D13",
     // borderBottomLeftRadius: 20,
     // borderBottomRightRadius: 20,
+  },
+  headerWelcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#FFFFFF",
   },
   headerInfo: {
     flexDirection: "row",
@@ -530,6 +534,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: "10%",
     paddingVertical: "4%",
+  },
+  iconButton: {
+    // padding: 10,
   },
 
   listContainer: {
@@ -544,35 +551,35 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
 
-  viewButton: {
-    marginTop: "auto",
-    width: "30%",
-    minHeight: 25,
-    backgroundColor: "#E3EAE7",
-  },
-  viewButtonText: {
-    fontSize: 15,
-    color: "black",
-  },
-  sectionItem: {
-    backgroundColor: "#ED8356",
-    marginHorizontal: 10,
-    width: 200,
-    height: 100,
-    padding: "5%",
-    borderRadius: 10,
-  },
+  // viewButton: {
+  //   marginTop: "auto",
+  //   width: "30%",
+  //   minHeight: 25,
+  //   backgroundColor: "#E3EAE7",
+  // },
+  // viewButtonText: {
+  //   fontSize: 15,
+  //   color: "black",
+  // },
+  // sectionItem: {
+  //   backgroundColor: "#ED8356",
+  //   marginHorizontal: 10,
+  //   width: 200,
+  //   height: 100,
+  //   padding: "5%",
+  //   borderRadius: 10,
+  // },
 
-  navigationBarContainer: {
-    flex: 0.13,
-    backgroundColor: "#FF8D13",
-    flexDirection: "row",
-    justifyContent: "space-around", // 调整为 space-around
-    alignItems: "center",
-    // marginTop: 20,
-    // borderTopRightRadius: 20,
-    // borderTopLeftRadius: 20,
-  },
+  // navigationBarContainer: {
+  //   flex: 0.13,
+  //   backgroundColor: "#FF8D13",
+  //   flexDirection: "row",
+  //   justifyContent: "space-around", // 调整为 space-around
+  //   alignItems: "center",
+  //   // marginTop: 20,
+  //   // borderTopRightRadius: 20,
+  //   // borderTopLeftRadius: 20,
+  // },
 
   //----------------------------------------------------------------
 
