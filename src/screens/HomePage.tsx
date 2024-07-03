@@ -177,7 +177,11 @@ const renderCommunitiesItem = ({
   item: CommunityType;
   navigation: any;
 }) => (
-  <Pressable onPress={() => navigation.navigate("CommunityInfo", { item })}>
+  
+  <Pressable
+    onPress={() => navigation.navigate("CommunityProfile", { item })}
+  >
+
     <View style={styles.gridItem}>
       <View style={styles.imageBox}>
         <View style={styles.imageBox}>
@@ -214,7 +218,8 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
           .firestore()
           .collection("Communities")
           .get();
-        const fetchedCommunitiesData = response.docs.map((doc) => doc.data());
+        const fetchedCommunitiesData = response.docs.map((doc) => doc.data(
+        ));
         setCommunitiesData(fetchedCommunitiesData);
       } catch (error) {
         console.error("Error fetching communities data:", error);
@@ -231,7 +236,7 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
   // see all button
   const handleSeeAllPress = () => {
     // to see all available communities
-    // navigation.navigate("CommunitiesPage");
+    navigation.navigate("Communities");
   };
 
   return (

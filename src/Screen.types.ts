@@ -22,6 +22,11 @@ export type RootStackParamList = {
   };
   SelectAdmin: undefined;
   CommunityInfo: CommunityProps;
+  Comunities: undefined;
+  CommunityProfile: undefined;
+  ActivityInfo: undefined;
+  ComingActivities: undefined;
+
 
   Profile: undefined;
 
