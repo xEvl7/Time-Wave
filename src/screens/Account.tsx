@@ -6,94 +6,66 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
-  Animated,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import {
   fetchUserData,
   fetchUserContributionData,
-  // fetchContributionHours,
 } from "../features/userSlice";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { RootState } from "../store";
+import ProgressBar from "../components/ProgressBar";
+import SectionContainer from "../components/SectionContainer";
+import ListItem from "../components/ListItem";
 
-const RewardsPage = ({
+const Account = ({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "RewardsPage">) => {
+}: NativeStackScreenProps<RootStackParamList, "Account">) => {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(true);
-
-  const userData = useAppSelector((state) => state.user.data);
-  const email = useAppSelector(
-    (state) => state.user.data?.emailAddress
-  ) as string;
-  // const [currentMonth, setCurrentMonth] = useState<string>("Oct");
-
-  // 实现每进来一次都会重新从firebase获取数据
-  useEffect(() => {
-    console.log("Fetching user data...");
-    dispatch(fetchUserData(email));
-    console.log("Fetching contribution data...");
-    dispatch(fetchUserContributionData(email));
-    // dispatch(fetchContributionHours({ email, currentMonth}));
-  }, [dispatch]);
-
-  // Access the data from the Redux store
+  const userData = useAppSelector((state: RootState) => state.user.data);
   const contributionData = useAppSelector(
     (state: RootState) => state.user.contributionData
   );
 
-  // Retrieve totalContrHours for a specific year and month
+  const email = useAppSelector(
+    (state) => state.user.data?.emailAddress
+  ) as string;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      await dispatch(fetchUserData(email));
+      await dispatch(fetchUserContributionData(email));
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [dispatch, email]);
+
   const selectedYear = "2023";
   const selectedMonth = "Dec";
   const totalContrHours =
-    contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours;
+    contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours || 0;
 
   const [contributedHours, setContributedHours] =
     useState<any>(totalContrHours);
   const progressPercentage = contributedHours / 20;
-  const progressBarWidth = `${progressPercentage * 100}%`;
-
   const [currentLevelMaxHours, setCurrentLevelMaxHours] = useState<number>(11);
-  // const [currentLevelMaxHours, setCurrentLevelMaxHours] = useState<number>(21);
   const hoursLeftToNextLevel = currentLevelMaxHours - contributedHours;
 
   /* Date Variable */
   const currentDate = new Date();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
   const nextMonthFirstDay = new Date(year, month + 1, 1);
-
   const lastDay = new Date(nextMonthFirstDay.getTime() - 1);
-
   const lastDate = lastDay.getDate();
   const lastMonth = lastDay.toLocaleString("default", { month: "short" });
   const lastYear = month == 11 ? year + 1 : year;
-
   const formattedLastDay = `${lastDate} ${lastMonth} ${lastYear}`;
   /* Date Variable End*/
-
-  useEffect(() => {
-    // Simulate loading data
-    setTimeout(async () => {
-      setIsLoading(false);
-    }, 500); // Simulated loading time
-  }, []);
-
-  // Use useEffect to check when data is available
-  useEffect(() => {
-    if (userData && contributionData) {
-      setIsLoading(false);
-    }
-  }, [userData, contributionData]);
-
-  const handlePressBack = () => {
-    navigation.navigate("HomePage");
-  };
 
   if (isLoading) {
     return (
@@ -105,6 +77,16 @@ const RewardsPage = ({
     );
   }
 
+  const calculateLevel = (hours: number) => {
+    return Math.floor(hours / 10);
+  };
+
+  const handleNavigateToPointsPolicy = () => {
+    const level = "level" + calculateLevel(contributedHours);
+    // console.log(level);
+    navigation.navigate("PointsPolicy", { level });
+  };
+
   return (
     <ScrollView
       contentContainerStyle={styles.scrollViewContent}
@@ -112,43 +94,33 @@ const RewardsPage = ({
     >
       <View style={styles.container}>
         {/* Level Section */}
-        <View style={styles.levelContainer}>
-          <Text style={styles.levelText1}>
-            Level {calculateLevel(contributedHours)}
-            {/* Level 2 */}
-          </Text>
-          <View style={styles.progressBar}>
-            <View
-              style={{
-                width: progressBarWidth,
-                height: 5,
-                backgroundColor: "white",
-              }}
-            />
+        <SectionContainer>
+          <View style={styles.levelContainer}>
+            <Text style={styles.levelText1}>
+              Level {calculateLevel(contributedHours)}
+            </Text>
+            <ProgressBar progressPercentage={progressPercentage} />
+            <Text style={styles.levelText2}>
+              Contribute {hoursLeftToNextLevel} more hours by {formattedLastDay}{" "}
+              to reach Level {calculateLevel(contributedHours) + 1}
+            </Text>
+            <View style={styles.policyButtonContainer}>
+              <TouchableOpacity
+                style={styles.policyButton}
+                onPress={() => handleNavigateToPointsPolicy()}
+              >
+                <Text style={styles.policyButtonText}>View Points Policy</Text>
+                <Image
+                  source={require("../assets/next_icon_white.png")}
+                  style={{ width: 20, height: 20 }}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.levelText2}>
-            Contribute {hoursLeftToNextLevel} more hours by {formattedLastDay}{" "}
-            to reach Level {calculateLevel(contributedHours) + 1}
-          </Text>
-
-          <View style={styles.policyButtonContainer}>
-            <TouchableOpacity
-              style={styles.policyButton}
-              onPress={() => {
-                navigation.navigate("PointsPolicy");
-              }}
-            >
-              <Text style={styles.policyButtonText}>View Points Policy</Text>
-              <Image
-                source={require("../assets/next_icon_white.png")}
-                style={{ width: 20, height: 20 }}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
+        </SectionContainer>
 
         {/* Contributions Section */}
-        <View style={styles.subContainer}>
+        <SectionContainer>
           <Text style={styles.Text1}>
             So far this month, you have contributed
           </Text>
@@ -156,14 +128,10 @@ const RewardsPage = ({
             <Text style={styles.Text2}>{contributedHours}</Text>
             <Text style={styles.Text1}>TimeBank Rewards Hours</Text>
           </View>
-
           <View style={styles.line}></View>
-
           <TouchableOpacity
             style={styles.historyButton}
-            onPress={() => {
-              navigation.navigate("ContributionsHistory");
-            }}
+            onPress={() => navigation.navigate("ContributionsHistory")}
           >
             <Text style={styles.historyButtonText}>
               View my contributions history
@@ -173,26 +141,20 @@ const RewardsPage = ({
               style={{ width: 20, height: 20 }}
             />
           </TouchableOpacity>
-
           <View style={styles.line}></View>
-        </View>
+        </SectionContainer>
 
         {/* Points Section */}
-        <View style={styles.subContainer}>
+        <SectionContainer>
           <Text style={styles.Text1}>You have</Text>
           <View style={styles.rowContainer}>
             <Text style={styles.Text2}>{userData?.points}</Text>
             <Text style={styles.Text1}>TimeBank Rewards Points</Text>
           </View>
-
           <View style={styles.line}></View>
-
           <TouchableOpacity
             style={styles.historyButton}
-            onPress={() => {
-              // Handle the "View my points history" button click
-              navigation.navigate("PointsHistory");
-            }}
+            onPress={() => navigation.navigate("PointsHistory")}
           >
             <Text style={styles.historyButtonText}>View my points history</Text>
             <Image
@@ -200,63 +162,31 @@ const RewardsPage = ({
               style={{ width: 20, height: 20 }}
             />
           </TouchableOpacity>
-
           <View style={styles.line}></View>
-        </View>
+        </SectionContainer>
 
         {/* Latest Rewards */}
-        <View style={styles.subContainer}>
+        <SectionContainer>
           <Text style={styles.lrText1}>Latest Rewards</Text>
-
-          <TouchableOpacity
-            onPress={() => {
-              // Handle button click
-            }}
-          >
-            <View style={styles.lrContainer}>
-              <Image
-                source={require("../assets/sewing_machine.png")}
-                style={styles.lrImage}
-              />
-              <View>
-                <Text style={styles.lrText2}>Singer Sewing Machine</Text>
-                <Text style={styles.lrText3}>Official Mavcap</Text>
-                <View style={styles.lrButton}>
-                  <Image
-                    source={require("../assets/diamond.png")}
-                    style={styles.lrIcon}
-                  />
-                  <Text style={styles.lrText4}>100</Text>
-                  <Text style={styles.lrText5}> Points</Text>
-                </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-
+          <ListItem
+            imageSource={require("../assets/sewing_machine.png")}
+            title="Singer Sewing Machine"
+            subtitle="Official Mavcap"
+            points="100"
+            onPress={() => {}}
+          />
           <View style={styles.line}></View>
-
-          {/* All Rewards */}
-          <TouchableOpacity
-            style={styles.rButton}
-            onPress={() => {
-              // Handle the "View All Rewards" button click
-            }}
-          >
+          <TouchableOpacity style={styles.rButton} onPress={() => {}}>
             <Text style={styles.rButtonText}>View All Rewards</Text>
           </TouchableOpacity>
-        </View>
+        </SectionContainer>
       </View>
     </ScrollView>
   );
 };
 
-const calculateLevel = (hours: number) => {
-  return Math.floor(hours / 10);
-};
-
 const styles = StyleSheet.create({
   scrollViewContent: {
-    // paddingHorizontal: 16,
     paddingBottom: 16,
   },
   loadingIndicator: {
@@ -266,11 +196,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   container: {
-    // flex: 1,
     padding: 16,
     backgroundColor: "white",
   },
-
   levelContainer: {
     backgroundColor: "#FF8D13",
     paddingTop: 20,
@@ -285,10 +213,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
     marginBottom: 8,
-  },
-  progressBar: {
-    height: 5,
-    backgroundColor: "#FBB97C",
   },
   levelText2: {
     fontSize: 12.5,
@@ -311,10 +235,6 @@ const styles = StyleSheet.create({
   },
   policyButtonText: {
     color: "white",
-  },
-
-  subContainer: {
-    paddingVertical: 8,
   },
   rowContainer: {
     flexDirection: "row",
@@ -345,52 +265,10 @@ const styles = StyleSheet.create({
   historyButtonText: {
     fontWeight: "300",
   },
-
   lrText1: {
     fontWeight: "bold",
     fontSize: 18,
   },
-  lrContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    // borderWidth: 1,
-    // borderColor: 'lightgray',
-    // borderRadius: 8,
-  },
-  lrImage: {
-    width: 150,
-    height: 100,
-    marginRight: 12,
-  },
-  lrText2: {
-    fontSize: 15,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  lrText3: {
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  lrButton: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  lrIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 5,
-  },
-  lrText4: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  lrText5: {
-    fontSize: 12,
-    marginLeft: 2,
-  },
-
   rButton: {
     marginTop: 8,
     alignItems: "center",
@@ -402,4 +280,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RewardsPage;
+export default Account;

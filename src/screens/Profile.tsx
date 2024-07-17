@@ -58,7 +58,7 @@ const Profile = ({
 
       <View style={styles.divider}></View>
       <RightDrop
-        onNavigate={() => navigation.navigate("RewardsPage")}
+        onNavigate={() => navigation.navigate("Account")}
         title="My Account"
       >
         Level 2

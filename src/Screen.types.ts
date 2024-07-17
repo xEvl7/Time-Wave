@@ -27,12 +27,11 @@ export type RootStackParamList = {
   ActivityInfo: undefined;
   ComingActivities: undefined;
 
-
   Profile: undefined;
 
-  RewardsPage: undefined;
+  Account: undefined;
   PointsHistory: undefined;
-  PointsPolicy: undefined;
+  PointsPolicy: { level: any };
   ContributionsHistory: undefined;
 
   ActiveRewardsDetailsUseNowPage: undefined;

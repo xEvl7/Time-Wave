@@ -3,340 +3,101 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
-  ScrollView,
   ActivityIndicator,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch } from "../hooks";
 import { storePointsReceivedDataToFirebase } from "../features/userSlice";
+import PolicyFragment from "../components/PolicyFragment";
 
 const PointsPolicy = ({
   navigation,
+  route,
 }: NativeStackScreenProps<RootStackParamList, "PointsPolicy">) => {
   const [isLoading, setIsLoading] = useState(true);
-
-  const handlePressBack = () => {
-    navigation.navigate("RewardsPage");
-  };
-
-  // Inside your component or wherever you want to store points received data
-  const dispatch = useAppDispatch();
-
-  // Assuming pointsReceivedData is the data you want to store
-  const pointsReceivedData = {
-    date: new Date(), // Adjust the date as needed
-    points: 20, // Adjust the points value as needed
-    // Add other fields as needed
-  };
-
-  useEffect(() => {
-    dispatch(storePointsReceivedDataToFirebase(pointsReceivedData));
-  }, [dispatch]);
-
   const [activeTab, setActiveTab] = useState<
     "level1" | "level2" | "level3" | "level4"
   >("level1");
+  // const dispatch = useAppDispatch();
+
+  // const pointsReceivedData = {
+  //   date: new Date(),
+  //   points: 20,
+  // };
+
+  // useEffect(() => {
+  //   dispatch(storePointsReceivedDataToFirebase(pointsReceivedData));
+  // }, [dispatch]);
+
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     const userLevel = "level1";
+  //     setActiveTab(userLevel);
+  //     setIsLoading(false);
+  //   }, 500);
+  // }, []);
+  useEffect(() => {
+    setTimeout(() => {
+      const userLevel = route.params?.level || "level1";
+      setActiveTab(userLevel);
+      setIsLoading(false);
+    }, 500);
+  }, [route.params?.level]);
 
   const handleTabChange = (tab: "level1" | "level2" | "level3" | "level4") => {
     setActiveTab(tab);
   };
 
-  useEffect(() => {
-    // Simulate loading data
-    setTimeout(() => {
-      // const userLevel = getUserLevelFromFirebase();
-      const userLevel = "level2";
-      setActiveTab(userLevel);
-      // Fetch user data from Firebase or perform any necessary async tasks
-      // Example: Firebase logic to fetch user data
-      // firebase.database().ref('users/' + userId).on('value', (snapshot) => {
-      //   const userData = snapshot.val();
-      //   setContributedHours(userData.contributedHours);
-      //   setRewardsPoints(userData.rewardsPoints);
-      // });
-
-      // Set isLoading to false when data loading is complete
-      setIsLoading(false);
-    }, 500); // Simulated loading time (1 seconds in this example)
-  }, []);
-
-  let fragmentContent;
-
-  switch (activeTab) {
-    case "level1":
-      fragmentContent = (
-        <View>
-          {/* empty */}
-          <View style={{ height: 8 }} />
-
-          {/* current level */}
-          <View style={styles.fragment}>
-            <Text style={styles.textHeader1}>Current level</Text>
-            <Text style={styles.textHeader2}>Your Points Policy</Text>
-            <Text style={styles.textContent}>
-              Per month:
-              {"\n"}
-              1-10 hours: Each Hours *4
-            </Text>
-          </View>
-
-          {/* empty */}
-          <View style={{ height: 8 }} />
-
-          {/* all levels policy */}
-          <View style={styles.fragment}>
-            <Text style={styles.textHeader2}>
-              Policy for
-              {"\n"}
-              Earning Our TimeBank Rewards Points
-            </Text>
-            <Text style={styles.textContent}>
-              Per month:
-              {"\n"}
-              1-10 hours: Each Hours *4
-              {"\n"}
-              11-20 hours: Each Hours *5
-              {"\n"}
-              21-30 hours: Each Hours *6
-              {"\n"}
-              31++ hours: Each Hours *8
-              {"\n"}
-            </Text>
-            <Text style={styles.textContent}>
-              E.g. If you have contributed a total of{" "}
-              <Text style={{ fontWeight: "bold" }}>30 hours</Text> in the last
-              month, then you will get a total of{" "}
-              <Text style={{ fontWeight: "bold" }}>
-                180 TimeBank rewards points (30*6)
-              </Text>
-              .
-            </Text>
-          </View>
-        </View>
-      );
-      break;
-
-    case "level2":
-      fragmentContent = (
-        <View>
-          {/* empty */}
-          <View style={{ height: 8 }} />
-
-          {/* current level */}
-          <View style={styles.fragment}>
-            <Text style={styles.textHeader1}>Current level</Text>
-            <Text style={styles.textHeader2}>Your Points Policy</Text>
-            <Text style={styles.textContent}>
-              Per month:
-              {"\n"}
-              11-20 hours: Each Hours *5
-            </Text>
-          </View>
-
-          {/* empty */}
-          <View style={{ height: 8 }} />
-
-          {/* all levels policy */}
-          <View style={styles.fragment}>
-            <Text style={styles.textHeader2}>
-              Policy for
-              {"\n"}
-              Earning Our TimeBank Rewards Points
-            </Text>
-            <Text style={styles.textContent}>
-              Per month:
-              {"\n"}
-              1-10 hours: Each Hours *4
-              {"\n"}
-              11-20 hours: Each Hours *5
-              {"\n"}
-              21-30 hours: Each Hours *6
-              {"\n"}
-              31++ hours: Each Hours *8
-              {"\n"}
-            </Text>
-            <Text style={styles.textContent}>
-              E.g. If you have contributed a total of{" "}
-              <Text style={{ fontWeight: "bold" }}>30 hours</Text> in the last
-              month, then you will get a total of{" "}
-              <Text style={{ fontWeight: "bold" }}>
-                180 TimeBank rewards points (30*6)
-              </Text>
-              .
-            </Text>
-          </View>
-        </View>
-      );
-      break;
-    case "level3":
-      fragmentContent = (
-        <View>
-          {/* empty */}
-          <View style={{ height: 8 }} />
-
-          {/* current level */}
-          <View style={styles.fragment}>
-            <Text style={styles.textHeader1}>Current level</Text>
-            <Text style={styles.textHeader2}>Your Points Policy</Text>
-            <Text style={styles.textContent}>
-              Per month:
-              {"\n"}
-              21-30 hours: Each Hours *6
-            </Text>
-          </View>
-
-          {/* empty */}
-          <View style={{ height: 8 }} />
-
-          {/* all levels policy */}
-          <View style={styles.fragment}>
-            <Text style={styles.textHeader2}>
-              Policy for
-              {"\n"}
-              Earning Our TimeBank Rewards Points
-            </Text>
-            <Text style={styles.textContent}>
-              Per month:
-              {"\n"}
-              1-10 hours: Each Hours *4
-              {"\n"}
-              11-20 hours: Each Hours *5
-              {"\n"}
-              21-30 hours: Each Hours *6
-              {"\n"}
-              31++ hours: Each Hours *8
-              {"\n"}
-            </Text>
-            <Text style={styles.textContent}>
-              E.g. If you have contributed a total of{" "}
-              <Text style={{ fontWeight: "bold" }}>30 hours</Text> in the last
-              month, then you will get a total of{" "}
-              <Text style={{ fontWeight: "bold" }}>
-                180 TimeBank rewards points (30*6)
-              </Text>
-              .
-            </Text>
-          </View>
-        </View>
-      );
-      break;
-    case "level4":
-      fragmentContent = (
-        <View>
-          {/* empty */}
-          <View style={{ height: 8 }} />
-
-          {/* current level */}
-          <View style={styles.fragment}>
-            <Text style={styles.textHeader1}>Current level</Text>
-            <Text style={styles.textHeader2}>Your Points Policy</Text>
-            <Text style={styles.textContent}>
-              Per month:
-              {"\n"}
-              31++ hours: Each Hours *8
-            </Text>
-          </View>
-
-          {/* empty */}
-          <View style={{ height: 8 }} />
-
-          {/* all levels policy */}
-          <View style={styles.fragment}>
-            <Text style={styles.textHeader2}>
-              Policy for
-              {"\n"}
-              Earning Our TimeBank Rewards Points
-            </Text>
-            <Text style={styles.textContent}>
-              Per month:
-              {"\n"}
-              1-10 hours: Each Hours *4
-              {"\n"}
-              11-20 hours: Each Hours *5
-              {"\n"}
-              21-30 hours: Each Hours *6
-              {"\n"}
-              31++ hours: Each Hours *8
-              {"\n"}
-            </Text>
-            <Text style={styles.textContent}>
-              E.g. If you have contributed a total of{" "}
-              <Text style={{ fontWeight: "bold" }}>30 hours</Text> in the last
-              month, then you will get a total of{" "}
-              <Text style={{ fontWeight: "bold" }}>
-                180 TimeBank rewards points (30*6)
-              </Text>
-              .
-            </Text>
-          </View>
-        </View>
-      );
-      break;
-    default:
-      fragmentContent = (
-        <Text style={styles.textContent}>Unable to load the contents</Text>
-      );
-  }
+  const getCurrentLevelContent = () => {
+    switch (activeTab) {
+      case "level1":
+        return (
+          <PolicyFragment current="Per month:\n1-10 hours: Each Hour *4" />
+        );
+      case "level2":
+        return (
+          <PolicyFragment current="Per month:\n11-20 hours: Each Hour *5" />
+        );
+      case "level3":
+        return (
+          <PolicyFragment current="Per month:\n21-30 hours: Each Hour *6" />
+        );
+      case "level4":
+        return (
+          <PolicyFragment current="Per month:\n31++ hours: Each Hour *8" />
+        );
+      default:
+        return (
+          <Text style={styles.textContent}>Unable to load the contents</Text>
+        );
+    }
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === "level1" && styles.activeTab]}
-          onPress={() => handleTabChange("level1")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "level1" && styles.activeTabText,
-            ]}
+        {["level1", "level2", "level3", "level4"].map((level) => (
+          <TouchableOpacity
+            key={level}
+            style={[styles.tabButton, activeTab === level && styles.activeTab]}
+            onPress={() =>
+              handleTabChange(
+                level as "level1" | "level2" | "level3" | "level4"
+              )
+            }
           >
-            Level 1
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === "level2" && styles.activeTab]}
-          onPress={() => handleTabChange("level2")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "level2" && styles.activeTabText,
-            ]}
-          >
-            Level 2
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === "level3" && styles.activeTab]}
-          onPress={() => handleTabChange("level3")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "level3" && styles.activeTabText,
-            ]}
-          >
-            Level 3
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === "level4" && styles.activeTab]}
-          onPress={() => handleTabChange("level4")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "level4" && styles.activeTabText,
-            ]}
-          >
-            Level 4
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === level && styles.activeTabText,
+              ]}
+            >
+              {`Level ${level.charAt(level.length - 1)}`}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {isLoading ? (
@@ -346,7 +107,7 @@ const PointsPolicy = ({
           style={styles.loadingIndicator}
         />
       ) : (
-        fragmentContent
+        getCurrentLevelContent()
       )}
     </View>
   );
@@ -355,7 +116,6 @@ const PointsPolicy = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // padding: 8,
   },
   tabContainer: {
     flexDirection: "row",
@@ -387,11 +147,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   fragment: {
-    // flex: 1,
-    // justifyContent: "center",
-    // alignItems: "center",
     backgroundColor: "white",
     padding: 12,
   },

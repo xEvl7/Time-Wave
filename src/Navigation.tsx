@@ -3,7 +3,7 @@ import { Image, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Icon from "react-native-vector-icons/Ionicons";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import { StatusBar } from "expo-status-bar";
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { loadUserDataFromStore } from "./features/userSlice";
@@ -29,14 +29,13 @@ import ActivityInfo from "./screens/ActivityInfo";
 import ComingActivities from "./screens/ComingActivities";
 import CommunityProfile from "./screens/CommunityProfile";
 
-import RewardsPage from "./screens/RewardsPage";
+import Account from "./screens/Account";
 import PointsHistory from "./screens/PointsHistory";
 import PointsPolicy from "./screens/PointsPolicy";
 import ContributionsHistory from "./screens/ContributionsHistory";
 import RewardsDetailsPage from "./screens/RewardsDetailsPage";
 import TimeBankRewardsPage from "./screens/TimeBankRewardsPage";
 import AdminControl from "./screens/AdminControl";
-import Ionicons from "react-native-vector-icons/Ionicons";
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -184,15 +183,21 @@ const Navigation = () => {
             <Stack.Screen name="Profile" component={Profile} />
             <Stack.Screen name="CommunityInfo" component={CommunityInfo} />
             <Stack.Screen name="Communities" component={Communities} />
-            <Stack.Screen name="CommunityProfile" component={CommunityProfile} />
+            <Stack.Screen
+              name="CommunityProfile"
+              component={CommunityProfile}
+            />
             <Stack.Screen name="ActivityInfo" component={ActivityInfo} />
-            <Stack.Screen name="ComingActivities" component={ComingActivities} />  
+            <Stack.Screen
+              name="ComingActivities"
+              component={ComingActivities}
+            />
 
             <Stack.Screen
-              name="RewardsPage"
-              component={RewardsPage}
+              name="Account"
+              component={Account}
               options={{
-                title: "Rewards",
+                title: "Account",
               }}
             />
             <Stack.Screen
