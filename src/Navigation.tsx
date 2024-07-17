@@ -29,6 +29,11 @@ import ActivityInfo from "./screens/ActivityInfo";
 import ComingActivities from "./screens/ComingActivities";
 import CommunityProfile from "./screens/CommunityProfile";
 
+import NewProfile from "./screens/NewProfile";
+import Setting from "./screens/Setting";
+import ChangeYourPassword from "./screens/ChangeYourPassword";
+import EditProfile from "./screens/EditProfile";
+import reward from "./screens/reward";
 import Account from "./screens/Account";
 import PointsHistory from "./screens/PointsHistory";
 import PointsPolicy from "./screens/PointsPolicy";
@@ -90,7 +95,7 @@ const TabNavigator = () => {
         // headerTitleAlign: "center",
       })}
     >
-      <Tab.Screen
+      <Tab.Screen 
         name="Home"
         component={HomePage}
         options={{ headerShown: false }}
@@ -182,6 +187,17 @@ const Navigation = () => {
             />
             <Stack.Screen name="Profile" component={Profile} />
             <Stack.Screen name="CommunityInfo" component={CommunityInfo} />
+            <Stack.Screen
+              name="Reward"
+              component={reward}
+              options={{
+                title: "Reward",
+              }}
+            />
+            <Stack.Screen name="NewProfile" component={NewProfile} />
+            <Stack.Screen name="Setting" component={Setting} />
+            <Stack.Screen name="ChangeYourPassword" component={ChangeYourPassword} />
+            <Stack.Screen name="EditProfile" component={EditProfile} />
             <Stack.Screen name="Communities" component={Communities} />
             <Stack.Screen
               name="CommunityProfile"

@@ -44,6 +44,11 @@ export type RootStackParamList = {
   PastRewardsPage: undefined;
   RewardsDetailsPage: undefined;
   TimeBankRewardsPage: undefined;
+  Reward: undefined;
+  Setting: undefined;
+  ChangeYourPassword: undefined;
+  EditProfile: undefined;
+  NewProfile: undefined;
 };
 
 export type BottomTabParamList = {
