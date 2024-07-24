@@ -6,6 +6,7 @@ import {
   Text,
   Pressable,
   FlatList,
+  TouchableOpacity,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
@@ -42,7 +43,7 @@ const Profile = ({
   useEffect(() => {
     setContributedHours(totalContrHours);
   }, [totalContrHours]);
-  
+
   const calculateLevel = (hours: number) => {
     if (hours <= 10) return 1;
     if (hours <= 20) return 2;
@@ -93,7 +94,7 @@ const Profile = ({
       screen: "Account",
     },
     { title: "Admin Panel", subtitle: "", screen: "AdminControl" },
-    { title: "Settings", subtitle: "", screen: "Settings" },
+    { title: "Settings", subtitle: "", screen: "Setting" },
     {
       title: "About Us",
       subtitle: "",
@@ -111,8 +112,9 @@ const Profile = ({
     <View style={styles.container}>
       <View style={styles.profileHeader}>
         <TouchableOpacity onPress={() => navigation.navigate("NewProfile")}>
-        <Image source={require("../assets/profile-picture.png")} 
-          style={styles.profileImage}
+          <Image
+            source={require("../assets/profile-picture.png")}
+            style={styles.profileImage}
           />
         </TouchableOpacity>
         <View style={styles.profileDetails}>
