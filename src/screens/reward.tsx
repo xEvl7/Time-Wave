@@ -26,13 +26,15 @@ let testpoint = 200;
 
 export default function Reward({
   navigation,
+  route
 }: NativeStackScreenProps<RootStackParamList, "Reward">) {
 
   const rewardData = useAppSelector((state) => state.reward.data);
   const dispatch = useAppDispatch();
+  const { item } = route.params; // 獲取傳來的item參數
 
   useEffect(() => {
-    const RID = 'R2';
+    const RID = item.RID;
     dispatch(fetchRewardData(RID));
   }, [dispatch]);
 

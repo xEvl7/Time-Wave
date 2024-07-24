@@ -1,6 +1,6 @@
 # Time Wave App
 This is a React Native app using Expo framework and written in Typescript.
-
+ console.log('this is r:',Item)
 ## Prerequisites
 
 - Java 11.0.21
@@ -17,7 +17,7 @@ This is a React Native app using Expo framework and written in Typescript.
 please check for it by run `npx expo install --fix` 
 but for "react-native": "0.71.14" cannot, need "react-native": "0.71.8")
 https://blog.expo.dev/expo-sdk-48-ccb8302e231
-3.1 can add a 'local.properties' under file 'android'
+# can add a 'local.properties' under file 'android'
 like：
 sdk.dir=C\:\\Users\\USER\\AppData\\Local\\Android\\sdk
 
