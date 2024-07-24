@@ -290,7 +290,7 @@ const renderRewardsItem = ({
   navigation: any;
 }) => (
   <Pressable
-    onPress={() => navigation.navigate("RewardsDetailsPage", { item })}
+    onPress={() => navigation.navigate("Reward", { item })}
   >
     <View style={styles.gridItem}>
       <View style={styles.imageBox}>

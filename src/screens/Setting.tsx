@@ -6,7 +6,7 @@ import { useAppSelector } from "../hooks";
 import RightDrop from "../components/RightDrop";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
-import SearchBar from "../components/SearchBar";
+
 import HeaderText from "../components/text_components/HeaderText";
 import ToggleButton from "../components/togglebutton";
 
@@ -40,14 +40,11 @@ const Setting = ({
   return (
     <View>
     <View style={[styles.share]}>  
-      
-      
     </View> 
     
     <View style={[styles.box]}>
       <Image style={{ height: 200,width: 200,marginTop: 5, resizeMode: 'contain'}} source={require("../assets/laptop.png")}></Image>
 
-      
     </View>
       
       <ContentContainer>
@@ -70,16 +67,13 @@ const Setting = ({
           
           <View style={styles.textContainer}>
           
-          <Text style={styles.chirldtext}>Notification</Text>
-          
-          <ToggleButton/>
-          
+          <Text style={styles.chirldtext}>Notification                           <ToggleButton/></Text>
 
 
 
           </View>
           <View style={styles.textContainer}>
-          <Text style={styles.chirldtext}>Dark mode</Text>
+          <Text style={styles.chirldtext}>Dark mode                             <ToggleButton/></Text>
           
          
             
@@ -130,7 +124,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   textContainer: {
-    minWidth: "78%",
+    minWidth: "100%",
     justifyContent: "space-evenly",
 
   },
@@ -149,7 +143,7 @@ const styles = StyleSheet.create({
 
   box: {
     flexDirection: "row",
-    height: "18%",
+    height: "40%",
     width: "100%",
     backgroundColor: "#FF8D13",
     borderBottomLeftRadius: 0,

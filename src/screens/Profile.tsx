@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Image, View, Text, Pressable } from "react-native";
+import { StyleSheet, Image, View, Text, Pressable,TouchableOpacity } from "react-native";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
@@ -42,7 +42,9 @@ const Profile = ({
   return (
     <View style={styles.container}>
       <View style={styles.centered}>
+      <TouchableOpacity onPress={() => navigation.navigate("NewProfile")}>
         <Image source={require("../assets/profile-picture.png")} />
+        </TouchableOpacity>
         <View style={styles.centeredChild}>
           <Field label="Name">{name}</Field>
           <Field label="Email Address">{emailAddress}</Field>
@@ -65,7 +67,7 @@ const Profile = ({
       </RightDrop>
       <View style={styles.divider}></View>
       <RightDrop
-        onNavigate={() => navigation.navigate("Settings")}
+        onNavigate={() => navigation.navigate("Setting")}
         title="General"
       >
         Settings
