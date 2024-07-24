@@ -110,10 +110,11 @@ const Profile = ({
   return (
     <View style={styles.container}>
       <View style={styles.profileHeader}>
-        <Image
-          source={require("../assets/profile-picture.png")}
+        <TouchableOpacity onPress={() => navigation.navigate("NewProfile")}>
+        <Image source={require("../assets/profile-picture.png")} 
           style={styles.profileImage}
-        />
+          />
+        </TouchableOpacity>
         <View style={styles.profileDetails}>
           <Field label="Name" value={name} />
           <Field label="Email Address" value={emailAddress} />
