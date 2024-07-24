@@ -54,19 +54,19 @@ const PointsPolicy = ({
     switch (activeTab) {
       case "level1":
         return (
-          <PolicyFragment current="Per month:\n1-10 hours: Each Hour *4" />
+          <PolicyFragment current={`Per month:\n1-10 hours: Each Hour *4`} />
         );
       case "level2":
         return (
-          <PolicyFragment current="Per month:\n11-20 hours: Each Hour *5" />
+          <PolicyFragment current={`Per month:\n11-20 hours: Each Hour *5`} />
         );
       case "level3":
         return (
-          <PolicyFragment current="Per month:\n21-30 hours: Each Hour *6" />
+          <PolicyFragment current={`Per month:\n21-30 hours: Each Hour *6`} />
         );
       case "level4":
         return (
-          <PolicyFragment current="Per month:\n31++ hours: Each Hour *8" />
+          <PolicyFragment current={`Per month:\n31++ hours: Each Hour *8`} />
         );
       default:
         return (

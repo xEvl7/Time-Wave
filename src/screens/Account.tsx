@@ -30,15 +30,21 @@ const Account = ({
     (state: RootState) => state.user.contributionData
   );
 
-  const email = useAppSelector(
-    (state) => state.user.data?.emailAddress
-  ) as string;
+  const email = useAppSelector((state) => state.user.data?.emailAddress) as
+    | string
+    | undefined;
 
   useEffect(() => {
+    if (!email) return;
+
     const fetchData = async () => {
       setIsLoading(true);
-      await dispatch(fetchUserData(email));
-      await dispatch(fetchUserContributionData(email));
+      try {
+        await dispatch(fetchUserData(email));
+        await dispatch(fetchUserContributionData(email));
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
       setIsLoading(false);
     };
     fetchData();
@@ -50,10 +56,19 @@ const Account = ({
     contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours || 0;
 
   const [contributedHours, setContributedHours] =
-    useState<any>(totalContrHours);
-  const progressPercentage = contributedHours / 20;
-  const [currentLevelMaxHours, setCurrentLevelMaxHours] = useState<number>(11);
-  const hoursLeftToNextLevel = currentLevelMaxHours - contributedHours;
+    useState<number>(totalContrHours);
+  const progressPercentage = (contributedHours / 20);
+
+  const calculateLevel = (hours: number) => {
+    if (hours <= 10) return 1;
+    if (hours <= 20) return 2;
+    if (hours <= 30) return 3;
+    return 4;
+  };
+
+  const currentLevel = calculateLevel(contributedHours);
+  const currentLevelMaxHours = currentLevel * 10; // Example max hours for the current level
+  const hoursLeftToNextLevel = currentLevelMaxHours + 10 - contributedHours;
 
   /* Date Variable */
   const currentDate = new Date();
@@ -67,6 +82,10 @@ const Account = ({
   const formattedLastDay = `${lastDate} ${lastMonth} ${lastYear}`;
   /* Date Variable End*/
 
+  useEffect(() => {
+    setContributedHours(totalContrHours);
+  }, [totalContrHours]);
+
   if (isLoading) {
     return (
       <ActivityIndicator
@@ -76,10 +95,6 @@ const Account = ({
       />
     );
   }
-
-  const calculateLevel = (hours: number) => {
-    return Math.floor(hours / 10);
-  };
 
   const handleNavigateToPointsPolicy = () => {
     const level = "level" + calculateLevel(contributedHours);
