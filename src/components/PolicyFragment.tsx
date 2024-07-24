@@ -6,6 +6,7 @@ const PolicyFragment = ({
 }: {
   current: string;
 }) => (
+  
   <View>
     <View style={{ height: 8 }} />
     <View style={styles.fragment}>
