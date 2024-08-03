@@ -172,26 +172,39 @@ const AdminListSection =({navigation,item}:AdminListProps) =>{
   const [adminData, setAdminData] = useState<
         FirebaseFirestoreTypes.DocumentData[]
     >([]);
+  const [user, setUserData] = useState<
+        FirebaseFirestoreTypes.DocumentData[]
+    >([]);
 
-  //   useEffect(() => {
-  //     // get activities data from firebase (query part - can be declared what data to show)
-  //     const fetchAdminData = async () => {
-  //     try {         
-  //         const response = await firebase
-  //         .firestore()
-  //         .collection("Communities")
-  //         .doc(item.id)
-  //         .get();
+      useEffect(() => {
+       // get activities data from firebase (query part - can be declared what data to show)
+       const fetchAdminData = async () => {
+       try {         
+           const response = await firebase
+           .firestore()
+           .collection("Communities")
+           .doc(item.id)
+           .collection("admins")
+           .get();
 
-  //         const fetchedAdminData = response.docs.map((doc) => doc.data());
-  //         setAdminData(fetchedAdminData);
-  //     } catch (error) {
-  //         console.error("Error fetching communities data:", error);
-  //     }
-  //     };    
+           const fetchedAdminData = response.docs.map((doc) => doc.data());
+           setAdminData(fetchedAdminData);
+              
+            const adminId = fetchedAdminData.map(user => user.id);
+            const adminUser = await firestore()
+              .collection("user")
+              .where('userId', 'in', userIds)
+              .get();
+
+            const fetchedUser = adminUser.docs.map((doc) => doc.data());
+            setUser(fetchedUser);
+       } catch (error) {
+           console.error("Error fetching communities data:", error);
+       }
+       };    
       
-  //     fetchAdminData();
-  // }, []);
+       fetchAdminData();
+   }, []);
 
   const limit = 5;
   const limitedAdminData = adminData.slice(0, limit);
