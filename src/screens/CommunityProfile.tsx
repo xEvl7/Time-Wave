@@ -48,7 +48,7 @@ const CommunityProfile = ({
         <>
         <View>
             <ScrollView>
-                <View style={styles.pictureContainer}>
+                <View style={styles.pictureContainer}> {/*photo part*/}
                     <Image       
                         source={{
                             uri: item.logo,
@@ -87,8 +87,8 @@ const CommunityProfile = ({
                     {/* <View style={styles.listContainer}> */}
                     <View>
                         <ScrollView>
-                        <ComingListSection
-                            title={"Coming Activities"}
+                        <OngoingListSection
+                            title={"Activities Ongoing"}
                             navigation={navigation}
                             item={item}
                         />
@@ -141,7 +141,6 @@ const NavigationItem = ({
 };
 
 {/* const AdminListSection */}
-
 type AdminListProps ={
   navigation: NavigationProp<RootStackParamList>;
   item: any;
