@@ -229,7 +229,7 @@ const AdminListSection =({navigation,item}:AdminListProps) =>{
 
 };
 
-
+//need working
 type ListSectionProps ={
     title: string;
     navigation: NavigationProp<RootStackParamList>;
@@ -247,7 +247,7 @@ type ActivityType = {
     Location: string;
 };
 
-const renderComingItems = ({
+const renderOngoingItems = ({
     item,
     navigation,
 }:{
@@ -279,15 +279,12 @@ const renderComingItems = ({
   </Pressable>
 );
 
-const ComingListSection = ({ title, navigation,item }: ListSectionProps) => {
+const OngoingListSection = ({ title, navigation,item }: ListSectionProps) => {
     const [activitiesData, setActivitiesData] = useState<
       FirebaseFirestoreTypes.DocumentData[]
     >([]);
     const name = item.id;
-    // const na = item
 
-    // const querySnapshot = await firebase.firestore().collection('Communities').where('fieldName', '==', 'fieldValue').get();
-  
     useEffect(() => {
       // get activities data from firebase (query part - can be declared what data to show)
       const fetchActivitiesData = async () => {
@@ -296,7 +293,7 @@ const ComingListSection = ({ title, navigation,item }: ListSectionProps) => {
             .firestore()
             .collection("Communities")
             .doc(item.id)
-            .collection("Past Activities")
+            .collection("Coming Activities")  //change to ongoing
             .get();
             
             // const comingResponds = await communityResponds
@@ -330,7 +327,7 @@ const ComingListSection = ({ title, navigation,item }: ListSectionProps) => {
   
     // see all button
     const handleSeeAllPress = () => {
-      // to see all available communities
+      // to see all available communities, page to be done
       //navigation.navigate("ComingActivities");
     };
   
@@ -349,7 +346,7 @@ const ComingListSection = ({ title, navigation,item }: ListSectionProps) => {
           // data={communities}
           data={limitedActivitiesData} // data from firebase
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => renderComingItems({ item, navigation })}
+          renderItem={({ item }) => renderOngoingItems({ item, navigation })}
           contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
           ListEmptyComponent={() => (
             <Text
