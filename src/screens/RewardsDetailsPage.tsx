@@ -1,155 +1,164 @@
-import { Pressable, StyleSheet, Text, View, Image } from "react-native";
-import auth from "@react-native-firebase/auth";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  FlatList,
+  Pressable,
+  ImageSourcePropType,
+  GestureResponderEvent,
+  ScrollView,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 
-import TextButton from "../components/TextButton";
-import HeaderText from "../components/text_components/HeaderText";
-import BackgroundImageBox from "../components/BackgroundImageBox";
 import ContentContainer from "../components/ContentContainer";
-import ValidatedTextInput from "../components/ValidatedTextInput";
-import { useForm } from "react-hook-form";
-import { fetchUserData } from "../features/userSlice";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import HeaderText from "../components/text_components/HeaderText";
+import TextButton from "../components/TextButton";
+import PrimaryText from "../components/text_components/PrimaryText";
+import SecondaryText from "../components/text_components/SecondaryText";
+import {
+  NativeStackNavigationProp,
+  NativeStackScreenProps,
+} from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
-import { useAppDispatch, useAppSelector } from "../hooks";
+import { useAppSelector } from "../hooks";
+import { selectUserName } from "../features/userSlice";
+import { NavigationProp } from "@react-navigation/native";
+import {
+  FirebaseFirestoreTypes,
+  firebase,
+} from "@react-native-firebase/firestore";
+import ButtonText from "../components/text_components/ButtonText";
+import { Line } from "react-native-svg";
 
-export default function RewardsDetailsPage({
+const RewardsDetailsPage= ({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "RewardsDetailsPage">) {
-  // const { control, handleSubmit } = useForm<FormData>({
-  //   defaultValues: {
-  //     emailAddress: "test@gmail.com",
-  //     password: "123456789",
-  //   },
-  // });
-
-  // const userData = useAppSelector((state) => state.user.data);
-  // const dispatch = useAppDispatch();
-
-  // const handleLogin = async (data: FormData) => {
-  //   // @todo Indicate sign in process is running in UI
-
-  //   console.log("Signing in user ...");
-
-  //   try {
-  //     const userCredential = await auth().signInWithEmailAndPassword(
-  //       data.emailAddress,
-  //       data.password
-  //     );
-
-  //     console.log(userCredential.user.email, "has successfully signed in.");
-  //   } catch (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-  //   // @todo Display error if login failed
-
-  //   console.log("Fetching user's data ...");
-
-  //   try {
-  //     await dispatch(fetchUserData(data.emailAddress)).unwrap();
-  //   } catch (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-  // };
-
+  route,
+}: NativeStackScreenProps<RootStackParamList, "RewardsDetailsPage">) => {
+  const {item} = route.params;
+  
   return (
+    <>
     <View>
-      <BackgroundImageBox
-        style={{ height: "38%" }}
-        //source={require("../assets/background/login.png")}
-      ></BackgroundImageBox>
-      <ContentContainer>
-        <HeaderText>Regan's parts</HeaderText>
+      
+      <ScrollView>
+        {/* Image Part */}
+        <View>
+        {/*  horizontal share button */}
+          <Image  
+            style={styles.iconImage}
+            source={{
+              uri: item.logo
+            }}           
+            />   
+          {/* <Pressable><Image></Image></Pressable> */}
+        </View>
+        {/* Name and description part */}
+        <ContentContainer>
+          <View style={styles.nameContainer}>
+            <Text style={styles.activityName}>{item.name}</Text>
+          </View>
+          
+          <View style={styles.LDcontainer}>
+          <View style={styles.LDItem}>
+            <Text style={styles.LDtitle}>Location</Text>
+            <Text style={styles.textTitle}>{item.location}</Text>
+          </View>
+          <View style={styles.line1}></View>
+          {/* <View></View>  line*/}
+          <View style={styles.LDItem}>
+            <Text style={styles.LDtitle}>Date</Text>
+            <Text style={styles.textTitle}>{item.date}</Text>
+          </View>
+          <View style={styles.line2}></View>
+          {/* line */}
+          </View>
 
-        {/* <ValidatedTextInput
-          name={"emailAddress"}
-          placeholder={"Email"}
-          control={control}
-          rules={{
-            required: "Email Address is required.",
-            pattern: {
-              value: /^[\w-\.]+@([\w-]+\.)com$/,
-              message: "Invalid Email Address.",
-            },
-          }}
-        />
-        <ValidatedTextInput
-          name={"password"}
-          placeholder={"Password"}
-          control={control}
-          rules={{
-            required: "Password is required.",
-          }}
-          secureTextEntry
-        />
-        <TextButton
-          style={{ marginTop: 2 }}
-          onPress={handleSubmit(handleLogin)}
-        >
-          Login
-        </TextButton>
-        <View style={styles.alternativesContainer}>
-          <Pressable onPress={() => navigation.navigate("ForgotPassword")}>
-            <Text style={{ fontSize: 12 }}>Forgot Password</Text>
-          </Pressable>
-          <Text style={{ marginTop: 30, marginBottom: 20 }}>Log in with:</Text>
-          <View style={styles.thirdPartyAuthContainer}>
-            <Pressable>
-              <Image source={require("../assets/logo/google-logo.png")}></Image>
-            </Pressable>
-            <Pressable>
-              <Image source={require("../assets/logo/apple-logo.png")}></Image>
-            </Pressable>
-            <Pressable>
-              <Image
-                source={require("../assets/logo/facebook-logo.png")}
-              ></Image>
-            </Pressable>
+          <View style={styles.detailsContainer}>
+            <Text style={styles.textTitle}>Description</Text>
+            <Text style={styles.textDetails}>{item.description}</Text>
+            <Text style={styles.textTitle}>Terms & Condition</Text>
+            <Text style={styles.textDetails}>{item.TandC}</Text>
+            <Text style={styles.textTitle}>Contact Info</Text>
+            <Text style={styles.textDetails}>{item.contactinfo}</Text>
           </View>
-          <View style={styles.registerContainer}>
-            <Text>New member?</Text>
-            <Pressable onPress={() => navigation.navigate("SignUp")}>
-              <Text style={{ color: "#7BB8A3" }}>
-                Click here to register now
-              </Text> */}
-        {/* </Pressable>
-          </View>
-        </View> */}
-      </ContentContainer>
-      <ContentContainer>
-        <TextButton onPress={() => navigation.navigate("MyRewardsDetails")}>
-          Rewards Page
-        </TextButton>
-      </ContentContainer>
+          
+        </ContentContainer>
+      </ScrollView>
     </View>
+
+    
+  </>
   );
-}
+};
+
+export default RewardsDetailsPage;
 
 const styles = StyleSheet.create({
-  alternativesContainer: {
-    alignItems: "center",
-    marginTop: 10,
-  },
-  thirdPartyAuthContainer: {
+  iconImage:{
+    minHeight: 200,
     flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
+    flex:1,
+    backgroundColor:"light-grey",
   },
-  registerContainer: {
-    flexDirection: "row",
-    minWidth: "78%",
-    justifyContent: "space-evenly",
-    marginTop: 40,
+  nameContainer:{
+    alignSelf:"center",
+    marginBottom:5,
   },
-  MyRewardsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
+  activityName:{
+    alignContent:"center",
+    fontSize: 28,
+    fontWeight: "300",
   },
-  HeadingContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
+  LDcontainer:{
+    marginTop: 4,
+    flexDirection:"row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom:8,
+    //backgroundColor:"#F1CFA3",
+    height: 72,
   },
-});
+  LDtitle:{
+    fontSize:18,
+  },
+  LDItem:{
+    marginLeft: 18,
+    width: "20%",
+    height: "100%",
+    marginTop:10,
+    //marginBottom: 15,
+    //backgroundColor: "#F1CFA3",
+    flex:1,
+  },
+  LDdetails:{
+    fontWeight:"bold",
+    fontSize:18,
+  },
+  textTitle:{
+    marginTop:6,
+    fontSize:18,
+    fontWeight:"bold",
+  },
+  textDetails:{
+    marginTop:2,
+    fontSize:16,
+    color:"grey",
+  },
+  line1:{
+    alignSelf:"center",
+    height:"97%",
+    width:1.4,
+    backgroundColor:"#ababab",
+  },
+  line2:{
+    alignSelf:"center",
+    width:"100%",
+    height:1.4,
+    backgroundColor:"#ababab",
+  },
+  detailsContainer:{
+    marginTop:8,
+  },
+
+})

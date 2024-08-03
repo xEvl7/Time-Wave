@@ -29,50 +29,67 @@ import {
   firebase,
 } from "@react-native-firebase/firestore";
 import ButtonText from "../components/text_components/ButtonText";
+import { Line } from "react-native-svg";
 
 const ActivityInfo = ({
   navigation,
   route,
 }: NativeStackScreenProps<RootStackParamList, "ActivityInfo">) => {
   const {item} = route.params;
-  
+ 
+  const convertTime = (timestamp: item.Date): string=> {
+    const date = timestamp.toDate();
+    return date.toLocaleDateString("en-GB",{
+      day:"numeric",
+      month:"short",
+      year:"numeric"
+    });
+  };
+
   return (
     <>
     <View>
+      
       <ScrollView>
         {/* Image Part */}
         <View>
         {/*  horizontal share button */}
-          <Image 
+          <Image  
+            style={styles.iconImage}
             source={{
               uri: item.logo
-            }}
-            // style={styles.iconImage}
+            }}           
             />   
-          <Pressable><Image></Image></Pressable>
+          {/* <Pressable><Image></Image></Pressable> */}
         </View>
         {/* Name and description part */}
         <ContentContainer>
-          <View style={styles.activityName}>
-            <Text style={styles.activityName}>{item.name}</Text>
+          <View style={styles.nameContainer}>
+            <Text style={styles.activityName}>{item.Name}</Text>
           </View>
-          <View>
-            <Text>Location</Text>
-            <Text>{item.location}</Text>
+          
+          <View style={styles.LDcontainer}>
+          <View style={styles.LDItem}>
+            <Text style={styles.LDtitle}>Location</Text>
+            <Text style={styles.textTitle}>{item.Location}</Text>
           </View>
+          <View style={styles.line1}></View>
           {/* <View></View>  line*/}
-          <View>
-            <Text>Date</Text>
-            <Text>{item.date}</Text>
+          <View style={styles.LDItem}>
+            <Text style={styles.LDtitle}>Date</Text>
+            <Text style={styles.textTitle}>{convertTime(item.Date)}</Text>
           </View>
+          <View style={styles.line2}></View>
           {/* line */}
-          <View>
-            <Text>Description</Text>
-            <Text>{item.description}</Text>
-            <Text>Terms & Condition</Text>
-            <Text>{item.TandC}</Text>
-            <Text>Contact Info</Text>
-            <Text>{item.contactinfo}</Text>
+          </View>
+
+          <View style={styles.detailsContainer}>
+            <Text style={styles.textTitle}>Description</Text>
+            <Text style={styles.textDetails}>{item.Description}</Text>
+            <Text style={styles.textTitle}>Terms & Condition</Text>
+            <Text style={styles.textDetails}>{item.TandC}</Text>
+            <Text style={styles.textTitle}>Contact Info</Text>
+            <Text style={styles.textDetails}>{item.contactInfo}</Text>
           </View>
           
         </ContentContainer>
@@ -94,30 +111,65 @@ const styles = StyleSheet.create({
     backgroundColor:"light-grey",
   },
   nameContainer:{
-    alignContent:"center",
+    alignSelf:"center",
+    marginBottom:5,
   },
   activityName:{
-    fontSize: 24,
+    alignContent:"center",
+    fontSize: 28,
     fontWeight: "300",
   },
   LDcontainer:{
     marginTop: 4,
-    
+    flexDirection:"row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom:8,
+    //backgroundColor:"#F1CFA3",
+    height: 112,
   },
   LDtitle:{
     fontSize:18,
+  },
+  LDItem:{
+    marginLeft: 18,
+    width: "20%",
+    height: "100%",
+    marginTop:10,
+    //marginBottom: 15,
+    //backgroundColor: "#F1CFA3",
+    flex:1,
   },
   LDdetails:{
     fontWeight:"bold",
     fontSize:18,
   },
   textTitle:{
+    marginTop:18,
     fontSize:18,
     fontWeight:"bold",
   },
   textDetails:{
+    marginLeft:2,
+    marginTop:3.5,
     fontSize:16,
     color:"grey",
+  },
+  line1:{
+    alignSelf:"center",
+    height:"97%",
+    width:1.4,
+    backgroundColor:"#ababab",
+  },
+  line2:{
+    marginTop:10,
+    alignSelf:"center",
+    width:"100%",
+    height:1.4,
+    backgroundColor:"#ababab",
+  },
+  detailsContainer:{
+    marginTop:8,
   },
 
 })

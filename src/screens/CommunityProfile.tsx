@@ -13,6 +13,7 @@ import {
   
   import React, { useEffect, useState } from "react";
   import ContentContainer from "../components/ContentContainer";
+  import ProfilePicture from "../components/ProfilePicture";
   import ParagraphText from "../components/text_components/ParagraphText";
   import { RootStackParamList } from "../Screen.types";
   import {
@@ -35,8 +36,10 @@ const CommunityProfile = ({
     //const community = useAppSelector(selectCommunity);
     //const route = useRoute();
     const {item} = route.params;
+    const docId = item.id;
 
     const handlePressJoin = () => {
+
        //navigation.navigate("HomePage");
 
       };
@@ -56,6 +59,7 @@ const CommunityProfile = ({
                 <ContentContainer>
                     <View style={styles.Header}>
                         <PrimaryText>{item.name}</PrimaryText>
+                        {/* <Text>{item.id}</Text> */}
                     </View>
                     {/* <HeaderText>Comunity Name ABC</HeaderText> */}
                     {/* <Text style={styles.Header}>Community Name ABC</Text> */}
@@ -69,7 +73,9 @@ const CommunityProfile = ({
                     
                     <Text style={styles.subHeadertext} >Admins</Text>
                     <View style={styles.listContainer}>                        
-                        <ScrollView style={styles.peopleGrid}></ScrollView>
+                        <ScrollView style={styles.peopleGrid}>
+                          <AdminListSection navigation={navigation} item={item}/>
+                        </ScrollView>
                     </View>
                     
                     <Text style={styles.subHeadertext}>Volunteer Log History</Text>
@@ -95,7 +101,7 @@ const CommunityProfile = ({
             </ScrollView>
         </View> 
             
-        <TextButton></TextButton>
+
         <View style={{
           //flex: 1,
           marginHorizontal: 25,
@@ -134,6 +140,95 @@ const NavigationItem = ({
     );
 };
 
+{/* const AdminListSection */}
+
+type AdminListProps ={
+  navigation: NavigationProp<RootStackParamList>;
+  item: any;
+};
+
+type AdminType = {
+  Name: string;
+  logo: string;
+  admins: string;
+};
+
+const renderAdminItems = ({
+  item,
+  navigation,
+}:{
+  item: AdminType;
+  navigation: any;
+}) =>(
+  <Pressable
+    onPress={() => navigation.navigate("ActivityInfo", { item })}
+  >
+    <ProfilePicture source={item.logo}>
+      {item.admins}
+    </ProfilePicture>
+  </Pressable>
+);
+
+const AdminListSection =({navigation,item}:AdminListProps) =>{
+  const [adminData, setAdminData] = useState<
+        FirebaseFirestoreTypes.DocumentData[]
+    >([]);
+
+  //   useEffect(() => {
+  //     // get activities data from firebase (query part - can be declared what data to show)
+  //     const fetchAdminData = async () => {
+  //     try {         
+  //         const response = await firebase
+  //         .firestore()
+  //         .collection("Communities")
+  //         .doc(item.id)
+  //         .get();
+
+  //         const fetchedAdminData = response.docs.map((doc) => doc.data());
+  //         setAdminData(fetchedAdminData);
+  //     } catch (error) {
+  //         console.error("Error fetching communities data:", error);
+  //     }
+  //     };    
+      
+  //     fetchAdminData();
+  // }, []);
+
+  const limit = 5;
+  const limitedAdminData = adminData.slice(0, limit);
+
+
+
+  return (
+    <View>
+      <FlatList
+      showsVerticalScrollIndicator={false}
+        // horizontal
+        // showsHorizontalScrollIndicator={false}
+        data={limitedAdminData} // data from firebase
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => renderAdminItems({ item, navigation })}
+        contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
+        ListEmptyComponent={() => (
+          <Text
+            style={{
+              color: "red",
+              textAlign: "center",
+              marginBottom: 20,
+              marginLeft: 20,
+            }}
+          >
+            No data available
+          </Text>
+        )}
+      />
+    </View>
+  );
+
+
+
+};
+
 
 type ListSectionProps ={
     title: string;
@@ -141,19 +236,23 @@ type ListSectionProps ={
     item: any;
 };
 
-type CommunityType = {
-    name: string;
-    description: string;
+type ActivityType = {
+    Name: string;
+    Description: string;
     logo: string;
     test: string;
+    Date: firebase.firestore.Timestamp;
+    TandC: string;
+    contactInfo: string;
+    Location: string;
 };
 
 const renderComingItems = ({
     item,
     navigation,
 }:{
-    item: CommunityType;
-    navgation: any;
+    item: ActivityType;
+    navigation: any;
 }) =>(
     <Pressable
     onPress={() => navigation.navigate("ActivityInfo", { item })}
@@ -170,8 +269,8 @@ const renderComingItems = ({
         </View>
       </View>
       <View style={styles.text}>
-        <Text style={styles.description}>{item.name}</Text>
-        <Text style={styles.subDescription}>{item.description}</Text>
+        <Text style={styles.description}>{item.Name}</Text>
+        <Text style={styles.subDescription}>{item.Description}</Text>
         <View style={styles.pointContainer}>
           <Text style={styles.point}>{item.test}</Text>
         </View>
@@ -184,8 +283,8 @@ const ComingListSection = ({ title, navigation,item }: ListSectionProps) => {
     const [activitiesData, setActivitiesData] = useState<
       FirebaseFirestoreTypes.DocumentData[]
     >([]);
-    const name = item.name;
-    const na = item
+    const name = item.id;
+    // const na = item
 
     // const querySnapshot = await firebase.firestore().collection('Communities').where('fieldName', '==', 'fieldValue').get();
   
@@ -196,13 +295,16 @@ const ComingListSection = ({ title, navigation,item }: ListSectionProps) => {
             const communityResponds = await firebase
             .firestore()
             .collection("Communities")
-            .where('name','==',name)
-            .get();
-            const comingResponds = await communityResponds
-            .collection("Coming Activities")
+            .doc(item.id)
+            .collection("Past Activities")
             .get();
             
-            const fetchedActivitiesData = communityResponds.docs.map((doc) => doc.data());
+            // const comingResponds = await communityResponds
+
+            // .collection("Coming Activities")
+            // .get();
+            
+            const fetchedActivitiesData = communityResponds.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
           // const response = communityResponds.docs.map(async communityDoc => {
           //   const activitiesQuerySnapshot = await communityDoc.ref
@@ -266,6 +368,38 @@ const ComingListSection = ({ title, navigation,item }: ListSectionProps) => {
     );
 };
 
+const renderPastItems = ({
+  item,
+  navigation,
+}:{
+  item: ActivityType;
+  navigation: any;
+}) =>(
+  <Pressable
+  onPress={() => navigation.navigate("ActivityInfo", { item })}
+>
+  <View style={styles.gridItem}>
+    <View style={styles.imageBox}>
+      <View style={styles.imageBox}>
+        <Image
+          source={{
+            uri: item.logo,  
+          }}
+          style={styles.image}
+        />
+      </View>
+    </View>
+    <View style={styles.text}>
+      <Text style={styles.description}>{item.Name}</Text>
+      <Text style={styles.subDescription}>{item.Description}</Text>
+      <View style={styles.pointContainer}>
+        <Text style={styles.point}>{item.test}</Text>
+      </View>
+    </View>
+  </View>
+</Pressable>
+);
+
 
 const PastListSection = ({ title, navigation,item }: ListSectionProps) => {
     const [activitiesData, setActivitiesData] = useState<
@@ -284,9 +418,17 @@ const PastListSection = ({ title, navigation,item }: ListSectionProps) => {
             // .collection("Communities")
             // .where( 'name', '==',{ID} )
             // .get();
-            const response = await firebase.firestore().collection("Rewards").get();
+            //const response = await firebase.firestore().collection("Rewards").get();
+
+            const response = await firebase
+            .firestore()
+            .collection("Communities")
+            .doc(item.id)
+            .collection("Past Activities")
+            .get();
+            
             //const fetchedRewardsData = response.docs.map((doc) => doc.data());
-            const fetchedActivitiesData = response.docs.map((doc) => doc.data());
+            const fetchedActivitiesData = response.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setActivitiesData(fetchedActivitiesData);
         } catch (error) {
             console.error("Error fetching communities data:", error);
@@ -321,7 +463,7 @@ const PastListSection = ({ title, navigation,item }: ListSectionProps) => {
             // data={communities}
             data={limitedActivitiesData} // data from firebase
             keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => renderComingItems({ item, navigation })}
+            renderItem={({ item }) => renderPastItems({ item, navigation })}
             contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
             ListEmptyComponent={() => (
             <Text
@@ -341,33 +483,33 @@ const PastListSection = ({ title, navigation,item }: ListSectionProps) => {
 };
   
 
-type people = {
-    name: string;
-    logo: string;
-};
+// type people = {
+//     name: string;
+//     logo: string;
+// };
 
-//type Activities = {
-//  
-//};
+// //type Activities = {
+// //  
+// //};
 
-//Display people from firebase
-const renderCommunitiesPeople = ({
-    item,
-    navigation,
-}:{
-    item: people;
-    navigation: any;
-}) => (   
-        <View style={styles.peopleGrid}>
-            <Image
-            source={{
-                uri: item.logo,
-            }}
-            style = {styles.icon}
-            />
-            <Text style={styles.names}>{item.name}</Text>
-        </View>
-);
+// //Display people from firebase
+// const renderCommunitiesPeople = ({
+//     item,
+//     navigation,
+// }:{
+//     item: people;
+//     navigation: any;
+// }) => (   
+//         <View style={styles.peopleGrid}>
+//             <Image
+//             source={{
+//                 uri: item.logo,
+//             }}
+//             style = {styles.icon}
+//             />
+//             <Text style={styles.names}>{item.name}</Text>
+//         </View>
+// );
 
 // const CommunitiesProfile = ({ title, navigation }: ListSectionProps) =>{
 //     const [communitiesData, setCommunitiesData] = useState<
