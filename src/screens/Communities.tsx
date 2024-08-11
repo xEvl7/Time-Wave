@@ -116,8 +116,8 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
   }, []);
 
   // to limit how many communities data to show in home page
-  const limit = 5;
-  const limitedCommunitiesData = communitiesData.slice(0, limit);
+  // const limit = 5;
+  // const limitedCommunitiesData = communitiesData.slice(0, limit);
 
   // see all button
   // const handleSeeAllPress = () => {
@@ -131,7 +131,7 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
         //horizontal
         //showsHorizontalScrollIndicator={false}
         // data={communities}
-        data={limitedCommunitiesData} // data from firebase
+        data={communitiesData} // data from firebase
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => renderCommunitiesItem({ item, navigation })}
         contentContainerStyle={{ paddingTop: 5, paddingRight: 9, paddingLeft:9 }}
