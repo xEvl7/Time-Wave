@@ -162,7 +162,7 @@ item: AdminType;
 navigation: any;
 }) =>(
 <Pressable
-  onPress={() => navigation.navigate("ActivityInfo", { item })}
+  onPress={() => navigation.navigate("ProfileInfo", { item })}
 >
   <View style={styles.peopleGrid}>
     <View style={styles.imageBox}>
