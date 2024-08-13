@@ -105,7 +105,7 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
           .firestore()
           .collection("Communities")
           .get();
-        const fetchedCommunitiesData = response.docs.map((doc) => doc.data());
+        const fetchedCommunitiesData = response.docs.map(doc =>( {id:doc.id, ...doc.data()}));
         setCommunitiesData(fetchedCommunitiesData);
       } catch (error) {
         console.error("Error fetching communities data:", error);

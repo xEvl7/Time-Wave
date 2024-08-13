@@ -36,14 +36,21 @@ const ActivityInfo = ({
   route,
 }: NativeStackScreenProps<RootStackParamList, "ActivityInfo">) => {
   const {item} = route.params;
+  // const date = timestamp; 
  
   const convertTime = (timestamp: item.Date): string=> {
-    const date = timestamp.toDate();
-    return date.toLocaleDateString("en-GB",{
-      day:"numeric",
-      month:"short",
-      year:"numeric"
-    });
+    if(item.Date){
+      const date = timestamp.toDate();
+      return date.toLocaleDateString("en-GB",{
+        day:"numeric",
+        month:"short",
+        year:"numeric"
+      });
+    }else {
+      console.log('Field is missing or undefined');
+    }
+    
+
   };
 
   return (

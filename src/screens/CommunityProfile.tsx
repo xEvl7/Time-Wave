@@ -20,6 +20,7 @@ import {
   FirebaseFirestoreTypes,
   firebase,
 } from "@react-native-firebase/firestore";
+import'@react-native-firebase/firestore';
 import { RouteProp, useRoute } from "@react-navigation/native";
 import PrimaryText from "../components/text_components/PrimaryText";
 import { useAppSelector } from "../hooks";
@@ -78,7 +79,7 @@ const CommunityProfile = ({
                   
                   <Text style={styles.subHeadertext}>Volunteer Log History</Text>
                   <View style={styles.listContainer}>
-                      
+                    <VolunteerListSection navigation={navigation} item={item}/>
                   </View>
 
                   {/* activities */}
@@ -144,12 +145,12 @@ const NavigationItem = ({
 
 {/* const AdminListSection */}
 
-type AdminListProps ={
+type UserListProps ={
 navigation: NavigationProp<RootStackParamList>;
 item: any;
 };
 
-type AdminType = {
+type UserType = {
 name: string;
 logo: string;
 };
@@ -158,7 +159,7 @@ const renderAdminItems = ({
 item,
 navigation,
 }:{
-item: AdminType;
+item: UserType;
 navigation: any;
 }) =>(
 <Pressable
@@ -175,7 +176,7 @@ navigation: any;
 </Pressable>
 );
 
-const AdminListSection =({navigation,item}:AdminListProps) =>{
+const AdminListSection =({navigation,item}:UserListProps) =>{
   const [user, setUserData] = useState<
         FirebaseFirestoreTypes.DocumentData[]
     >([]);
@@ -232,12 +233,88 @@ const AdminListSection =({navigation,item}:AdminListProps) =>{
       />
     </View>
   );
-
-
-
 };
 
-
+// UserListSection
+const renderVolunteerItems = ({
+  item,
+  navigation,
+  }:{
+  item: UserType;
+  navigation: any;
+  }) =>(
+  <Pressable
+    onPress={() => navigation.navigate("ProfileInfo", { item })}
+  >
+    <View style={styles.peopleGrid}>
+      <View style={styles.imageBox}>
+        {/* <View style={styles.imageBox}> */}
+          <Image source={{ uri: item.logo }} style={styles.profilepic} />
+        {/* </View>  */}
+        <Text style={styles.profileName} >{item.name}</Text>
+      </View> 
+    </View> 
+  </Pressable>
+  );
+  
+  const VolunteerListSection =({navigation,item}:UserListProps) =>{
+    const [user, setUserData] = useState<
+          FirebaseFirestoreTypes.DocumentData[]
+      >([]);
+  
+        useEffect(() => {
+         // get activities data from firebase (query part - can be declared what data to show)
+         const fetchVolunteerData = async () => {
+         try {         
+              const volunteerUser = await  firebase
+                .firestore()
+                .collection("Users")
+                .where('uid', 'in', item.volunteer)
+                .get();
+                
+              
+              const fetchedUser = volunteerUser.docs.map((doc) => doc.data());
+              setUserData(fetchedUser);
+              console.log("name ", fetchedUser);
+         } catch (error) {
+             console.error("Error fetching communities data:", error);
+         }
+         };    
+  
+         fetchVolunteerData();
+     }, []);
+  
+    const limit = 5;
+    const limitedVolunteerData = user.slice(0, limit);
+  
+  
+  
+    return (
+      <View>
+        <FlatList
+        showsVerticalScrollIndicator={false}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={limitedVolunteerData} // data from firebase
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => renderAdminItems({ item, navigation })}
+          contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
+          ListEmptyComponent={() => (
+            <Text
+              style={{
+                color: "red",
+                textAlign: "center",
+                marginBottom: 20,
+                marginLeft: 20,
+              }}
+            >
+              No data available
+            </Text>
+          )}
+        />
+      </View>
+    );
+  };
 
 
 
@@ -252,7 +329,7 @@ type ActivityType = {
   Description: string;
   logo: string;
   test: string;
-  Date: firebase.firestore.Timestamp;
+  // Date: firebase.firestore.Timestamp;
   startTime:firebase.firestore.Timestamp;
   endTime: firebase.firestore.Timestamp;
   TandC: string;
@@ -296,26 +373,19 @@ const OngoingListSection = ({ title, navigation,item }: ListSectionProps) => {
   const [activitiesData, setActivitiesData] = useState<
     FirebaseFirestoreTypes.DocumentData[]
   >([]);
-  const name = item.id;
-  // const na = item
-
-  // const querySnapshot = await firebase.firestore().collection('Communities').where('fieldName', '==', 'fieldValue').get();
 
   useEffect(() => {
     // get activities data from firebase (query part - can be declared what data to show)
     const fetchActivitiesData = async () => {
       try {
+        console.log("item id: ",item.id);
           const communityResponds = await firebase
           .firestore()
           .collection("Communities")
           .doc(item.id)
           .collection("Coming Activities")
           .get();
-          
-          // const comingResponds = await communityResponds
-
-          // .collection("Coming Activities")
-          // .get();
+          console.log(communityResponds);
           
           const fetchedActivitiesData = communityResponds.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -425,13 +495,7 @@ const PastListSection = ({ title, navigation,item }: ListSectionProps) => {
       // get activities data from firebase (query part - can be declared what data to show)
       const fetchActivitiesData = async () => {
       try {
-          // const response = await firebase
-          // .firestore()
-          // .collection("Communities")
-          // .where( 'name', '==',{ID} )
-          // .get();
-          //const response = await firebase.firestore().collection("Rewards").get();
-
+        console.log("item id in pastA",item.id);
           const response = await firebase
           .firestore()
           .collection("Communities")
