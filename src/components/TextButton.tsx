@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     minHeight: 45,
     backgroundColor: "#FF8D13",
     borderRadius: 12,
-    marginBottom: "auto",
+    marginBottom: 15,
     marginTop: 15,
   },
   buttonText: {

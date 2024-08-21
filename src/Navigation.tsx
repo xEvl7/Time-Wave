@@ -41,6 +41,9 @@ import ContributionsHistory from "./screens/ContributionsHistory";
 import RewardsDetailsPage from "./screens/RewardsDetailsPage";
 import TimeBankRewardsPage from "./screens/TimeBankRewardsPage";
 import AdminControl from "./screens/AdminControl";
+import CommunityActivityHistory from "./screens/CommunityActivityHistory";
+import ActivityHistory from "./screens/ActivityHistory";
+import RecentActivities from "./screens/RecentActivities";
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -95,14 +98,14 @@ const TabNavigator = () => {
         // headerTitleAlign: "center",
       })}
     >
-      <Tab.Screen 
+      <Tab.Screen
         name="Home"
         component={HomePage}
         options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Activity"
-        component={PointsHistory}
+        component={RecentActivities}
         options={{ headerShown: true }}
       />
       <Tab.Screen
@@ -196,7 +199,10 @@ const Navigation = () => {
             />
             <Stack.Screen name="NewProfile" component={NewProfile} />
             <Stack.Screen name="Setting" component={Setting} />
-            <Stack.Screen name="ChangeYourPassword" component={ChangeYourPassword} />
+            <Stack.Screen
+              name="ChangeYourPassword"
+              component={ChangeYourPassword}
+            />
             <Stack.Screen name="EditProfile" component={EditProfile} />
             <Stack.Screen name="Communities" component={Communities} />
             <Stack.Screen
@@ -245,6 +251,11 @@ const Navigation = () => {
                 title: "Rewards Details Page",
               }}
             />
+            <Stack.Screen
+              name="RecentActivities"
+              component={RecentActivities}
+            />
+            <Stack.Screen name="ActivityHistory" component={ActivityHistory} />
             <Stack.Screen
               name="TimeBankRewardsPage"
               component={TimeBankRewardsPage}

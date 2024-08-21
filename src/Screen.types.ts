@@ -18,7 +18,7 @@ export type RootStackParamList = {
 
   // CreateCommunity: undefined;
   CreateCommunity: {
-    selectedAdmins: Array<{ id: number; name: string; avatar: any }>;
+    selectedAdmins: Array<{ id: number; name: string; avatar: any; uid: string }>;
   };
   SelectAdmin: undefined;
   CommunityInfo: CommunityProps;
@@ -33,6 +33,8 @@ export type RootStackParamList = {
   PointsHistory: undefined;
   PointsPolicy: { level: any };
   ContributionsHistory: undefined;
+  ActivityHistory: undefined;
+  RecentActivities: undefined;
 
   ActiveRewardsDetailsUseNowPage: undefined;
   ActiveRewardsDetailsPage: undefined;

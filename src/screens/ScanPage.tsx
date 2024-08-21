@@ -2,17 +2,27 @@ import { StyleSheet, Text, View, Alert, Linking, Platform } from "react-native";
 import React, { useState, useEffect } from "react";
 import { BarCodeScanner, BarCodeScannerResult } from "expo-barcode-scanner";
 import * as Notifications from "expo-notifications";
-
+import { useAppDispatch } from "../hooks";
 import TextButton from "../components/TextButton";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
+import {
+  storeScannedData,
+  ScannedDataProps,
+} from "../features/scannedDataSlice"; // Import the new action
+import firestore, { firebase } from "@react-native-firebase/firestore";
 
 const ScanPage = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "ScanPage">) => {
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const [hasNotificationPermission, setHasNotificationPermission] = useState<boolean | null>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<
+    boolean | null
+  >(null);
+  const [hasNotificationPermission, setHasNotificationPermission] = useState<
+    boolean | null
+  >(null);
   const [scanned, setScanned] = useState(false);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const getPermissions = async () => {
@@ -70,11 +80,26 @@ const ScanPage = ({
       }
       alert(`Data:\n ${data}`);
 
-      // You can process the scanned data here
-      const scannedData = JSON.parse(data);
-      // Do something with scannedData
+      // Parse the JSON data from the QR code
+      const parsedData = JSON.parse(data);
+      console.log("scannedData:", parsedData);
+
+      // 如果 parsedData 中包含 timestamp 字段，则将其转换为 Firestore Timestamp 对象
+      if (parsedData.generateTime && typeof parsedData.generateTime === "object") {
+        const { seconds, nanoseconds } = parsedData.generateTime;
+
+        // 确保有 seconds 和 nanoseconds 字段
+        if (seconds !== undefined && nanoseconds !== undefined) {
+          parsedData.generateTime = new firebase.firestore.Timestamp(
+            seconds,
+            nanoseconds
+          );
+        }
+      }
+
+      await dispatch(storeScannedData(parsedData));
     } catch (error) {
-      console.error("Failed to parse scanned data:", error);
+      console.error("Failed to process scanned data:", error);
     }
   };
 

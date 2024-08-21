@@ -21,6 +21,13 @@ type UserContributionData = {
   };
 };
 
+interface UserContribution {
+  // year: string;
+  month: string;
+  totalContrHours: number;
+  updatedDate: any;
+}
+
 type PointsReceivedData = {
   date: any;
   time: any;
@@ -149,6 +156,51 @@ export const fetchUserContributionData = createAsyncThunk(
     throw new Error("Data not available or in the expected format.");
   }
 );
+
+export const fetchUserContributionData2 = createAsyncThunk(
+  "user/fetchUserContributionData",
+  async (emailAddress: string) => {
+    const querySnapshot = await firestore()
+      .collection("Users")
+      .where("emailAddress", "==", emailAddress)
+      .get();
+
+    if (querySnapshot.size !== 1) {
+      throw new Error(
+        `${emailAddress} Either has no data or more than 1 data.`
+      );
+    }
+
+    const userDocument = querySnapshot.docs[0];
+    const userContributionCollection = await userDocument.ref
+      .collection("Contributions")
+      .get();
+
+    const groupedData: { [year: string]: UserContribution[] } = {};
+
+    userContributionCollection.forEach((doc) => {
+      const year = doc.id;
+      const monthData = doc.data() as Record<string, UserContribution>;
+
+      Object.keys(monthData).forEach((month) => {
+        const contribution = monthData[month];
+        if (!groupedData[year]) {
+          groupedData[year] = [];
+        }
+        groupedData[year].push({
+          month,
+          totalContrHours: contribution.totalContrHours,
+          updatedDate: contribution.updatedDate.toDate().toISOString(),
+        });
+      });
+    });
+
+    console.log("groupedData", groupedData);
+
+    return groupedData;
+  }
+);
+
 
 export const fetchPointsReceivedData = createAsyncThunk(
   "user/fetchPointsReceivedData",
@@ -288,7 +340,7 @@ export const storePointsReceivedDataToFirebase = createAsyncThunk(
 );
 
 export const logOut = () => ({
-  type:'user/logOut',
+  type: "user/logOut",
 });
 
 const initialState = {} as UserState;
@@ -296,10 +348,10 @@ const initialState = {} as UserState;
 const userSlice = createSlice({
   name: "user",
   initialState,
-  reducers: {   
-    logOut(state,action){
+  reducers: {
+    logOut(state, action) {
       return initialState;
-    }
+    },
   },
   extraReducers(builder) {
     builder

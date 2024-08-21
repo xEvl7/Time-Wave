@@ -5,68 +5,71 @@ import firestore from "@react-native-firebase/firestore";
   /* @todo Auto add creator to admin list */
 }
 export type CommunityProps = {
+  id: string;
+  logo?: string;
   name: string;
   description: string;
   admins: string[];
+};
+
+interface CommunityState {
+  communities: CommunityProps[];
+  loading: boolean;
+  error: string | null;
+  selectedCommunityId: string | null;
+}
+
+const initialState: CommunityState = {
+  communities: [],
+  loading: false,
+  error: null,
+  selectedCommunityId: null, // Initialize with null
 };
 
 export const createCommunity = createAsyncThunk(
   "community/createCommunity",
   async (communityInfo: CommunityProps) => {
     await firestore().collection("Communities").add(communityInfo);
-
     return communityInfo;
   }
 );
 
-// export const storeScanInDataToFirebase = createAsyncThunk(
-//   "user/storeScanInDataToFirebase",
-//   async (
-//     pointsReceivedData: PointsReceivedData2,
-//     { getState, rejectWithValue }
-//   ) => {
-//     try {
-//       const state = getState() as RootState; // Explicitly define the type
-//       const currentUser = state.user.data;
+// Fetch all communities
+export const fetchCommunities = createAsyncThunk(
+  "community/fetchCommunities",
+  async () => {
+    const snapshot = await firestore().collection("Communities").get();
+    const communities = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as CommunityProps[];
+    return communities;
+  }
+);
 
-//       if (!currentUser) {
-//         throw new Error("Current user data not available.");
-//       }
+// Check if user is an admin of any community
+export const checkUserAdmin = createAsyncThunk(
+  "community/checkUserAdmin",
+  async (uid: string) => {
+    const snapshot = await firestore().collection("Communities").get();
+    const communities = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as CommunityProps[];
 
-//       // Convert Date to Firestore Timestamp
-//       const firestoreTimestamp = firestore.Timestamp.fromDate(
-//         pointsReceivedData.date
-//       );
-
-//       // Add other fields as needed
-//       const serializedPointsReceivedData = {
-//         date: firestoreTimestamp,
-//         points: pointsReceivedData.points,
-//       };
-
-//       // Target the specific user document and PointsReceived subcollection
-//       const userDocumentRef = firestore()
-//         .collection("Users")
-//         .doc(currentUser.uid);
-
-//       await userDocumentRef
-//         .collection("PointsReceived")
-//         .add(serializedPointsReceivedData);
-
-//       return pointsReceivedData;
-//     } catch (error) {
-//       // Explicitly type the error variable
-//       const errorMessage =
-//         error instanceof Error ? error.message : "An error occurred";
-
-//       return rejectWithValue(errorMessage);
-//     }
-//   }
-// );
+    console.log("communities",communities);
+    const community = communities.find((community) =>
+      community.admins.includes(uid)
+    );
+    console.log("community",community);
+    // Return the community document ID or null
+    return community ? community.id : null;
+  }
+);
 
 const communitySlice = createSlice({
   name: "community",
-  initialState: [] as CommunityProps[],
+  initialState,
   reducers: {},
   extraReducers(builder) {
     builder
@@ -78,11 +81,42 @@ const communitySlice = createSlice({
         (state, action: PayloadAction<CommunityProps>) => {
           console.log(`Successfully created ${action.payload.name} community.`);
 
-          state.push(action.payload);
+          state.communities.push(action.payload);
         }
       )
       .addCase(createCommunity.rejected, (_, action) => {
         console.error(action.error);
+      })
+      .addCase(fetchCommunities.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        fetchCommunities.fulfilled,
+        (state, action: PayloadAction<CommunityProps[]>) => {
+          state.communities = action.payload;
+          state.loading = false;
+        }
+      )
+      .addCase(fetchCommunities.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? "Failed to fetch communities";
+      })
+      .addCase(checkUserAdmin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        checkUserAdmin.fulfilled,
+        (state, action: PayloadAction<string | null>) => {
+          state.loading = false;
+          state.selectedCommunityId = action.payload;
+        }
+      )
+      .addCase(checkUserAdmin.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message ?? "Failed to check user admin status";
       });
   },
 });

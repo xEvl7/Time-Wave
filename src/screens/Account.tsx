@@ -50,8 +50,8 @@ const Account = ({
     fetchData();
   }, [dispatch, email]);
 
-  const selectedYear = "2023";
-  const selectedMonth = "Dec";
+  const selectedYear = "2023"; //** */
+  const selectedMonth = "Dec"; //** */
   const totalContrHours =
     contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours || 0;
 

@@ -8,51 +8,55 @@ import PrimaryText from "../components/text_components/PrimaryText";
 import SecondaryText from "../components/text_components/SecondaryText";
 import ContentContainer from "../components/ContentContainer";
 import { FirebaseFirestoreTypes, firebase } from "@react-native-firebase/firestore";
+import { useAppSelector } from "../hooks";
 // import styles from "../styles";
+
+type AdminType = {
+  uid: string; // Assuming id from Firestore is a string
+  name: string;
+  selected: boolean;
+  avatar: string;
+};
 
 const SelectAdmin = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "SelectAdmin">) => {
 
+  const ownUserId = useAppSelector((state) => state.user.data?.uid);
   // test data
-  const [admins, setAdmins] = useState([
-    { id: 1, name: "User 1", selected: false, avatar: require("../assets/profile-picture.png") },
-    { id: 2, name: "User 2", selected: false, avatar: require("../assets/profile-picture.png") },
-    { id: 3, name: "User 3", selected: false, avatar: require("../assets/profile-picture.png") },
+  const [admins, setAdmins] = useState<AdminType[]>([
+    { uid: "1", name: "User 1", selected: false, avatar: require("../assets/profile-picture.png") },
+    { uid: "2", name: "User 2", selected: false, avatar: require("../assets/profile-picture.png") },
+    { uid: "3", name: "User 3", selected: false, avatar: require("../assets/profile-picture.png") },
   ]);
 
-  // const [admins, setAdmins] = useState<
-  //   FirebaseFirestoreTypes.DocumentData[]
-  // >([]);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await firebase.firestore().collection("Users").get();
+        const fetchedAdmins = response.docs
+          .map((doc) => {
+            const data = doc.data();
+            return {
+              uid: data.uid,
+              name: data.name,
+              selected: false,
+              avatar: data.avatar || require("../assets/profile-picture.png"),
+            };
+          })
+          .filter((admin) => admin.uid !== ownUserId); // Filter out current user
+        setAdmins(fetchedAdmins);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
 
-  type UserType = {
-    id: number;
-    name: string;
-    selected: boolean;
-    avatar: string;
-  };
+    fetchUserData();
+  }, [ownUserId]);
 
-  // useEffect(() => {
-  //   // get user data from firebase (query part - can be declared what data to show)
-  //   const fetchUserData = async () => {
-  //     try {
-  //       const response = await firebase
-  //         .firestore()
-  //         .collection("Users")
-  //         .get();
-  //       const fetchedCommunitiesData = response.docs.map((doc) => doc.data());
-  //       setAdmins(fetchedCommunitiesData);
-  //     } catch (error) {
-  //       console.error("Error fetching communities data:", error);
-  //     }
-  //   };
-
-  //   fetchCommunitiesData();
-  // }, []);
-
-  const handleAdminSelection = (adminId: number) => {
+  const handleAdminSelection = (adminUid: string) => {
     const updatedAdmins = admins.map((admin) =>
-      admin.id === adminId ? { ...admin, selected: !admin.selected } : admin
+      admin.uid === adminUid ? { ...admin, selected: !admin.selected } : admin
     );
     setAdmins(updatedAdmins);
   };
@@ -67,14 +71,14 @@ const SelectAdmin = ({
       <View style={styles.container}>
         <FlatList
           data={admins}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.uid.toString()}
           renderItem={({ item }) => (
             <View style={styles.adminListItem}>
               <Image source={item.avatar} style={styles.avatar} />
               <SecondaryText>{item.name}</SecondaryText>
               <Checkbox
                 status={item.selected ? "checked" : "unchecked"}
-                onPress={() => handleAdminSelection(item.id)}
+                onPress={() => handleAdminSelection(item.uid)}
               />
             </View>
           )}
@@ -107,3 +111,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
 });
+
+function fetchCommunitiesData() {
+  throw new Error("Function not implemented.");
+}

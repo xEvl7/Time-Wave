@@ -1,11 +1,11 @@
 # Time Wave App
 This is a React Native app using Expo framework and written in Typescript.
- console.log('this is r:',Item)
+
 ## Prerequisites
 
 - Java 11.0.21
 - Nodejs v16.20.2
-- Android emulator
+- Android emulator API 33 & above
 
 ## Run project in development
 
