@@ -7,7 +7,8 @@ import {
   Pressable,
   ImageSourcePropType,
   GestureResponderEvent,
-  ScrollView } 
+  ScrollView,
+Alert } 
 from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -29,6 +30,9 @@ import { NavigationProp } from "@react-navigation/native";
 import ButtonText from "../components/text_components/ButtonText";
 import HeaderText from "../components/text_components/HeaderText";
 import TextButton from "../components/TextButton";
+import { TextInput } from "react-native-paper";
+import Navigation from "../Navigation";
+import { Header } from "react-native/Libraries/NewAppScreen";
 
 const CommunityProfile = ({
   navigation,
@@ -38,79 +42,230 @@ const CommunityProfile = ({
   //const route = useRoute();
   const {item} = route.params;
   const docId = item.id;
+  const userId = useAppSelector((state) => state.user.data?.uid) || {};
+
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editDescription, setEditDescription] = useState(item.description);
+  const [editLogo, setEditLogo ]= useState(item.logo); //logo need to crop and update?
+  const [editName, setEditName ] = useState(item.name); //handle name history
+
+
+  const communityRequest = firebase.firestore().collection("Communities").doc(item.id).collection("requests");
+  const update =  firebase.firestore().collection("Communities").doc(item.id);
+
+  console.log("into community profile ");
+  console.log("item",item);
+
+  //divide community's section
+  //setPageContent(item);
+  //const {description} = pageContent;
+
+  //check for user role
+  useEffect(() => {
+      console.log("checking is admin?");
+      try{
+        // console.log("inside try");
+        console.log(item.admins);
+        if(item.admins.includes(userId)){
+          setIsAdmin(true);
+          console.log("you are admin!");
+        }
+      } catch (error){
+        console.error('Error checking admin status: ',error);
+      } 
+  }, []);
+
+  //update edit
+  const handleEdit = () =>{
+    console.log("item");
+    console.log(item.id);
+
+  
+    // firebase.firestore().collection("Communities").doc(item.id).update({admins: ["hkjtZmqCezPMdaIoLzaOqfAXg692", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"],
+    //     description: "3",
+	  //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?	alt=media&token=e8d46cac-54c4-4aeb-96bb-1953d9d2abdf",
+	  //     name: "3",
+    // });
+      console.log("update.update ok");
+      update.update({
+        description: editDescription,//editDescription,
+        logo: editLogo,
+        name: editName,
+      });
+    //   firebase.firestore().collection("Communities").doc(item.id).update({
+    //     description: "3",
+    //     name: "3", 
+    //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?alt=media&token=e8d46cac-54c4-4aeb-96bb-1953d9d2abdf", 
+    //     admins: ["3VdDsH9fsVZdiwSZMseYE6er","hkjtZmqCezPMdaIoLzaOqfAXg692", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"], 
+    //     volunteer: ["hkjtZmqCezPMdaIoLzaOqfAX", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"],
+        
+    //     Reward: ["R1", "R2", "R3"]
+    // });
+    
+
+
+    Alert.alert('',"Content Updated Successfuly",[
+      { text: 'OK', onPress: () => console.log('OK Pressed') },
+    ],
+      { cancelable: true }
+    );
+
+  };
+
+  // const handleAdminProfile  = () => {
+  //   // to see all available communities
+  //   navigation.navigate("ActivitySeeAll", { item })
+  // };
 
   const handlePressJoin = () => {
+  //   firebase.firestore().collection("Communities").doc(item.id).update({
+  //     description: "3",
+  //     name: "3", 
+  //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?alt=media&token=e8d46cac-54c4-4aeb-96bb-1953d9d2abdf", 
+  //     admins: ["3VdDsH9fsVZdiwSZMseYE6er","hkjtZmqCezPMdaIoLzaOqfAXg692", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"], 
+  //     volunteer: ["hkjtZmqCezPMdaIoLzaOqfAX", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"],
+      
+  //     Reward: ["R1", "R2", "R3"]
+  // });
+    Alert.alert('',"Join Request Sent Successfuly",[
+      { text: 'OK', onPress: () => console.log('OK Pressed') },
+    ],
+    { cancelable: true }
+  );
 
-    //navigation.navigate("HomePage");
+  // const handleAdminProfile  = () => {
+  //   Alert.alert('',"Modify This Admin?",[
+  //     { text: 'View Profile', onPress: () =>{console.log('OK Pressed');navigation.navigate("ProfileInfo", { item }) }},
+  //     { text: 'Remove Admin', onPress: () => console.log('OK Pressed') },
+  //   ],
+  //     { cancelable: true }
+  //   );
+  // };
 
-    };
+  const reqDate = new Date();
+
+  communityRequest.add({
+    uid:userId,
+    date:reqDate,
+  })
+  .then(() => {
+    console.log('User added!');
+  })
+  .catch(error => {
+    console.error('Error adding user: ', error);
+  });
+  };
+
+  const handleSeeAllPress = () => {
+    // to see all available communities
+    navigation.navigate("ActivitySeeAll", { item })
+  };
+
+  // const descriptionEdited = item.description;
 
   return(
       <>
       <View>
-          <ScrollView>
-              <View style={styles.pictureContainer}>
-                  <Image       
-                      source={{
-                          uri: item.logo,
-                      }}
-                  style={styles.iconImage}/>   
-                  {/* <Text style ={styles.descriptionText}>a cover photo</Text>              */}
+        <ScrollView>
+          <View style={styles.pictureContainer}>
+              <Image       
+                  source={{
+                      uri: item.logo,
+                  }}
+              style={styles.iconImage}/>   
+              {/* <Text style ={styles.descriptionText}>a cover photo</Text>              */}
+          </View>
+            <ContentContainer>
+              <View style={styles.Header}>
+                {isAdmin? ( 
+                  <TextInput 
+                    style={styles.editingText}
+                    value={editName}
+                    onChangeText={setEditName}
+                    placeholder="Enter your text here... "
+                    placeholderTextColor={"#3F51B5"}
+                  />
+                ):(
+                  <PrimaryText>{item.name}</PrimaryText>
+                )}
               </View>
-              <ContentContainer>
-                  <View style={styles.Header}>
-                      <PrimaryText>{item.name}</PrimaryText>
-                  </View>
 
-                  <View style={styles.contentContainer}>
-                      <Text style={styles.subHeadertext}>About Our Community</Text>
-                      <ScrollView>
-                          {/* <ParagraphText>{route.params.description} </ParagraphText> */}
-                          <Text style={styles.descriptionText}> {item.description} </Text>
-                      </ScrollView>
-                  </View>
-                  
-                  <Text style={styles.subHeadertext} >Admins</Text>
-                  <View style={styles.listContainer}>                        
-                      {/* <ScrollView> */}
-                        <AdminListSection navigation={navigation} item={item}/>
-                      {/* </ScrollView> */}
-                  </View>
-                  
-                  <Text style={styles.subHeadertext}>Volunteer Log History</Text>
-                  <View style={styles.listContainer}>
-                    <VolunteerListSection navigation={navigation} item={item}/>
-                  </View>
+              <View style={styles.contentContainer}>
+                <Text style={styles.subHeadertext}>About Our Community</Text>
+                  <ScrollView>
+                      {/* <ParagraphText>{route.params.description} </ParagraphText> */}
+                    {isAdmin? (
+                      <TextInput 
+                        style={styles.editingText}
+                        value={editDescription}
+                        onChangeText={setEditDescription}
+                        placeholder="Enter your text here... "
+                        placeholderTextColor={"#3F51B5"}
+                      />
+                    ):(
+                      <Text style={styles.descriptionText}> {item.description} </Text>
+                    )}
+                  </ScrollView>
+              </View>     
 
-                  {/* activities */}
-                  {/* <View style={styles.listContainer}> */}
-                  <View>
-                      {/* <ScrollView> */}
-                      <OngoingListSection
-                          title={"Ongoing Activities"}
-                          navigation={navigation}
-                          item={item}
-                      />
-                      <PastListSection 
-                        title={"Past Activities"} 
-                        navigation={navigation} 
-                        item={item}
-                      />
-                      {/* </ScrollView> */}
-                  </View>
-              </ContentContainer>                          
+              <View style={styles.listHeader}>
+                <Text style={styles.subHeadertext} >Admins</Text>
+                {/* <Header>Admins</Header> */}
+                <Pressable onPress={handleSeeAllPress}>
+                  <ButtonText>See all</ButtonText>
+                </Pressable>
+              </View>                  
+              <View style={styles.listContainer}>  
+                <AdminListSection navigation={navigation} item={item} isAdmin={isAdmin} docId={docId}/>
+              </View>
+                  
+              <View style={styles.listHeader}>
+                <Text style={styles.subHeadertext}>Volunteer Log History</Text>
+                <Pressable onPress={handleSeeAllPress}>
+                  <ButtonText>See all</ButtonText>
+                </Pressable>
+              </View>
+              <View style={styles.listContainer}>
+                <VolunteerListSection navigation={navigation} item={item} isAdmin={isAdmin} docId={docId}/>
+              </View>
+
+              {/* activities */}
+              {/* <View style={styles.listContainer}> */}
+              <View>
+                  {/* <ScrollView> */}
+                <OngoingListSection
+                  title={"Ongoing Activities"}
+                  navigation={navigation}
+                  item={item}
+                />
+                <PastListSection 
+                  title={"Past Activities"} 
+                  navigation={navigation} 
+                  item={item}
+                />
+                  {/* </ScrollView> */}
+              </View>
+            </ContentContainer>                          
           
             {/* <CommunitiesProfile/> */}
           </ScrollView>
+          <View style={{
+              position:"absolute",
+              left:"26%",
+              // flex: 1,
+              bottom:"3%",
+              // marginHorizontal: 25,
+              // marginVertical: 300,
+            }}>
+            { isAdmin ?(
+              <TextButton onPress={handleEdit}>         Save Changes        </TextButton>
+            ):(
+              <TextButton onPress={handlePressJoin}>     Join this community     </TextButton>
+            )}
+           
+          </View>
       </View> 
-          
-
-      <View style={{
-        //flex: 1,
-        marginHorizontal: 25,
-        marginVertical: 15,
-      }}><TextButton onPress={handlePressJoin}>Join this community</TextButton></View>
-      </>
+    </> 
   );
 };
 
@@ -148,35 +303,100 @@ const NavigationItem = ({
 type UserListProps ={
 navigation: NavigationProp<RootStackParamList>;
 item: any;
+isAdmin: any;
+docId: any;
 };
 
 type UserType = {
 name: string;
 logo: string;
+isAdmin: any;
+docId: any;
+uid: any;
 };
+
 
 const renderAdminItems = ({
 item,
 navigation,
+isAdmin,
+docId,
 }:{
 item: UserType;
 navigation: any;
-}) =>(
-<Pressable
-  onPress={() => navigation.navigate("ProfileInfo", { item })}
->
-  <View style={styles.peopleGrid}>
-    <View style={styles.imageBox}>
-      {/* <View style={styles.imageBox}> */}
-        <Image source={{ uri: item.logo }} style={styles.profilepic} />
-      {/* </View>  */}
-      <Text style={styles.profileName} >{item.name}</Text>
-    </View> 
-  </View> 
-</Pressable>
-);
+isAdmin:any;
+docId: any;
+}) =>{
 
-const AdminListSection =({navigation,item}:UserListProps) =>{
+  const handleAdminProfile  = () => {
+    navigation.navigate("ProfileInfo", { item });
+    // Alert.alert(`About ${item.name} `,'',[
+    //   { text: 'View Profile', onPress: () =>{console.log('View Pressed');navigation.navigate("ProfileInfo", { item }) }},
+    //   { text: 'Remove Admin', onPress: handleRemoveAdmin},
+    //   { text: 'Cancel', onPress: () => console.log('Cancel Pressed'),style:'cancel', },
+    // ],
+    //   { cancelable: true }
+    // );
+  };
+
+  const adminToRemove = item.uid;//item.uid;
+  const handleRemoveAdmin =() =>{
+    Alert.alert('Caution',`You are going to remove ${item.name} `,[
+      { text: 'Remove', onPress: () =>{
+        console.log('Yes Pressed,docId,item : ',docId,adminToRemove);
+        const removeAdmin = async () => {
+          try {         
+            firebase.firestore().collection("Communities").doc(docId).update({
+              admins: firebase.firestore.FieldValue.arrayRemove(adminToRemove),
+            });
+          } catch (error) {
+              console.error("Error removing admin", error);
+          }
+        };
+        removeAdmin();
+        }
+      },
+      { text: 'Cancel', onPress: () => console.log('Cancel Pressed'),style:'cancel', },
+    ],
+      { cancelable: true }
+    );
+  };
+
+  return (
+    <View>
+      { isAdmin ?(
+                <Pressable  
+                  onPress={handleAdminProfile}
+                  onLongPress={handleRemoveAdmin}
+                >
+                <View style={styles.peopleGrid}>
+                  <View style={styles.profileImageBox}>
+                      <Image source={{ uri: item.logo }} style={styles.profilepic} />
+                    <Text style={styles.profileName} >{item.name}</Text>
+                  </View> 
+                </View> 
+                </Pressable>
+      ):(
+                <Pressable  
+                  onPress={() => navigation.navigate("ProfileInfo", { item })}
+                >
+                <View style={styles.peopleGrid}>
+                  <View style={styles.profileImageBox}>
+                    {/* <View style={styles.imageBox}> */}
+                      <Image source={{ uri: item.logo }} style={styles.profilepic} />
+                    {/* </View>  */}
+                    <Text style={styles.profileName} >{item.name}</Text>
+                  </View> 
+                </View> 
+                </Pressable>
+              )}
+    </View>
+  );
+};
+
+
+
+const AdminListSection =({navigation,item,isAdmin, docId}:UserListProps) =>{
   const [user, setUserData] = useState<
         FirebaseFirestoreTypes.DocumentData[]
     >([]);
@@ -194,7 +414,7 @@ const AdminListSection =({navigation,item}:UserListProps) =>{
             
             const fetchedUser = adminUser.docs.map((doc) => doc.data());
             setUserData(fetchedUser);
-            console.log("name ", fetchedUser);
+            // console.log("name ", fetchedUser);
        } catch (error) {
            console.error("Error fetching communities data:", error);
        }
@@ -216,7 +436,7 @@ const AdminListSection =({navigation,item}:UserListProps) =>{
         showsHorizontalScrollIndicator={false}
         data={limitedAdminData} // data from firebase
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => renderAdminItems({ item, navigation })}
+        renderItem={({ item }) => renderAdminItems({ item, navigation, isAdmin, docId })}
         contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
         ListEmptyComponent={() => (
           <Text
@@ -242,12 +462,13 @@ const renderVolunteerItems = ({
   }:{
   item: UserType;
   navigation: any;
+  isAdmin:any;
   }) =>(
   <Pressable
     onPress={() => navigation.navigate("ProfileInfo", { item })}
   >
     <View style={styles.peopleGrid}>
-      <View style={styles.imageBox}>
+      <View style={styles.profileImageBox}>
         {/* <View style={styles.imageBox}> */}
           <Image source={{ uri: item.logo }} style={styles.profilepic} />
         {/* </View>  */}
@@ -257,7 +478,7 @@ const renderVolunteerItems = ({
   </Pressable>
   );
   
-  const VolunteerListSection =({navigation,item}:UserListProps) =>{
+  const VolunteerListSection =({navigation,item,isAdmin}:UserListProps) =>{
     const [user, setUserData] = useState<
           FirebaseFirestoreTypes.DocumentData[]
       >([]);
@@ -275,7 +496,7 @@ const renderVolunteerItems = ({
               
               const fetchedUser = volunteerUser.docs.map((doc) => doc.data());
               setUserData(fetchedUser);
-              console.log("name ", fetchedUser);
+              // console.log("name ", fetchedUser);
          } catch (error) {
              console.error("Error fetching communities data:", error);
          }
@@ -297,7 +518,7 @@ const renderVolunteerItems = ({
           showsHorizontalScrollIndicator={false}
           data={limitedVolunteerData} // data from firebase
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => renderAdminItems({ item, navigation })}
+          renderItem={({ item }) => renderAdminItems({ item, navigation, isAdmin })}
           contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
           ListEmptyComponent={() => (
             <Text
@@ -337,6 +558,7 @@ type ActivityType = {
   Location: string;
 };
 
+
 const renderOngoingItems = ({
   item,
   navigation,
@@ -349,14 +571,14 @@ const renderOngoingItems = ({
 >
   <View style={styles.gridItem}>
     <View style={styles.imageBox}>
-      <View style={styles.imageBox}>
+      {/* <View style={styles.imageBox}> */}
         <Image
           source={{
             uri: item.logo,  
           }}
           style={styles.image}
         />
-      </View>
+      {/* </View> */}
     </View>
     <View style={styles.text}>
       <Text style={styles.description}>{item.Name}</Text>
@@ -374,18 +596,29 @@ const OngoingListSection = ({ title, navigation,item }: ListSectionProps) => {
     FirebaseFirestoreTypes.DocumentData[]
   >([]);
 
+const  reqDate = new Date();
+useEffect(() => {
+  if(item.endTime<= reqDate){
+    console.log("past activity !");
+  }
+  else{
+    console.log("ongoing activity!");
+  }
+
+}, []);
+
   useEffect(() => {
     // get activities data from firebase (query part - can be declared what data to show)
     const fetchActivitiesData = async () => {
       try {
-        console.log("item id: ",item.id);
+        // console.log("item id: ",item.id);
           const communityResponds = await firebase
           .firestore()
           .collection("Communities")
           .doc(item.id)
           .collection("Coming Activities")
           .get();
-          console.log(communityResponds);
+          // console.log(communityResponds);
           
           const fetchedActivitiesData = communityResponds.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -461,7 +694,7 @@ navigation: any;
 onPress={() => navigation.navigate("ActivityInfo", { item })}
 >
 <View style={styles.gridItem}>
-  <View style={styles.imageBox}>
+  {/* <View style={styles.imageBox}> */}
     <View style={styles.imageBox}>
       <Image
         source={{
@@ -469,7 +702,7 @@ onPress={() => navigation.navigate("ActivityInfo", { item })}
         }}
         style={styles.image}
       />
-    </View>
+    {/* </View> */}
   </View>
   <View style={styles.text}>
     <Text style={styles.description}>{item.Name}</Text>
@@ -495,7 +728,7 @@ const PastListSection = ({ title, navigation,item }: ListSectionProps) => {
       // get activities data from firebase (query part - can be declared what data to show)
       const fetchActivitiesData = async () => {
       try {
-        console.log("item id in pastA",item.id);
+        // console.log("item id in pastA",item.id);
           const response = await firebase
           .firestore()
           .collection("Communities")
@@ -653,11 +886,27 @@ const styles = StyleSheet.create({
       marginTop: 16,
       marginBottom:4,
   },
+  subHeader1text:{
+    fontSize: 18,
+    fontWeight: "bold",
+    marginLeft:10,
+    marginTop: 16,
+    marginBottom:4,
+},
   descriptionText:{
       color:"#7f8199",
       fontSize: 15,
       marginLeft:10,
       marginTop: 6,
+  },
+  editingText:{
+    backgroundColor:'#FF8D1342',
+    color:"#3D5A80",
+    fontSize: 15,
+    borderBottomWidth:1,
+    borderBottomColor:'#954126',
+    marginLeft:10,
+    marginTop: 6,
   },
   listContainer: {
       flex: 1,
@@ -673,7 +922,7 @@ const styles = StyleSheet.create({
       justifyContent: "space-between",
       alignItems: "center",
       padding: 10,
-      marginLeft: 5,
+      // marginLeft: 5,
   },
 
   viewButton: {
@@ -731,18 +980,18 @@ const styles = StyleSheet.create({
       // borderWidth: 1,
     },
     imageBox: {
+      alignSelf: "center",
+      flexDirection:"row",
+      flex:1,
+      height: "60%",
+      borderRadius: 20,
+      borderColor: "#BDBDBD",
+    },
+    profileImageBox: {
       marginLeft:2.5,
       width:115,
-      // backgroundColor:"grey",
       alignItems:"center",
-      // verticalAlign:"middle",
       height:96,
-      // alignSelf: "center",
-      // flexDirection:"row",
-      // flex:1,
-      // height: "60%",
-      // borderRadius: 20,
-      // borderColor: "#BDBDBD",
     },
     image: {
       width: 200,
