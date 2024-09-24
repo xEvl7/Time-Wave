@@ -70,7 +70,7 @@ const renderCommunitiesItem = ({
     onPress={() => navigation.navigate("CommunityProfile", { item })}
   >
     <View style={styles.gridItem}>
-      <View style={styles.imageBox}>
+      {/* <View style={styles.imageBox}> */}
         <View style={styles.imageBox}>
           <Image
             source={{
@@ -79,7 +79,7 @@ const renderCommunitiesItem = ({
             style={styles.image}
           />
         </View>
-      </View>
+      {/* </View> */}
       <View style={styles.text}>
         <Text style={styles.description}>{item.name}</Text>
         <Text style={styles.subDescription}>{item.description}</Text>
@@ -105,7 +105,7 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
           .firestore()
           .collection("Communities")
           .get();
-        const fetchedCommunitiesData = response.docs.map((doc) => doc.data());
+        const fetchedCommunitiesData = response.docs.map(doc =>( {id:doc.id, ...doc.data()}));
         setCommunitiesData(fetchedCommunitiesData);
       } catch (error) {
         console.error("Error fetching communities data:", error);
@@ -116,8 +116,8 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
   }, []);
 
   // to limit how many communities data to show in home page
-  const limit = 5;
-  const limitedCommunitiesData = communitiesData.slice(0, limit);
+  // const limit = 5;
+  // const limitedCommunitiesData = communitiesData.slice(0, limit);
 
   // see all button
   // const handleSeeAllPress = () => {
@@ -131,10 +131,10 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
         //horizontal
         //showsHorizontalScrollIndicator={false}
         // data={communities}
-        data={limitedCommunitiesData} // data from firebase
+        data={communitiesData} // data from firebase
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => renderCommunitiesItem({ item, navigation })}
-        contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
+        contentContainerStyle={{ paddingTop: 5, paddingRight: 9, paddingLeft:9 }}
         ListEmptyComponent={() => (
           <Text
             style={{
@@ -173,43 +173,46 @@ const styles = StyleSheet.create({
   },
 
   gridItem: {
-    marginLeft: 25,
-    width:"90%",
-    height: 250,
-    marginBottom: 10,
-    backgroundColor: "#F1CFA3",
+    marginTop:17,
+    // marginLeft: "4%",
+    width:"100%",
+    height: 200,
+    flexDirection:"column",
+    flex:1,
+    marginBottom: 2,
+    backgroundColor: "black",
     borderRadius: 20,
     borderColor: "#BDBDBD",
-    // borderWidth: 1,
+    borderWidth: 1.6,
   },
   imageBox: {
     // alignSelf: "center",
-    // height: "60%",
-    // borderRadius: 20,
+    height: "60%",
+    borderRadius: 20,
     // borderColor: "#BDBDBD",
   },
   image: {
     width: "100%",
-    height: 170,
+    height: "140%",
     resizeMode: "stretch",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
   text: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#fff0ff",
     height: "40%",
-    // borderBottomLeftRadius: 20,
-    // borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   description: {
-    fontSize: 16,
+    fontSize: 19,
     textAlign: "left",
     marginTop: 1,
     marginLeft: 10,
     fontWeight: "bold",
   },
   subDescription: {
-    fontSize: 13,
+    fontSize: 14,
     textAlign: "left",
     marginLeft: 10,
   },

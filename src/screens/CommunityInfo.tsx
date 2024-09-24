@@ -6,6 +6,7 @@ import ContentContainer from "../components/ContentContainer";
 import ParagraphText from "../components/text_components/ParagraphText";
 import { RootStackParamList } from "../Screen.types";
 import PrimaryText from "../components/text_components/PrimaryText";
+import BackgroundImageBox from "../components/BackgroundImageBox";
 
 const CommunityInfo = ({
   route,

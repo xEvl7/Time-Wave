@@ -1,4 +1,13 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, 
+  View,
+  Text,
+  Image,
+  FlatList,
+  Pressable,
+  ImageSourcePropType,
+  GestureResponderEvent,
+  ScrollView } from "react-native";
+import { useEffect, useState } from "react";
 import React from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -7,9 +16,11 @@ import ParagraphText from "../components/text_components/ParagraphText";
 import { RootStackParamList } from "../Screen.types";
 import PrimaryText from "../components/text_components/PrimaryText";
 
-const ComingActivities = ({
+const OngoingActivities = ({
   route,
-}: NativeStackScreenProps<RootStackParamList, "ComingActivities">) => {
+  navigation,
+}: NativeStackScreenProps<RootStackParamList, "OngoingActivities">) => {
+  
   return (
     <ContentContainer>
       {/* @todo Show community's picture*/}
@@ -24,4 +35,4 @@ const ComingActivities = ({
   );
 };
 
-export default ComingActivities;
+export default OngoingActivities;
