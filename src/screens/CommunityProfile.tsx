@@ -79,28 +79,13 @@ const CommunityProfile = ({
   const handleEdit = () =>{
     console.log("item");
     console.log(item.id);
-
-  
-    // firebase.firestore().collection("Communities").doc(item.id).update({admins: ["hkjtZmqCezPMdaIoLzaOqfAXg692", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"],
-    //     description: "3",
-	  //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?	alt=media&token=e8d46cac-54c4-4aeb-96bb-1953d9d2abdf",
-	  //     name: "3",
-    // });
-      console.log("update.update ok");
-      update.update({
-        description: editDescription,//editDescription,
-        logo: editLogo,
-        name: editName,
-      });
-    //   firebase.firestore().collection("Communities").doc(item.id).update({
-    //     description: "3",
-    //     name: "3", 
-    //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?alt=media&token=e8d46cac-54c4-4aeb-96bb-1953d9d2abdf", 
-    //     admins: ["3VdDsH9fsVZdiwSZMseYE6er","hkjtZmqCezPMdaIoLzaOqfAXg692", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"], 
-    //     volunteer: ["hkjtZmqCezPMdaIoLzaOqfAX", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"],
-        
-    //     Reward: ["R1", "R2", "R3"]
-    // });
+    console.log("update.update ok");
+    update.update({
+      description: editDescription,//editDescription,
+      logo: editLogo,
+      name: editName,
+    });
+    
     
 
 
@@ -118,29 +103,18 @@ const CommunityProfile = ({
   // };
 
   const handlePressJoin = () => {
-  //   firebase.firestore().collection("Communities").doc(item.id).update({
-  //     description: "3",
-  //     name: "3", 
-  //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?alt=media&token=e8d46cac-54c4-4aeb-96bb-1953d9d2abdf", 
-  //     admins: ["3VdDsH9fsVZdiwSZMseYE6er","hkjtZmqCezPMdaIoLzaOqfAXg692", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"], 
-  //     volunteer: ["hkjtZmqCezPMdaIoLzaOqfAX", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"],
-      
-  //     Reward: ["R1", "R2", "R3"]
-  // });
+  // firebase.firestore().collection("Communities").doc(item.id).update(
+  //   {
+  //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?alt=media&token=2814c197-8b18-4e8d-9a52-334d7b9780a0", 
+  //     name: "2", 
+  //     description: "2 so ", 
+  //     admins: ["3VdDsH9fsVZdiwSZMseYE6er"]
+  //   })
     Alert.alert('',"Join Request Sent Successfuly",[
       { text: 'OK', onPress: () => console.log('OK Pressed') },
     ],
     { cancelable: true }
   );
-
-  // const handleAdminProfile  = () => {
-  //   Alert.alert('',"Modify This Admin?",[
-  //     { text: 'View Profile', onPress: () =>{console.log('OK Pressed');navigation.navigate("ProfileInfo", { item }) }},
-  //     { text: 'Remove Admin', onPress: () => console.log('OK Pressed') },
-  //   ],
-  //     { cancelable: true }
-  //   );
-  // };
 
   const reqDate = new Date();
 

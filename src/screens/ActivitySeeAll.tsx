@@ -7,7 +7,8 @@ import {
     Pressable,
     ImageSourcePropType,
     GestureResponderEvent,
-    ScrollView } 
+    ScrollView,
+    Alert } 
   from "react-native";
   import { NativeStackScreenProps } from "@react-navigation/native-stack";
   
@@ -24,7 +25,8 @@ import {
   import { useAppSelector } from "../hooks";
   import { selectUserName } from "../features/userSlice";
   import { NavigationProp } from "@react-navigation/native";
-  import ButtonText from "../components/text_components/ButtonText";
+  import ButtonText from "../components/text_components/ButtonText";  
+  import TextButton from "../components/TextButton";
   
   const ActivitySeeAll = ({
     navigation,
@@ -34,6 +36,14 @@ import {
     const {item} = route.params;
     console.log("activityseeall item:",item);
 
+    const handlePressJoin =() => {
+
+        Alert.alert('',"Join Request Sent Successfuly",[
+          { text: 'OK', onPress: () => console.log('OK Pressed') },
+        ],
+        { cancelable: true }
+      );
+    };
 
     return (
       <>
@@ -45,6 +55,7 @@ import {
               item={item}
             />
           </ScrollView>
+          <TextButton onPress={handlePressJoin}>     Join this community     </TextButton>
         </View>
       </>
     );
