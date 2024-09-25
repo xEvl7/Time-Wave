@@ -3,11 +3,18 @@ import React , { useState } from 'react';
 import PrimaryText from "../components/text_components/PrimaryText";
 import ContentContainer from "../components/ContentContainer";
 import { useAppSelector } from "../hooks";
-import RightDrop from "../components/RightDrop";
+
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
-import SearchBar from "../components/SearchBar";
 
+import * as ImagePicker from "expo-image-picker";
+import { ImagePickerResult } from "expo-image-picker";
+
+import storage from "@react-native-firebase/storage";
+import firestore from "@react-native-firebase/firestore";
+
+
+import auth from "@react-native-firebase/auth";
 
 const NewProfile = ({
   navigation,
@@ -16,26 +23,48 @@ const NewProfile = ({
   const email = useAppSelector((state) => state.user.data?.emailAddress);
   const phone = useAppSelector((state) => state.user.data?.phoneNumber);
   const ic = useAppSelector((state) => state.user.data?.identityCardNumber);
+  //const resetpassword = await auth().sendPasswordResetEmail(email: string);
 
-  const [searchKeyword, setSearchKeyword] = useState<string>('');
-  const [dataToShow, setDataToShow] = useState<string[]>([]);
-  const handleSearch = (keyword: string) => {
-    // 执行搜索逻辑，比如发起 API 请求等
-    console.log('Searching for:', keyword);
-    setSearchKeyword(keyword);
-    switch (keyword.toLowerCase()) {
-      case 'apple':
-        setDataToShow(['red', 'medium']);
-        break;
-      case 'banana':
-        setDataToShow(['yellow', 'medium']);
-        break;
-      case 'orange':
-        setDataToShow(['orange', 'small']);
-        break;
-      default:
-        setDataToShow([]);
-        break;}
+  const [image, setImage] = useState<string | null>(null);
+
+  const uploadImage = async (uri: string) => {
+    const filename = uri.substring(uri.lastIndexOf("/") + 1);
+    const reference = storage().ref(`user/${filename}`);
+    const task = reference.putFile(uri);
+
+    try {
+      await task;
+      const url = await reference.getDownloadURL();
+      return url;
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      throw error;
+    }
+  };
+
+
+
+  const pickImage = async () => {
+    let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    // Ensure result is properly typed
+    if (!result.canceled && result.assets && result.assets[0].uri) {
+      setImage(result.assets[0].uri);
+    }
+
+    if (image) {
+      try {
+        const uploadedImageUrl = await uploadImage(image);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        // Optionally, handle the error or show a message to the user
+      }
+    }
   };
 
   return (
@@ -48,7 +77,13 @@ const NewProfile = ({
 
 
       <View style={styles.centercontainer}>
-      <Image source={require("../assets/profile-picture.png")} style={styles.image} />
+      
+      <TouchableOpacity onPress={pickImage}>
+      <Image
+      source={image ? { uri: image } : require("../assets/profile-picture.png")}
+      style={styles.circleImage}
+      />
+      </TouchableOpacity>
       </View>
       <View style={styles.alternativesContainer}>
       <View style={styles.pointContainer}>
@@ -173,5 +208,12 @@ const styles = StyleSheet.create({
   image: {
     width: 100, // 设置图片宽度
     height: 100, // 设置图片高度
+  },
+  circleImage: {
+    width: 100, // 設置圖片的寬度
+    height: 100, // 設置圖片的高度，確保寬高相等
+    borderRadius: 100, // 設置圓角半徑為寬度的一半，使圖片顯示為圓形
+    borderWidth: 2, // 可選：添加邊框寬度
+    borderColor: '#E3E0E0', // 可選：邊框顏色
   },
 });

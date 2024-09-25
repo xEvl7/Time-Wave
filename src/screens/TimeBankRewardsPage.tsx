@@ -5,9 +5,15 @@ import {
   View,
   Image,
   ScrollView,
+  FlatList,
 } from "react-native";
+import React, { useEffect, useState } from "react";
 import auth from "@react-native-firebase/auth";
-
+import PrimaryText from "../components/text_components/PrimaryText";
+import {
+  FirebaseFirestoreTypes,
+  firebase,
+} from "@react-native-firebase/firestore";
 import TextButton from "../components/TextButton";
 import HeaderText from "../components/text_components/HeaderText";
 import BackgroundImageBox from "../components/BackgroundImageBox";
@@ -15,11 +21,20 @@ import ContentContainer from "../components/ContentContainer";
 import ValidatedTextInput from "../components/ValidatedTextInput";
 import { useForm } from "react-hook-form";
 import { fetchUserData } from "../features/userSlice";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { NativeStackScreenProps,
+  NativeStackNavigationProp,
+ } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import firestore from "@react-native-firebase/firestore";
 import RightDrop from "../components/RightDrop";
+import { selectUserName } from "../features/userSlice";
+import { NavigationProp } from "@react-navigation/native";
+import ButtonText from "../components/text_components/ButtonText";
+import Icon from "react-native-vector-icons/Ionicons";
+import Ionicons from "react-native-vector-icons/Ionicons";
+
+
 
 //type UserProps={
 type level = number;
@@ -29,6 +44,11 @@ let level = 3;
 let points = 120;
 let NumberOfItems = 4;
 let pointprice = 100;
+
+
+
+
+
 
 export default function TimeBankRewardsPage({
   navigation,
@@ -92,209 +112,25 @@ export default function TimeBankRewardsPage({
           ></Image> */}
         </Pressable>
       </View>
+        
+      
+      <ScrollView>
+        <RewardsListSection
+            title={"Communities"}
+            navigation={navigation}
+          />
+        <RewardsListSection
+            title={"Individual"}
+            navigation={navigation}
+          />
+        
+        {/* <HistoryListSection title={"History"} navigation={navigation} /> */}
+      </ScrollView>
+      
+      
+      
 
-      <View
-        style={{
-          flexDirection: "row",
-          marginTop: "5%",
-          marginLeft: "5%",
-          justifyContent: "space-between",
-          width: "80%",
-        }}
-      >
-        <Text style={{ fontSize: 20, fontWeight: "bold" }}>Community</Text>
-        <View style={{ alignSelf: "flex-end" }}>
-          <Pressable onPress={() => navigation.navigate("CommunityPage")}>
-            <Text
-              style={{
-                marginTop: 3,
-                fontSize: 15,
-                fontWeight: "bold",
-                color: "#59ADFF",
-              }}
-            >
-              See All
-            </Text>
-          </Pressable>
-        </View>
-      </View>
 
-      <View style={{ marginTop: "5%" }}>
-        <ScrollView horizontal={true} contentContainerStyle={{ flexGrow: 1 }}>
-          <View style={styles.gridItem}>
-            <Pressable
-              onPress={() => navigation.navigate("RewardsDetailsPage")}
-            >
-              <View style={styles.imageBox}>
-                {/* <Image
-                  source={require("../assets/test1.png")}
-                  style={styles.image}
-                /> */}
-              </View>
-              <View style={styles.text}>
-                <Text style={styles.description}>Singer Sewing Machine</Text>
-                <Text style={styles.subDescription}>Official Mavcap</Text>
-                <View style={styles.pointContainer}>
-                  <Text style={styles.point}>{pointprice}</Text>
-                  <Text style={styles.pointDesc}> points</Text>
-                </View>
-              </View>
-            </Pressable>
-          </View>
-          <View style={styles.gridItem}>
-            <View style={styles.imageBox}>
-              {/* <Image
-                source={require("../assets/test2.png")}
-                style={styles.image}
-              /> */}
-            </View>
-            <View style={styles.text}>
-              <Text style={styles.description}>Spacewood Table Set</Text>
-              <Text style={styles.subDescription}>
-                Social Innovation Movement
-              </Text>
-              <View style={styles.pointContainer}>
-                <Text style={styles.point}>{pointprice}</Text>
-                <Text style={styles.pointDesc}> points</Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.gridItem}>
-            <View style={styles.imageBox}>
-              {/* <Image
-                source={require("../assets/test1.png")}
-                style={styles.image}
-              /> */}
-            </View>
-            <View style={styles.text}>
-              <Text style={styles.description}>Singer Sewing Machine</Text>
-              <Text style={styles.subDescription}>Official Mavcap</Text>
-              <View style={styles.pointContainer}>
-                <Text style={styles.point}>{pointprice}</Text>
-                <Text style={styles.pointDesc}> points</Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.gridItem}>
-            <View style={styles.imageBox}>
-              {/* <Image
-                source={require("../assets/test1.png")}
-                style={styles.image}
-              /> */}
-            </View>
-            <View style={styles.text}>
-              <Text style={styles.description}>Singer Sewing Machine</Text>
-              <Text style={styles.subDescription}>
-                Social Innovative Movement
-              </Text>
-              <View style={styles.pointContainer}>
-                <Text style={styles.point}>{pointprice}</Text>
-                <Text style={styles.pointDesc}> points</Text>
-              </View>
-            </View>
-          </View>
-        </ScrollView>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          marginTop: "5%",
-          marginLeft: "5%",
-          justifyContent: "space-between",
-          width: "80%",
-        }}
-      >
-        <View>
-          <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-            Medical Services
-          </Text>
-        </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <Pressable onPress={() => navigation.navigate("MedicalServicesPage")}>
-            <Text
-              style={{
-                textAlign: "right",
-                marginTop: 5,
-                fontSize: 15,
-                fontWeight: "bold",
-                color: "#59ADFF",
-              }}
-            >
-              See All
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-      <View style={{ marginTop: 5 }}>
-        <ScrollView horizontal={true} contentContainerStyle={{ flexGrow: 1 }}>
-          <View style={styles.gridItem}>
-            <View style={styles.imageBox}>
-              {/* <Image
-                source={require("../assets/test3.png")}
-                style={styles.image}
-              /> */}
-            </View>
-            <View style={styles.text}>
-              <Text style={styles.description}>Medical Checkup</Text>
-              <Text style={styles.subDescription}>Official Mavcap</Text>
-              <View style={styles.pointContainer}>
-                <Text style={styles.point}>{pointprice}</Text>
-                <Text style={styles.pointDesc}> points</Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.gridItem}>
-            <View style={styles.imageBox}>
-              {/* <Image
-                source={require("../assets/test4.png")}
-                style={styles.image}
-              /> */}
-            </View>
-            <View style={styles.text}>
-              <Text style={styles.description}>Health Check</Text>
-              <Text style={styles.subDescription}>
-                Social Innovative Movement
-              </Text>
-              <View style={styles.pointContainer}>
-                <Text style={styles.point}>{pointprice}</Text>
-                <Text style={styles.pointDesc}> points</Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.gridItem}>
-            <View style={styles.imageBox}>
-              {/* <Image
-                source={require("../assets/test2.png")}
-                style={styles.image}
-              /> */}
-            </View>
-            <View style={styles.text}>
-              <Text style={styles.description}>Singer Sewing Machine</Text>
-              <Text style={styles.subDescription}>Official Mavcap</Text>
-              <View style={styles.pointContainer}>
-                <Text style={styles.point}>{pointprice}</Text>
-                <Text style={styles.pointDesc}> points</Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.gridItem}>
-            <View style={styles.imageBox}>
-              {/* <Image
-                source={require("../assets/test1.png")}
-                style={styles.image}
-              /> */}
-            </View>
-            <View style={styles.text}>
-              <Text style={styles.description}>Singer Sewing Machine</Text>
-              <Text style={styles.subDescription}>Official Mavcap</Text>
-              <View style={styles.pointContainer}>
-                <Text style={styles.point}>{pointprice}</Text>
-                <Text style={styles.pointDesc}> points</Text>
-              </View>
-            </View>
-          </View>
-        </ScrollView>
-      </View>
       {/* <View style={{marginTop:10,}}>
             <ScrollView horizontal={true} 
             contentContainerStyle={{ flexGrow: 1 }} >    
@@ -306,6 +142,114 @@ export default function TimeBankRewardsPage({
     </View>
   );
 }
+
+type ListSectionProps = {
+  title: string;
+  navigation: NavigationProp<RootStackParamList>;
+};
+
+
+type RewardType = {
+  RID: string;
+  image: string;
+  name: string;
+  supplierName: string;
+  price: number;
+};
+
+// Display rewards item that fetch from firebase
+const renderRewardsItem = ({
+  item,
+  navigation,
+}: {
+  item: RewardType;
+  navigation: any;
+}) => (
+  <Pressable
+    onPress={() => navigation.navigate("Reward", { item })}
+  >
+    <View style={styles.gridItem}>
+      <View style={styles.imageBox}>
+        <View style={styles.imageBox}>
+          <Image source={{ uri: item.image }} style={styles.image} />
+        </View>
+      </View>
+      <View style={styles.text}>
+        <Text style={styles.description}>{item.name}</Text>
+        <Text style={styles.description}>{item.RID}</Text>
+        <Text style={styles.subDescription}>{item.supplierName}</Text>
+        <View style={styles.pointContainer}>
+          <Text style={styles.point}>{item.price}</Text>
+          <Text style={styles.pointDesc}> points</Text>
+        </View>
+      </View>
+    </View>
+  </Pressable>
+);
+
+const RewardsListSection = ({ title, navigation }: ListSectionProps) => {
+  const [RewardsData, setRewardsData] = useState<
+    FirebaseFirestoreTypes.DocumentData[]
+  >([]);
+
+  useEffect(() => {
+    // get rewards data from firebase (query part - can be declared what data to show)
+    const fetchRewardsData = async () => {
+      try {
+        const response = await firebase.firestore().collection("Rewards").get();
+        const fetchedRewardsData = response.docs.map((doc) => doc.data());
+        // console.log("fetchedRewardsData", fetchedRewardsData);
+        setRewardsData(fetchedRewardsData);
+      } catch (error) {
+        console.error("Error fetching rewards data:", error);
+      }
+    };
+
+    fetchRewardsData();
+  }, []);
+
+  // to limit how many rewards data to show in home page
+  const limit = 5;
+  const limitedRewardsData = RewardsData.slice(0, limit);
+
+  // see all button
+  const handleSeeAllPress = () => {
+    navigation.navigate("TimeBankRewardsPage");
+  };
+
+  return (
+    <View>
+      <View style={styles.listHeader}>
+        <PrimaryText>{title}</PrimaryText>
+        <Pressable onPress={handleSeeAllPress}>
+          <ButtonText>See all</ButtonText>
+        </Pressable>
+      </View>
+
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        // data={rewards}
+        data={limitedRewardsData} // data from firebase
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => renderRewardsItem({ item, navigation })}
+        contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
+        ListEmptyComponent={() => (
+          <Text
+            style={{
+              color: "red",
+              textAlign: "center",
+              marginBottom: 20,
+              marginLeft: 20,
+            }}
+          >
+            No data available
+          </Text>
+        )}
+      />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   BubbleContainer: {
@@ -400,6 +344,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 10,
   },
+  listHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    marginLeft: 5,
+  },
+  listContainer: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+
 });
 
 // const usersRef = ref(db, 'users');

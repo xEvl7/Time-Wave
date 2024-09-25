@@ -94,7 +94,11 @@ const Profile = ({
       screen: "Account",
     },
     { title: "Admin Panel", subtitle: "", screen: "AdminControl" },
-    { title: "Settings", subtitle: "", screen: "Setting" },
+    { title: "Settings", subtitle: "", screen: "Setting" ,
+      subButtom: [
+        { title: "Notification"},
+      ],
+    },
     {
       title: "About Us",
       subtitle: "",
@@ -131,6 +135,7 @@ const Profile = ({
             title={item.title}
             children={item.subtitle}
             subItems={item.subItems}
+            subButtom={item.subButtom}
           />
         )}
         // ItemSeparatorComponent={() => <View style={styles.divider} />}

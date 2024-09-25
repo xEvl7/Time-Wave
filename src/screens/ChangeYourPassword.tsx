@@ -6,7 +6,7 @@ import { useAppSelector } from "../hooks";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import TextButton from "../components/TextButton";
-//import { getAuth, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import auth from '@react-native-firebase/auth';
 
 const ChangeYourPassword = ({
   navigation,
@@ -17,43 +17,42 @@ const ChangeYourPassword = ({
   const [password, setPassword] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [message, setMessage] = useState('');
 
+  const reauthenticate = (password: string) => {
+    const user = auth().currentUser;
+    const credential = auth.EmailAuthProvider.credential(user?.email!, password);
+    return user?.reauthenticateWithCredential(credential);
+    
+  };
 
-  const tryhandlePressBack = async () => {
-    console.log('Password updated successfully')
+  const test =() => {
+    reauthenticate(password);
+    console.log('this is correct pasword')
   }
 
- // const handlePressBack = async () => {
- //   if (newPassword === confirmPassword) {
- //     const auth = getAuth();
- //     const user = auth.currentUser;
-      
- //     if (user) {
- //       const credential = EmailAuthProvider.credential(user.email!, password);
-        
-//        try {
-          // Reauthenticate user with current password
- //         await reauthenticateWithCredential(user, credential);
-          // Update to new password
-  //        await updatePassword(user, newPassword);
-  //        console.log("Password updated successfully");
- //       } catch (error) {
-  //        console.error("Error updating password: ", error);
- //       }
- //     } else {
- //       console.error("No user is currently signed in");
- //     }
- //   } else {
-//      console.error("New password and confirm password do not match");
-//   }
- // };
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setMessage('New passwords do not match');
+      return;
+    }
+
+    try {
+      await reauthenticate(password);
+      const user = auth().currentUser;
+      await user?.updatePassword(newPassword);
+      setMessage('Password updated successfully');
+    } catch (error) {
+      setMessage(`Error: Password updated unsuccessfully`);
+    }
+  };
 
   return (
     <ContentContainer style={{ flex: 1 }}>
       <View style={styles.pointContainer}>
         <TextInput
           style={styles.input}
-          placeholder={'Enter your current password'}
+          placeholder="Enter your current password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -62,7 +61,7 @@ const ChangeYourPassword = ({
       <View style={styles.pointContainer}>
         <TextInput
           style={styles.input}
-          placeholder={'Enter your new password'}
+          placeholder="Enter your new password"
           value={newPassword}
           onChangeText={setNewPassword}
           secureTextEntry
@@ -71,16 +70,18 @@ const ChangeYourPassword = ({
       <View style={styles.pointContainer}>
         <TextInput
           style={styles.input}
-          placeholder={'Confirm your new password'}
+          placeholder="Confirm your new password"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
         />
       </View>
-      <TextButton onPress={tryhandlePressBack}>Save</TextButton> 
+      {message ? <Text>{message}</Text> : null}
+      <TextButton onPress={handleChangePassword}>Save</TextButton>
+      <TextButton onPress={test}>test</TextButton>
     </ContentContainer>
   );
-};//onPress={handlePressBack}     for 'save'
+};
 
 type FieldProps = {
   label: string;
