@@ -28,6 +28,7 @@ export type RootStackParamList = {
   ActivityInfo: undefined;
   OngoingActivities: undefined;
   ActivitySeeAll: { item: any };
+  ActivityEdit:{ item: any };
 
   Profile: undefined;
 

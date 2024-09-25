@@ -30,6 +30,7 @@ import ProfileInfo from "./screens/ProfileInfo";
 import ActivitySeeAll from "./screens/ActivitySeeAll";
 import OngoingActivities from "./screens/OngoingActivities";
 import CommunityProfile from "./screens/CommunityProfile";
+import ActivityEdit from "./screens/ActivityEdit";
 
 import NewProfile from "./screens/NewProfile";
 import Setting from "./screens/Setting";
@@ -214,10 +215,8 @@ const Navigation = () => {
             />
             <Stack.Screen name="ActivityInfo" component={ActivityInfo} />
             <Stack.Screen name="ProfileInfo" component={ProfileInfo} />
-            <Stack.Screen
-              name="OngoingActivities"
-              component={OngoingActivities}
-            />
+            <Stack.Screen name="ActivityEdit" component={ActivityEdit} />
+            <Stack.Screen name="OngoingActivities" component={OngoingActivities} />
 
             <Stack.Screen
               name="Account"

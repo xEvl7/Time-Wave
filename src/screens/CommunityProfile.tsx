@@ -103,12 +103,19 @@ const CommunityProfile = ({
   // };
 
   const handlePressJoin = () => {
-  // firebase.firestore().collection("Communities").doc(item.id).update(
+  //   const endTimestamp = firebase.firestore.Timestamp.fromDate(new Date('2024-09-15T11:30:00'));
+  //   const startTimestamp = firebase.firestore.Timestamp.fromDate(new Date('2024-09-25T09:30:00'));
+
+  // firebase.firestore().collection("Activities").doc("WmtWxKoLbeOfwxuZbGcE").update(
   //   {
-  //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?alt=media&token=2814c197-8b18-4e8d-9a52-334d7b9780a0", 
-  //     name: "2", 
-  //     description: "2 so ", 
-  //     admins: ["3VdDsH9fsVZdiwSZMseYE6er"]
+  //     description:"Morbi nec felis at magna convallis porta. Suspendisse rhoncus blandit bibendum.",
+  //     location: "Pantai Timur",
+  //     name: "Sed ligula odio",
+  //     TandC: "In addition, you can retrieve all documents in a collection by omitting the where() filter entirely:",
+  //     contactInfo:	"Official M avacap",
+  //     endTime:endTimestamp,
+  //     startTime:startTimestamp,
+  //     logo:	"https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/sewing%20machine.png?alt=media&token=f42e4f7e-ed65-441a-b05b-66f743a70554",
   //   })
     Alert.alert('',"Join Request Sent Successfuly",[
       { text: 'OK', onPress: () => console.log('OK Pressed') },
@@ -520,16 +527,16 @@ type ListSectionProps ={
 };
 
 type ActivityType = {
-  Name: string;
-  Description: string;
+  name: string;
+  description: string;
   logo: string;
-  test: string;
+  // test: string;
   // Date: firebase.firestore.Timestamp;
   startTime:firebase.firestore.Timestamp;
   endTime: firebase.firestore.Timestamp;
   TandC: string;
   contactInfo: string;
-  Location: string;
+  location: string;
 };
 
 
@@ -555,10 +562,10 @@ const renderOngoingItems = ({
       {/* </View> */}
     </View>
     <View style={styles.text}>
-      <Text style={styles.description}>{item.Name}</Text>
-      <Text style={styles.subDescription}>{item.Description}</Text>
+      <Text style={styles.description}>{item.name}</Text>
+      <Text style={styles.subDescription}>{item.description}</Text>
       <View style={styles.pointContainer}>
-        <Text style={styles.point}>{item.test}</Text>
+        <Text style={styles.point}>{item.location}</Text>
       </View>
     </View>
   </View>
@@ -570,17 +577,6 @@ const OngoingListSection = ({ title, navigation,item }: ListSectionProps) => {
     FirebaseFirestoreTypes.DocumentData[]
   >([]);
 
-const  reqDate = new Date();
-useEffect(() => {
-  if(item.endTime<= reqDate){
-    console.log("past activity !");
-  }
-  else{
-    console.log("ongoing activity!");
-  }
-
-}, []);
-
   useEffect(() => {
     // get activities data from firebase (query part - can be declared what data to show)
     const fetchActivitiesData = async () => {
@@ -588,14 +584,12 @@ useEffect(() => {
         // console.log("item id: ",item.id);
           const communityResponds = await firebase
           .firestore()
-          .collection("Communities")
-          .doc(item.id)
-          .collection("Coming Activities")
+          .collection("Activities")
+          .where(firebase.firestore.FieldPath.documentId(), 'in', item.activities)
           .get();
-          // console.log(communityResponds);
           
           const fetchedActivitiesData = communityResponds.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+          // console.log(fetchedActivitiesData.startTime);
         // const response = communityResponds.docs.map(async communityDoc => {
         //   const activitiesQuerySnapshot = await communityDoc.ref
         //   .collection("Past Activities")
@@ -613,6 +607,18 @@ useEffect(() => {
 
     fetchActivitiesData();
   }, []);
+
+  const  reqDate = new Date();
+  console.log("endTime",activitiesData);
+  // console.log("jsDate: ",item.endTime.toDate().toLocaleString());
+  useEffect(() => {
+    if(item.endTime<= reqDate){
+      console.log("past activity !");
+    }
+    else{ 
+      console.log("ongoing activity!");
+    }
+  }, []); 
 
   // to limit how many communities data to show in home page
   const limit = 5;

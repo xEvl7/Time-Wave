@@ -11,7 +11,6 @@ import {
     Alert } 
   from "react-native";
   import { NativeStackScreenProps } from "@react-navigation/native-stack";
-  
   import React, { useEffect, useState } from "react";
   import ContentContainer from "../components/ContentContainer";
   import ParagraphText from "../components/text_components/ParagraphText";
@@ -37,25 +36,28 @@ import {
     console.log("activityseeall item:",item);
 
     const handlePressJoin =() => {
-
-        Alert.alert('',"Join Request Sent Successfuly",[
-          { text: 'OK', onPress: () => console.log('OK Pressed') },
-        ],
-        { cancelable: true }
-      );
+      navigation.navigate("ActivityEdit", { item })
+      //   Alert.alert('',"Join Request Sent Successfuly",[
+      //     { text: 'OK', onPress: () => console.log('OK Pressed') },
+      //   ],
+      //   { cancelable: true }
+      // );
     };
 
     return (
       <>
-       <View style={styles.listContainer}>
-          <ScrollView>
-            <ActivityListSection
-              title={''}
-              navigation={navigation}  
-              item={item}
-            />
-          </ScrollView>
-          <TextButton onPress={handlePressJoin}>     Join this community     </TextButton>
+        <View style={styles.listContainer}>
+          <ContentContainer>
+            <ScrollView>
+              <ActivityListSection
+                title={''}
+                navigation={navigation}  
+                item={item}
+              />
+            </ScrollView>
+            <TextButton onPress={handlePressJoin}> New Activity </TextButton>
+          
+          </ContentContainer>
         </View>
       </>
     );
@@ -94,8 +96,8 @@ import {
           </View>
         {/* </View> */}
         <View style={styles.text}>
-          <Text style={styles.description}>{item.Name}</Text>
-          <Text style={styles.subDescription}>{item.Description}</Text>
+          <Text style={styles.description}>{item.name}</Text>
+          <Text style={styles.subDescription}>{item.description}</Text>
           <View style={styles.pointContainer}>
             {/* <Text style={styles.point}>{item.test}</Text> */}
             {/* <Text style={styles.pointDesc}> points</Text> */}
@@ -117,9 +119,8 @@ import {
           console.log("seeall id", item.id);
           const response = await firebase
             .firestore()
-            .collection("Communities")
-            .doc(item.id)
-            .collection("Coming Activities")
+            .collection("Activities")
+            .where(firebase.firestore.FieldPath.documentId(), 'in', item.activities)
             .get();
 
           const fetchedActivityData = response.docs.map((doc) => doc.data());
