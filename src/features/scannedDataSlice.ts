@@ -7,6 +7,23 @@ export type ScannedDataProps = {
   scanTime: any;
 };
 
+// export const fetchScannedActivities = createAsyncThunk(
+//   'community/fetchScannedActivities',
+//   async (userId: string) => {
+//     const scannedActivitiesSnapshot = await firestore()
+//       .collection('ActivityHistory')
+//       .where('userId', '==', userId)
+//       .get();
+
+//     const activities = scannedActivitiesSnapshot.docs.map(doc => ({
+//       id: doc.id,
+//       ...doc.data(),
+//     }));
+
+//     return activities;
+//   }
+// );
+
 export const storeScannedData = createAsyncThunk(
   "user/storeScannedData",
   async (scannedData: ScannedDataProps, { getState, rejectWithValue }) => {

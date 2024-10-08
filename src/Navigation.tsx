@@ -172,7 +172,7 @@ const Navigation = () => {
             <Stack.Screen
               name="AdminControl"
               component={AdminControl}
-              options={{ title: "Admin Control" }}
+              options={{ title: "Admin Panel" }}
             />
             <Stack.Screen
               name="CreateCommunity"
