@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import {
   fetchPointsReceivedData,
   fetchPointsUsedData,
+  fetchUserActivitiesData,
 } from "../features/userSlice";
 import { RootState } from "../store";
 import ActivityFlatList from "../components/ActivityFlatList";
@@ -21,16 +22,17 @@ const RecentActivities = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "RecentActivities">) => {
   const dispatch = useAppDispatch();
-
   const email = useAppSelector(
     (state: RootState) => state.user.data?.emailAddress
   ) as string;
-
   const pointsReceivedData = useAppSelector(
     (state: RootState) => state.user.pointsReceivedData
   );
   const pointsUsedData = useAppSelector(
     (state: RootState) => state.user.pointsUsedData
+  );
+  const activitiesData = useAppSelector(
+    (state: RootState) => state.user.activitiesData
   );
 
   const [isLoading, setIsLoading] = useState(true);
@@ -38,22 +40,56 @@ const RecentActivities = ({
   useEffect(() => {
     dispatch(fetchPointsReceivedData(email));
     dispatch(fetchPointsUsedData(email));
+    dispatch(fetchUserActivitiesData(email));
   }, [dispatch, email]);
 
   useEffect(() => {
-    if (pointsReceivedData && pointsUsedData) {
+    if (pointsReceivedData && pointsUsedData && activitiesData) {
       setIsLoading(false);
     }
-  }, [pointsReceivedData, pointsUsedData]);
+  }, [pointsReceivedData, pointsUsedData, activitiesData]);
 
-  const recentActivities = [
-    ...(pointsReceivedData || []),
-    ...(pointsUsedData || []),
-  ].map((point) => ({
-    date: point.date || "N/A",
-    time: point.time || "N/A",
-    points: point.points || 0,
-  }));
+  const normalizeData = () => {
+    const pointsData = (pointsReceivedData || []).map((point) => ({
+      date: point.date || "N/A",
+      time: point.time || "N/A",
+      title: "Points Received",
+      description: `+${point.points || 0}`, // For received points
+    }));
+
+    const usedData = (pointsUsedData || []).map((point) => ({
+      date: point.date || "N/A",
+      time: point.time || "N/A",
+      title: "Points Used",
+      description: `-${point.points || 0}`, // For used points
+    }));
+
+    const activities = (activitiesData || []).map((activity) => ({
+      date: activity.scanDate || "N/A", // Use scanDate
+      time: activity.scanTime || "N/A", // Use scanTime
+      title:
+        activity.type === "check-in" || activity.type === "check-out"
+          ? `${activity.type}`
+          : `${activity.type}`,
+      description:
+        activity.type === "check-in" || activity.type === "check-out"
+          ? `${activity.activityName || "Unknown"}`
+          : `Activity: ${activity.activityName || "Unknown"}`, // Description for activities
+    }));
+
+    return [...pointsData, ...usedData, ...activities].map((item) => ({
+      date: item.date,
+      time: item.time,
+      title: item.title,
+      description: item.description,
+    }));
+  };
+
+  const sortedActivities = normalizeData().sort((a, b) => {
+    const dateA = new Date(`${a.date} ${a.time}`).getTime();
+    const dateB = new Date(`${b.date} ${b.time}`).getTime();
+    return dateB - dateA; // Sort in descending order (latest first)
+  });
 
   return (
     <View style={styles.container}>
@@ -72,7 +108,7 @@ const RecentActivities = ({
           style={styles.loadingIndicator}
         />
       ) : (
-        <ActivityFlatList data={recentActivities} type="points" />
+        <ActivityFlatList data={sortedActivities} type="combined" />
       )}
     </View>
   );

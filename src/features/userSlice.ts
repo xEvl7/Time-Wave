@@ -45,11 +45,22 @@ type PointsUsedData = {
   points: number;
 };
 
+type UserActivitiesData = {
+  activityId: string;
+  activityName: string;
+  communityId: string;
+  generateTime: any;
+  scanDate: any;
+  scanTime: any;
+  type: string;
+};
+
 type UserState = {
   data?: UserData;
   contributionData?: { [year: string]: UserContributionData };
   pointsReceivedData?: PointsReceivedData[];
   pointsUsedData?: PointsUsedData[];
+  activitiesData?: UserActivitiesData[];
 };
 
 export const updateUserData = createAsyncThunk(
@@ -201,7 +212,6 @@ export const fetchUserContributionData2 = createAsyncThunk(
   }
 );
 
-
 export const fetchPointsReceivedData = createAsyncThunk(
   "user/fetchPointsReceivedData",
   async (emailAddress: string) => {
@@ -287,6 +297,61 @@ export const fetchPointsUsedData = createAsyncThunk(
       };
 
       activities.push(pointsUsedData);
+    });
+
+    // Return the array of PointsUsedData
+    return activities;
+  }
+);
+
+export const fetchUserActivitiesData = createAsyncThunk(
+  "user/fetchUserActivitiesData",
+  async (emailAddress: string) => {
+    const querySnapshot = await firestore()
+      .collection("Users")
+      .where("emailAddress", "==", emailAddress)
+      .get();
+
+    if (querySnapshot.size !== 1) {
+      throw new Error(
+        `${emailAddress} Either has no data or more than 1 data.`
+      );
+    }
+
+    const userDocument = querySnapshot.docs[0];
+    const UserActivitiesCollection = await userDocument.ref
+      .collection("Activities")
+      .orderBy("scanTime", "desc")
+      .get();
+
+    const activities: UserActivitiesData[] = [];
+
+    // Iterate over each document in the "PointsUsed" sub-collection
+    UserActivitiesCollection.forEach((doc) => {
+      const firestoreTimestamp = doc.data().scanTime; // Assuming this is the Timestamp field
+      const timestamp = new Date(
+        firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6
+      );
+
+      const luxonDateTime =
+        DateTime.fromJSDate(timestamp).setZone("Asia/Singapore");
+
+      const userActivitiesData: UserActivitiesData = {
+        activityId: doc.data().activityId || "Unknown Activity Id",
+        activityName: doc.data().activityName || "Unknown Activity Name",
+        communityId: doc.data().communityId || "Unknown Community Id",
+        generateTime:
+          doc.data().generateTime?.toDate()?.toLocaleString() || "N/A",
+        scanDate: luxonDateTime.toFormat("EEE, d LLL yyyy") || "N/A",
+        scanTime: luxonDateTime.toFormat("hh:mm a") || "N/A",
+        type: doc.data().type || "Unknown Type",
+
+        // date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
+        // time: luxonDateTime.toFormat("hh:mm a"), // "11:00 AM"
+        // points: doc.data().points,
+      };
+
+      activities.push(userActivitiesData);
     });
 
     // Return the array of PointsUsedData
@@ -420,6 +485,20 @@ const userSlice = createSlice({
           console.log(`Successfully fetched User Points Used's data`);
         }
       )
+      .addCase(fetchPointsUsedData.rejected, (_, action) => {
+        console.error(action.error);
+      })
+      .addCase(
+        fetchUserActivitiesData.fulfilled,
+        (state, action: PayloadAction<UserActivitiesData[]>) => {
+          state.activitiesData = action.payload;
+          console.log(action.payload);
+          console.log(`Successfully fetched User Activities's data`);
+        }
+      )
+      .addCase(fetchUserActivitiesData.rejected, (_, action) => {
+        console.error(action.error);
+      })
       .addCase(
         storePointsReceivedDataToFirebase.fulfilled,
         (state, action: PayloadAction<PointsReceivedData2>) => {
@@ -429,9 +508,6 @@ const userSlice = createSlice({
         }
       )
       .addCase(storePointsReceivedDataToFirebase.rejected, (_, action) => {
-        console.error(action.error);
-      })
-      .addCase(fetchPointsUsedData.rejected, (_, action) => {
         console.error(action.error);
       });
   },

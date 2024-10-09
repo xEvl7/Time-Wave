@@ -5,8 +5,9 @@ interface CommunityActivity {
   activityId: string;
   activityName: string;
   communityId: string;
-  generateTime: string;
-  scanTime: string;
+  generateTime: any;
+  scanDate: any;
+  scanTime: any;
   type: string;
 }
 
@@ -16,35 +17,67 @@ interface PointsActivity {
   points: number;
 }
 
+interface CombinedActivity {
+  date: string;
+  time: string;
+  title: string;
+  description: string;
+  points?: number; // Optional for combined activities
+  activityName?: string; // Optional for combined activities
+}
+
 interface ActivityFlatListProps {
-  data: (CommunityActivity | PointsActivity)[];
-  type: "received" | "used" | "community"; // Type can be adjusted based on your needs
+  data: (CommunityActivity | PointsActivity | CombinedActivity)[];
+  type: "received" | "used" | "community" | "combined"; // Added combined type
 }
 
 const ActivityFlatList: React.FC<ActivityFlatListProps> = ({ data, type }) => {
-  const renderItem = ({ item }: { item: CommunityActivity | PointsActivity }) => {
+  const renderItem = ({
+    item,
+  }: {
+    item: CommunityActivity | PointsActivity | CombinedActivity; // Updated item type
+  }) => {
     // Type guard to determine if item is CommunityActivity
-    const isCommunityActivity = (item: CommunityActivity | PointsActivity): item is CommunityActivity => {
-      return (item as CommunityActivity).generateTime !== undefined;
+    const isCommunityActivity = (
+      item: CommunityActivity | PointsActivity | CombinedActivity
+    ): item is CommunityActivity => {
+      return (item as CommunityActivity).scanDate !== undefined;
     };
+
+    let dateText = "";
+    let timeText = "";
+    let descriptionText = "";
+
+    if (isCommunityActivity(item)) {
+      dateText = item.scanDate;
+      timeText = item.scanTime;
+      descriptionText = item.activityName;
+    } else if ("points" in item) {
+      dateText = item.date;
+      timeText = item.time;
+      descriptionText = `Points: ${item.points || 0}`;
+    } else {
+      dateText = item.date;
+      timeText = item.time;
+      descriptionText = item.description; // For combined activities
+    }
 
     return (
       <View>
         <View style={styles.listContainer1}>
-          <Text style={styles.listDateText}>
-            {isCommunityActivity(item) ? item.generateTime : item.date}
-          </Text>
+          <Text style={styles.listDateText}>{dateText}</Text>
         </View>
         <View style={styles.listContainer2}>
-          <Text style={styles.listTimeText}>
-            {isCommunityActivity(item) ? item.scanTime : item.time}
-          </Text>
-          {isCommunityActivity(item) ? (
+          <Text style={styles.listTimeText}>{timeText}</Text>
+          {type === "combined" ? (
+            <>
+              <Text style={styles.listCategoryText}>{item.title}</Text>
+              <Text style={styles.listNameText}>{descriptionText}</Text>
+            </>
+          ) : isCommunityActivity(item) ? (
             <>
               <Text style={styles.listCategoryText}>{item.type}</Text>
-              {/* <Text style={styles.listNameText}>{item.activityId}</Text> */}
               <Text style={styles.listNameText}>{item.activityName}</Text>
-              {/* <Text style={styles.listNameText}>Participated</Text> */}
             </>
           ) : (
             <>
