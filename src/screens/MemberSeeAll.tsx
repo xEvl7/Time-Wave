@@ -90,7 +90,10 @@ import {
               navigation={navigation}  
               item={item}
               member={member}
+              isAdmin={isAdmin}
+              selectMode={selectMode}
               handleSelect={handleSelect}
+              handleSelectMember={handleSelectMember}
             />
           </ScrollView>
         </View>
@@ -115,13 +118,17 @@ import {
     navigation: NavigationProp<RootStackParamList>;
     item:any,
     member:any,
+    isAdmin:any,
+    selectMode:any,
     handleSelect:any,
+    handleSelectMember:any,
   };
   
   type MemberType = {
     name: string;
     description: string;
     logo: string;
+    uid:string;
   };
 
   
@@ -129,13 +136,73 @@ import {
   const renderMemberItem = ({
     item, 
     navigation,
-    handleSelect,
+    isAdmin,
+    selectMode,
+    handleSelect,    
+    handleSelectMember,
     // member,
   }: {
+    isAdmin:any,
+    selectMode:any,
     item: MemberType;
     navigation: any;
     handleSelect:any,
+    handleSelectMember:any,
   }) => (
+  <>
+    {isAdmin?(
+        selectMode?(
+          <Pressable  
+            onPress={handleSelectMember(item.uid)}
+            // onLongPress={handleSelect}
+          >
+            <View style={styles.gridItem}>
+              <View style={styles.imageBox}>
+                <Image
+                  source={{
+                    uri: item.logo,
+                  }}
+                  style={styles.image}
+                  resizeMode="contain"
+                />
+              </View>
+              {/* </View> */}
+              <View style={styles.text}>
+                <Text style={styles.description}>{item.name}</Text>
+                <Text style={styles.subDescription}>{item.description}</Text>
+                <Text style={styles.date}></Text>
+              </View>
+            </View>
+          </Pressable>
+        ):(
+          <Pressable  
+            onPress={() => navigation.navigate("ProfileInfo", { item })}
+            onLongPress={handleSelect}
+          >
+            <View style={styles.gridItem}>
+              <View style={styles.imageBox}>
+                <Image
+                  source={{
+                    uri: item.logo,
+                  }}
+                  style={styles.image}
+                  resizeMode="contain"
+                />
+              </View>
+              {/* </View> */}
+              <View style={styles.text}>
+                <Text style={styles.description}>{item.name}</Text>
+                <Text style={styles.subDescription}>{item.description}</Text>
+                <Text style={styles.date}></Text>
+              </View>
+            </View>
+        </Pressable>
+        )     
+      ):(
+          <><Text> Not Admin </Text>
+          </>
+      )
+    }
     <Pressable  
       onPress={() => navigation.navigate("ProfileInfo", { item })}
       onLongPress={handleSelect}
@@ -158,9 +225,10 @@ import {
         </View>
       </View>
     </Pressable>
+    </>
   );
   
-  const MemberListSection = ({ title, navigation, item, member,handleSelect }: ListSectionProps) => {
+  const MemberListSection = ({ title, navigation, item, member, isAdmin, selectMode, handleSelectMember ,handleSelect }: ListSectionProps) => {
     const [memberData, setMemberData] = useState<
       FirebaseFirestoreTypes.DocumentData[]
     >([]);
@@ -197,7 +265,7 @@ import {
         <FlatList
           data={memberData} // data from firebase
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => renderMemberItem({ item, navigation, handleSelect })}
+          renderItem={({ item }) => renderMemberItem({ item, navigation, isAdmin, selectMode, handleSelectMember, handleSelect})}
           contentContainerStyle={{ padding:10 }}
           ListEmptyComponent={() => (
             <Text
