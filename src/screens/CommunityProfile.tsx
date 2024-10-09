@@ -8,7 +8,7 @@ import {
   ImageSourcePropType,
   GestureResponderEvent,
   ScrollView,
-Alert } 
+  Alert } 
 from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -441,7 +441,7 @@ const AdminListSection =({title,navigation,item,isAdmin, docId}:UserListProps) =
   const limit = 5;
   const limitedAdminData = user.slice(0, limit);
 
-  const member = 1;
+  const member = 1;  //admin
   const handleSeeAllPress =()=>{
     navigation.navigate("MemberSeeAll", { item ,member})
     console.log("transfer see all ", item);

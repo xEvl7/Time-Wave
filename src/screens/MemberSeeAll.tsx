@@ -7,7 +7,8 @@ import {
     Pressable,
     ImageSourcePropType,
     GestureResponderEvent,
-    ScrollView  } 
+    ScrollView,
+    Alert  } 
   from "react-native";
   import { NativeStackScreenProps } from "@react-navigation/native-stack";  
   import React, { useEffect, useState } from "react";
@@ -32,12 +33,11 @@ import {
     route,
   }: NativeStackScreenProps<RootStackParamList, "MemberSeeAll">) => {
     // const name = useAppSelector(selectUserName);
-    const {item, member}    = route.params;
-    // const {member}  = route.params; 
+    const {item, member}    = route.params;                 //member?(admin):(volunteer);
     console.log("member seeall item:", item);
     console.log("member state: ", member);
     const [selectedMember, setSelectedMember] = useState<FirebaseFirestoreTypes.DocumentData[]>([]);
-    const [selectMode, setSelectMode] = useState(false);
+    const [selectMode, setSelectMode] = useState(false);    //1=selecting,0=normal
     const [isAdmin, setIsAdmin] = useState(false);
     const userId = useAppSelector((state) => state.user.data?.uid) || {};
     //isadmin, can delete, add from volunteer
@@ -56,34 +56,90 @@ import {
         } catch (error){
           console.error('Error checking admin status: ',error);
         } 
-    }, []);
+      }, []);
     
-    // //member?(admin):(volunteer);
+    
 
     const handleSelect = () => {
       setSelectMode(true);
       console.log("selecting ! ");
     };
 
+    
     const handleSelectMember = (uid) =>{
+      // member?(admins: firebase.firestore.FieldValue.arrayRemove(selectedMember),):(volunteer: firebase.firestore.FieldValue.arrayRemove(selectedMember),)
       if(selectedMember.includes(uid)){
-        // setSelectedMember(selectedMember.filter(member))
+        setSelectedMember(selectedMember.filter(memberId =>memberId !== uid));
       }
+      else{
+        setSelectedMember([...selectedMember, uid]);
+      }
+
     };
 
+    //remove admin from firebase
     const handleRemoveAdmin =() =>{
       //update or add people from volunteer
+      Alert.alert('Caution',`You are going to remove ${selectedMember} `,
+        [{ 
+          text: 'Remove', onPress: () =>{
+            console.log('Yes Pressed,docId,item : ',selectedMember);
+          
+          const removeAdmin = async () => {
+            try {         
+              firebase.firestore().collection("Communities").doc(item.id).update({
+                admins: firebase.firestore.FieldValue.arrayRemove(selectedMember),                
+              });
+            } catch (error) {
+                console.error("Error removing admin", error);
+            }
+          };
+          const removeVolunteer = async () => {
+            try {         
+              firebase.firestore().collection("Communities").doc(item.id).update({
+                volunteer: firebase.firestore.FieldValue.arrayRemove(selectedMember),                
+              });
+            } catch (error) {
+                console.error("Error removing volunteer", error);
+            }
+          };
+          removeAdmin();
+          member?(removeAdmin()):(removeVolunteer());
+          // removeAdmin();
+          }
+        },
+        { text: 'Cancel', onPress: () => console.log('Cancel Pressed'),style:'cancel', },
+      ],
+        { cancelable: true }
+      );
     };
 
+    //add admin from volunteer list
     const handleSelectAdmin =() =>{
       //take from volunteer list
       navigation.navigate("AddAdmin",{item,member});
+    };
+
+    //cancel selecting
+    const handleCancelSelect =() =>{
+      setSelectMode(false);
+      console.log(" select mode ends");
     };
  
     return (
       <>
       <ContentContainer>
-       <View style={styles.listContainer}>
+        { selectMode?
+          ( <Pressable onPress={handleCancelSelect}>
+              <Text> Cancel </Text>
+            </Pressable>         
+          ):( 
+            <Pressable onPress={handleSelect}>
+              {member?(<Text>Select Admins</Text>):(<Text>Select Volunteers</Text>)}
+            </Pressable>
+            
+          )}
+        <View style={styles.listContainer}>
           <ScrollView>
             <MemberListSection
               title={''}
@@ -92,6 +148,7 @@ import {
               member={member}
               isAdmin={isAdmin}
               selectMode={selectMode}
+              selectedMember={selectedMember}
               handleSelect={handleSelect}
               handleSelectMember={handleSelectMember}
             />
@@ -99,11 +156,15 @@ import {
         </View>
         <View>
                 {isAdmin?(
+                  member?(
                     selectMode?(
                         <TextButton onPress={handleRemoveAdmin}>    Remove Admin(s)     </TextButton>
                     ):(
                         <TextButton onPress={handleSelectAdmin}>    Add Admin(s)     </TextButton>
-                    )   
+                    )  
+                  ):(
+                    <TextButton onPress={handleRemoveAdmin}>    Approve Requests     </TextButton>
+                  )                     
                 ):(
                     <></>
                 )}
@@ -119,6 +180,7 @@ import {
     item:any,
     member:any,
     isAdmin:any,
+    selectedMember:any,
     selectMode:any,
     handleSelect:any,
     handleSelectMember:any,
@@ -138,12 +200,14 @@ import {
     navigation,
     isAdmin,
     selectMode,
+    selectedMember,
     handleSelect,    
     handleSelectMember,
     // member,
   }: {
     isAdmin:any,
     selectMode:any,
+    selectedMember:any,
     item: MemberType;
     navigation: any;
     handleSelect:any,
@@ -154,9 +218,13 @@ import {
         selectMode?(
           <Pressable  
             onPress={handleSelectMember(item.uid)}
+            style={[
+              styles.gridItem,
+              selectedMember === item.uid && styles.selectedGrid,
+            ]}
             // onLongPress={handleSelect}
           >
-            <View style={styles.gridItem}>
+            {/* <View style={styles.gridItem}> */}
               <View style={styles.imageBox}>
                 <Image
                   source={{
@@ -172,7 +240,7 @@ import {
                 <Text style={styles.subDescription}>{item.description}</Text>
                 <Text style={styles.date}></Text>
               </View>
-            </View>
+            {/* </View> */}
           </Pressable>
         ):(
           <Pressable  
@@ -199,8 +267,7 @@ import {
         </Pressable>
         )     
       ):(
-          <><Text> Not Admin </Text>
-          </>
+          <Text> Not Admin </Text>
       )
     }
     <Pressable  
@@ -228,7 +295,7 @@ import {
     </>
   );
   
-  const MemberListSection = ({ title, navigation, item, member, isAdmin, selectMode, handleSelectMember ,handleSelect }: ListSectionProps) => {
+  const MemberListSection = ({ title, navigation, item, member, selectedMember, isAdmin, selectMode, handleSelectMember ,handleSelect }: ListSectionProps) => {
     const [memberData, setMemberData] = useState<
       FirebaseFirestoreTypes.DocumentData[]
     >([]);
@@ -265,7 +332,7 @@ import {
         <FlatList
           data={memberData} // data from firebase
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => renderMemberItem({ item, navigation, isAdmin, selectMode, handleSelectMember, handleSelect})}
+          renderItem={({ item }) => renderMemberItem({ item, navigation, isAdmin, selectMode, selectedMember, handleSelectMember, handleSelect})}
           contentContainerStyle={{ padding:10 }}
           ListEmptyComponent={() => (
             <Text
@@ -304,8 +371,7 @@ import {
       alignItems: "center",
       padding: 10,
       marginLeft: 5,
-    },
-  
+    },  
     gridItem: {
       flexDirection:"row",
       alignItems:'center',
@@ -319,6 +385,9 @@ import {
       shadowOpacity:0.2,
       shadowRadius:1.41,
       minHeight:130,
+    },
+    selectedGrid:{
+      backgroundColor:"#FF7A00",
     },
     imageBox: {
       flex:1,
