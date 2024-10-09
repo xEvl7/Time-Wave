@@ -1,5 +1,5 @@
 import { StyleSheet, Image, View, Text, TouchableOpacity, TextInput } from "react-native";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PrimaryText from "../components/text_components/PrimaryText";
 import ContentContainer from "../components/ContentContainer";
 import { useAppSelector, useAppDispatch } from "../hooks";
@@ -13,7 +13,6 @@ import auth from '@react-native-firebase/auth';
 const EditProfile = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "EditProfile">) => {
-
   const userData = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
 
@@ -21,19 +20,16 @@ const EditProfile = ({
   const email = useAppSelector((state) => state.user.data?.emailAddress);
   const phone = useAppSelector((state) => state.user.data?.phoneNumber);
   const ic = useAppSelector((state) => state.user.data?.identityCardNumber);
-
+  const [image, setImage] = useState<string | null>(null); // 新增状态保存用户头像
   const [newEmail, setNewEmail] = useState(email || '');
   const [newPhone, setNewPhone] = useState(phone || '');
   const [currentPassword, setCurrentPassword] = useState('');
 
-  const reauthenticate = (password: string) => {
+  const reauthenticate = async (password: string) => {
     const user = auth().currentUser;
     const credential = auth.EmailAuthProvider.credential(user?.email!, password);
     return user?.reauthenticateWithCredential(credential);
-    
   };
-
-
 
   const handleEdit = async () => {
     if (!email) {
@@ -42,6 +38,9 @@ const EditProfile = ({
     }
 
     try {
+      // 进行密码验证
+      await reauthenticate(currentPassword);
+
       const userSnapshot = await firestore().collection('Users').where("emailAddress", "==", email).get();
       if (!userSnapshot.empty) {
         const userDoc = userSnapshot.docs[0].ref;
@@ -61,6 +60,23 @@ const EditProfile = ({
     }
   };
 
+  // 实时获取用户头像
+  useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('Users')
+      .where("emailAddress", "==", email)
+      .onSnapshot((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            const userData = doc.data();
+            setImage(userData.logo); // 更新头像
+          });
+        }
+      });
+
+    return () => unsubscribe(); // 清理订阅
+  }, [email]);
+
   return (
     <ContentContainer style={{ flex: 1 }}>
       <View style={styles.editcontainer}>
@@ -70,12 +86,12 @@ const EditProfile = ({
       </View>
 
       <View style={styles.centercontainer}>
-      <Image
-      source={image ? { uri: image } : require("../assets/profile-picture.png")}
-      style={styles.circleImage}
-      />
+        <Image
+          source={image ? { uri: image } : require("../assets/profile-picture.png")} // 更新头像显示
+          style={styles.circleImage}
+        />
       </View>
-      
+
       <View style={styles.alternativesContainer}>
         <View style={styles.pointContainer}>
           <Text style={styles.boldtext}>Full Name:</Text>
@@ -84,7 +100,7 @@ const EditProfile = ({
           <Text style={{ fontSize: 14 }}>{name}</Text>
         </View>
       </View>
-      
+
       <View style={styles.alternativesContainer}>
         <View style={styles.pointContainer}>
           <Text style={styles.boldtext}>IC:</Text>
@@ -102,7 +118,7 @@ const EditProfile = ({
           <Text style={{ fontSize: 14 }}>{email}</Text>
         </View>
       </View>
-      
+
       <View style={styles.alternativesContainer}>
         <View style={styles.pointContainer}>
           <Text style={styles.boldtext}>Phone No:</Text>
@@ -116,13 +132,7 @@ const EditProfile = ({
           />
         </View>
       </View>
-      
-      
-      
-      <Text></Text>
-      <Text></Text>
-      <Text></Text>
-      
+
       <View style={styles.alternativesContainer}>
         <View style={styles.passContainer}>
           <TextInput
@@ -130,43 +140,27 @@ const EditProfile = ({
             placeholder="Enter your current password to verify"
             value={currentPassword}
             onChangeText={setCurrentPassword}
+            secureTextEntry // 安全输入
           />
         </View>
-        
       </View>
     </ContentContainer>
   );
 };
 
-type FieldProps = {
-  label: string;
-  children: string | undefined;
-};
-
-const Field = ({ label, children }: FieldProps) => {
-  return (
-    <View>
-      <Text>{label}</Text>
-      <PrimaryText>{children || ""}</PrimaryText>
-    </View>
-  );
-};
-
-export default EditProfile;
-
 const styles = StyleSheet.create({
-  fieldContainer: {},
+  // 其他样式...
   centercontainer: {
     marginBottom: 10,
     marginLeft: 20,
-    alignItems: 'center', // 图像在垂直方向上右对齐
+    alignItems: 'center',
   },
   editcontainer: {
     justifyContent: "space-evenly",
     width: "100%",
     marginBottom: 10,
     marginLeft: 20,
-    alignItems: 'flex-end', // 图像在垂直方向上右对齐
+    alignItems: 'flex-end',
   },
   pointContainer: {
     justifyContent: "space-evenly",
@@ -187,27 +181,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 20,
   },
-  nextcontainer: {
-    justifyContent: "space-evenly",
-    width: "15%",
-    marginBottom: 10,
-    marginLeft: 20,
-    alignItems: 'flex-end', // 图像在垂直方向上右对齐
-  },
-  verticleLine: {
-    height: '100%',
-    width: 1,
-    backgroundColor: '#909090',
-  },
   alternativesContainer: {
     flexDirection: "row",
     width: "100%",
     justifyContent: "space-evenly",
     marginTop: 10,
-  },//container
-  image: {
-    width: 100, // 设置图片宽度
-    height: 100, // 设置图片高度
   },
   input: {
     flex: 1,
@@ -217,4 +195,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginRight: 10,
   },
+  circleImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
 });
+
+export default EditProfile;

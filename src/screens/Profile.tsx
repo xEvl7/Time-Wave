@@ -21,6 +21,7 @@ import {
 } from "../features/userSlice";
 import RightDrop from "../components/RightDrop";
 import { RootState } from "../store";
+import firestore from "@react-native-firebase/firestore";
 
 const Profile = ({
   navigation,
@@ -29,6 +30,7 @@ const Profile = ({
     useAppSelector((state) => state.user.data) || {};
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(true);
+  const [logo, setLogo] = useState<string | null>(null); // 新增的状态来保存用户的头像 URL
 
   const contributionData = useAppSelector(
     (state: RootState) => state.user.contributionData
@@ -43,6 +45,23 @@ const Profile = ({
   useEffect(() => {
     setContributedHours(totalContrHours);
   }, [totalContrHours]);
+
+  // 从 Firestore 获取用户头像，并实时更新
+  useEffect(() => {
+    const unsubscribe = firestore()
+      .collection("Users")
+      .where("emailAddress", "==", emailAddress)
+      .onSnapshot((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            const userData = doc.data();
+            setLogo(userData.logo); // 实时更新 logo
+          });
+        }
+      });
+
+    return () => unsubscribe(); // 清理订阅
+  }, [emailAddress]);
 
   const calculateLevel = (hours: number) => {
     if (hours <= 10) return 1;
@@ -117,7 +136,7 @@ const Profile = ({
       <View style={styles.profileHeader}>
         <TouchableOpacity onPress={() => navigation.navigate("NewProfile")}>
           <Image
-            source={require("../assets/profile-picture.png")}
+            source={logo ? { uri: logo } : require("../assets/profile-picture.png")} // 更新头像显示
             style={styles.profileImage}
           />
         </TouchableOpacity>
@@ -138,7 +157,6 @@ const Profile = ({
             subButtom={item.subButtom}
           />
         )}
-        // ItemSeparatorComponent={() => <View style={styles.divider} />}
         contentContainerStyle={styles.flatListContainer}
       />
       <Pressable style={styles.logoutButton} onPress={handleLogout}>
