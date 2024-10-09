@@ -36,6 +36,7 @@ import {
     const {item, member}    = route.params;                 //member?(admin):(volunteer);
     console.log("member seeall item:", item);
     console.log("member state: ", member);
+
     const [selectedMember, setSelectedMember] = useState<FirebaseFirestoreTypes.DocumentData[]>([]);
     const [selectMode, setSelectMode] = useState(false);    //1=selecting,0=normal
     const [isAdmin, setIsAdmin] = useState(false);
@@ -61,20 +62,22 @@ import {
     
 
     const handleSelect = () => {
-      setSelectMode(true);
-      console.log("selecting ! ");
+      console.log("selecting ! ");      
+      setSelectMode(true); 
     };
 
     
     const handleSelectMember = (uid) =>{
       // member?(admins: firebase.firestore.FieldValue.arrayRemove(selectedMember),):(volunteer: firebase.firestore.FieldValue.arrayRemove(selectedMember),)
-      if(selectedMember.includes(uid)){
-        setSelectedMember(selectedMember.filter(memberId =>memberId !== uid));
-      }
-      else{
-        setSelectedMember([...selectedMember, uid]);
-      }
-
+      // useEffect(() => {
+        if(selectedMember.includes(uid)){
+          setSelectedMember(selectedMember.filter(memberId =>memberId !== uid));
+        }
+        else{
+          setSelectedMember([...selectedMember, uid]);
+        }
+      console.log("selected member", selectedMember);
+      // },[]);
     };
 
     //remove admin from firebase
@@ -122,19 +125,21 @@ import {
 
     //cancel selecting
     const handleCancelSelect =() =>{
-      setSelectMode(false);
-      console.log(" select mode ends");
+      // useEffect(() => {
+        setSelectMode(false);
+        console.log(" select mode ends");
+      // },[]);
     };
  
     return (
       <>
       <ContentContainer>
         { selectMode?
-          ( <Pressable onPress={handleCancelSelect}>
+          ( <Pressable onPress={()=>handleCancelSelect}>
               <Text> Cancel </Text>
             </Pressable>         
           ):( 
-            <Pressable onPress={handleSelect}>
+            <Pressable onPress={()=>handleSelect}>
               {member?(<Text>Select Admins</Text>):(<Text>Select Volunteers</Text>)}
             </Pressable>
             
@@ -158,12 +163,12 @@ import {
                 {isAdmin?(
                   member?(
                     selectMode?(
-                        <TextButton onPress={handleRemoveAdmin}>    Remove Admin(s)     </TextButton>
+                        <TextButton onPress={()=>handleRemoveAdmin}>    Remove Admin(s)     </TextButton>
                     ):(
-                        <TextButton onPress={handleSelectAdmin}>    Add Admin(s)     </TextButton>
+                        <TextButton onPress={()=>handleSelectAdmin}>    Add Admin(s)     </TextButton>
                     )  
                   ):(
-                    <TextButton onPress={handleRemoveAdmin}>    Approve Requests     </TextButton>
+                    <TextButton onPress={()=>handleSelectAdmin}>    Approve Requests     </TextButton>
                   )                     
                 ):(
                     <></>
@@ -217,10 +222,10 @@ import {
     {isAdmin?(
         selectMode?(
           <Pressable  
-            onPress={handleSelectMember(item.uid)}
+            onPress={()=>handleSelectMember(item.uid)}
             style={[
               styles.gridItem,
-              selectedMember === item.uid && styles.selectedGrid,
+              selectedMember.includes(item.uid) && styles.selectedGrid,
             ]}
             // onLongPress={handleSelect}
           >
