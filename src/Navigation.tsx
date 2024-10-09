@@ -30,7 +30,8 @@ import ProfileInfo from "./screens/ProfileInfo";
 import ActivitySeeAll from "./screens/ActivitySeeAll";
 import OngoingActivities from "./screens/OngoingActivities";
 import CommunityProfile from "./screens/CommunityProfile";
-
+import MemberSeeAll from "./screens/MemberSeeAll";
+import AddAdmin from "./screens/AddAdmin";
 import NewProfile from "./screens/NewProfile";
 import Setting from "./screens/Setting";
 import ChangeYourPassword from "./screens/ChangeYourPassword";
@@ -208,16 +209,12 @@ const Navigation = () => {
             <Stack.Screen name="EditProfile" component={EditProfile} />
             <Stack.Screen name="Communities" component={Communities} />
             <Stack.Screen name="ActivitySeeAll" component={ActivitySeeAll} />
-            <Stack.Screen
-              name="CommunityProfile"
-              component={CommunityProfile}
-            />
+            <Stack.Screen name="CommunityProfile" component={CommunityProfile} />
+            <Stack.Screen name="MemberSeeAll" component={MemberSeeAll} />
+            <Stack.Screen name="AddAdmin" component={AddAdmin} />
             <Stack.Screen name="ActivityInfo" component={ActivityInfo} />
             <Stack.Screen name="ProfileInfo" component={ProfileInfo} />
-            <Stack.Screen
-              name="OngoingActivities"
-              component={OngoingActivities}
-            />
+            <Stack.Screen name="OngoingActivities" component={OngoingActivities}  />
 
             <Stack.Screen
               name="Account"

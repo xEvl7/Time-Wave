@@ -49,11 +49,9 @@ const CommunityProfile = ({
   const [editLogo, setEditLogo ]= useState(item.logo); //logo need to crop and update?
   const [editName, setEditName ] = useState(item.name); //handle name history
 
-
   const communityRequest = firebase.firestore().collection("Communities").doc(item.id).collection("requests");
   const update =  firebase.firestore().collection("Communities").doc(item.id);
 
-  console.log("into community profile ");
   console.log("item",item);
 
   //divide community's section
@@ -156,10 +154,9 @@ const CommunityProfile = ({
   });
   };
 
-  const handleSeeAllPress = () => {
-    // to see all available communities
-    navigation.navigate("ActivitySeeAll", { item })
-  };
+  // const handleSeeAllPress = () => {
+  //   navigation.navigate("MemberSeeAll", { item })
+  // };
 
   // const descriptionEdited = item.description;
 
@@ -192,7 +189,7 @@ const CommunityProfile = ({
 
               <View style={styles.contentContainer}>
                 <Text style={styles.subHeadertext}>About Our Community</Text>
-                  <ScrollView>
+                  {/* <ScrollView> */}
                       {/* <ParagraphText>{route.params.description} </ParagraphText> */}
                     {isAdmin? (
                       <TextInput 
@@ -205,28 +202,40 @@ const CommunityProfile = ({
                     ):(
                       <Text style={styles.descriptionText}> {item.description} </Text>
                     )}
-                  </ScrollView>
+                  {/* </ScrollView> */}
               </View>     
 
               <View style={styles.listHeader}>
-                <Text style={styles.subHeadertext} >Admins</Text>
+                {/* <Text style={styles.subHeadertext} >Admins</Text> */}
                 {/* <Header>Admins</Header> */}
-                <Pressable onPress={handleSeeAllPress}>
+                {/* <Pressable onPress={handleSeeAllPress}>
                   <ButtonText>See all</ButtonText>
-                </Pressable>
+                </Pressable> */}
               </View>                  
               <View style={styles.listContainer}>  
-                <AdminListSection navigation={navigation} item={item} isAdmin={isAdmin} docId={docId}/>
+                <AdminListSection 
+                  title={"Admins"} 
+                  navigation={navigation} 
+                  item={item} 
+                  isAdmin={isAdmin} 
+                  docId={docId}
+                />
               </View>
                   
               <View style={styles.listHeader}>
-                <Text style={styles.subHeadertext}>Volunteer Log History</Text>
+                {/* <Text style={styles.subHeadertext}>Volunteer Log History</Text>
                 <Pressable onPress={handleSeeAllPress}>
                   <ButtonText>See all</ButtonText>
-                </Pressable>
+                </Pressable> */}
               </View>
               <View style={styles.listContainer}>
-                <VolunteerListSection navigation={navigation} item={item} isAdmin={isAdmin} docId={docId}/>
+                <VolunteerListSection 
+                  title={"Volunteers"} 
+                  navigation={navigation} 
+                  item={item} 
+                  isAdmin={isAdmin} 
+                  docId={docId}
+                />
               </View>
 
               {/* activities */}
@@ -301,31 +310,34 @@ const NavigationItem = ({
 {/* const AdminListSection */}
 
 type UserListProps ={
-navigation: NavigationProp<RootStackParamList>;
-item: any;
-isAdmin: any;
-docId: any;
+  title: any;
+  navigation: NavigationProp<RootStackParamList>;
+  item: any;
+  isAdmin: any;
+  docId: any;
 };
 
 type UserType = {
-name: string;
-logo: string;
-isAdmin: any;
-docId: any;
-uid: any;
+  name: string;
+  logo: string;
+  isAdmin: any;
+  docId: any;
+  uid: any;
 };
 
 
 const renderAdminItems = ({
-item,
-navigation,
-isAdmin,
-docId,
+  title,
+  item,
+  navigation,
+  isAdmin,
+  docId,
 }:{
-item: UserType;
-navigation: any;
-isAdmin:any;
-docId: any;
+  title: any;
+  item: UserType;
+  navigation: any;
+  isAdmin:any;
+  docId: any;
 }) =>{
 
   const handleAdminProfile  = () => {
@@ -362,8 +374,11 @@ docId: any;
     );
   };
 
+
   return (
     <View>
+
+      
       { isAdmin ?(
                 <Pressable  
                   onPress={handleAdminProfile}
@@ -396,7 +411,7 @@ docId: any;
 
 
 
-const AdminListSection =({navigation,item,isAdmin, docId}:UserListProps) =>{
+const AdminListSection =({title,navigation,item,isAdmin, docId}:UserListProps) =>{
   const [user, setUserData] = useState<
         FirebaseFirestoreTypes.DocumentData[]
     >([]);
@@ -426,17 +441,28 @@ const AdminListSection =({navigation,item,isAdmin, docId}:UserListProps) =>{
   const limit = 5;
   const limitedAdminData = user.slice(0, limit);
 
+  const member = 1;
+  const handleSeeAllPress =()=>{
+    navigation.navigate("MemberSeeAll", { item ,member})
+    console.log("transfer see all ", item);
+  };
 
 
   return (
     <View>
+        <View style={styles.listHeader}>
+          <PrimaryText>{title}</PrimaryText>
+          <Pressable onPress={handleSeeAllPress}>
+            <ButtonText>See all</ButtonText>
+          </Pressable>
+        </View>
       <FlatList
       showsVerticalScrollIndicator={false}
         horizontal
         showsHorizontalScrollIndicator={false}
         data={limitedAdminData} // data from firebase
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => renderAdminItems({ item, navigation, isAdmin, docId })}
+        renderItem={({ item }) => renderAdminItems({ title, item, navigation, isAdmin, docId })}
         contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
         ListEmptyComponent={() => (
           <Text
@@ -457,9 +483,12 @@ const AdminListSection =({navigation,item,isAdmin, docId}:UserListProps) =>{
 
 // UserListSection
 const renderVolunteerItems = ({
+  title,
   item,
   navigation,
+  isAdmin,
   }:{
+  title:  any;
   item: UserType;
   navigation: any;
   isAdmin:any;
@@ -478,8 +507,8 @@ const renderVolunteerItems = ({
   </Pressable>
   );
   
-  const VolunteerListSection =({navigation,item,isAdmin}:UserListProps) =>{
-    const [user, setUserData] = useState<
+  const VolunteerListSection =({title,navigation,item,isAdmin}:UserListProps) =>{
+    const [userData, setUserData] = useState<
           FirebaseFirestoreTypes.DocumentData[]
       >([]);
   
@@ -496,7 +525,7 @@ const renderVolunteerItems = ({
               
               const fetchedUser = volunteerUser.docs.map((doc) => doc.data());
               setUserData(fetchedUser);
-              // console.log("name ", fetchedUser);
+              console.log("name ", fetchedUser);
          } catch (error) {
              console.error("Error fetching communities data:", error);
          }
@@ -506,19 +535,32 @@ const renderVolunteerItems = ({
      }, []);
   
     const limit = 5;
-    const limitedVolunteerData = user.slice(0, limit);
+    const limitedVolunteerData = userData.slice(0, limit);
+    const member = 0;
+
+    const handleSeeAllPress =()=>{
+      navigation.navigate("MemberSeeAll", { item, member })
+      console.log("transfer see all ", item);
+    };
   
   
   
     return (
       <View>
+        <View style={styles.listHeader}>
+          <PrimaryText>{title}</PrimaryText>
+          <Pressable onPress={handleSeeAllPress}>
+            <ButtonText>See all</ButtonText>
+          </Pressable>
+        </View>
+
         <FlatList
         showsVerticalScrollIndicator={false}
           horizontal
           showsHorizontalScrollIndicator={false}
           data={limitedVolunteerData} // data from firebase
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => renderAdminItems({ item, navigation, isAdmin })}
+          renderItem={({ item }) => renderAdminItems({title, item, navigation, isAdmin })}
           contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
           ListEmptyComponent={() => (
             <Text
@@ -551,8 +593,8 @@ type ActivityType = {
   logo: string;
   test: string;
   // Date: firebase.firestore.Timestamp;
-  startTime:firebase.firestore.Timestamp;
-  endTime: firebase.firestore.Timestamp;
+  startTime: Firebase.firestore.Timestamp;
+  endTime: Firebase.firestore.Timestamp;
   TandC: string;
   contactInfo: string;
   Location: string;
@@ -598,6 +640,7 @@ const OngoingListSection = ({ title, navigation,item }: ListSectionProps) => {
 
 const  reqDate = new Date();
 useEffect(() => {
+  console.log(" date is : ", item.endTime);
   if(item.endTime<= reqDate){
     console.log("past activity !");
   }
@@ -791,69 +834,6 @@ const PastListSection = ({ title, navigation,item }: ListSectionProps) => {
   );
 };
 
-
-// type people = {
-//     name: string;
-//     logo: string;
-// };
-
-// //type Activities = {
-// //  
-// //};
-
-// //Display people from firebase
-// const renderCommunitiesPeople = ({
-//     item,
-//     navigation,
-// }:{
-//     item: people;
-//     navigation: any;
-// }) => (   
-//         <View style={styles.peopleGrid}>
-//             <Image
-//             source={{
-//                 uri: item.logo,
-//             }}
-//             style = {styles.icon}
-//             />
-//             <Text style={styles.names}>{item.name}</Text>
-//         </View>
-// );
-
-// const CommunitiesProfile = ({ title, navigation }: ListSectionProps) =>{
-//     const [communitiesData, setCommunitiesData] = useState<
-//         FirebaseFirestoreTypes.DocumentData[]
-//     >([]);
-
-//     useEffect(() => {
-//         const fetchCommunitiesData = async () => {
-//             try{
-//                 const response = await firebase
-//                     .firestore()
-//                     .collection("Communities")
-//                     .get();
-//                 const fetchedCommunitiesData = response.docs.map((doc) => doc.data());
-//                 setCommunitiesData(fetchedCommunitiesData);
-//             } catch (error) {
-//                 console.error("Error fetching communities data:", error);
-//             }
-//         };
-
-//         fetchCommunitiesData();
-//     },[]);
-
-//     // const limit = 3;
-//     // const limitedPeopleData = communitiesData.slice(0,limit);
- 
-//     return(
-//         <View>
-//             <FlatList
-//             data={communitiesData}
-//             keyExtractor={(item)}
-//         </View>
-//     )
-
-// };
 
 export default CommunityProfile;
 

@@ -28,6 +28,8 @@ export type RootStackParamList = {
   ActivityInfo: undefined;
   OngoingActivities: undefined;
   ActivitySeeAll: { item: any };
+  MemberSeeAll: { item: any, member:any };
+  AddAdmin: { item:any, member:any };
 
   Profile: undefined;
 
