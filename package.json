@@ -27,6 +27,7 @@
     "expo-notifications": "^0.18.1",
     "expo-permissions": "~14.1.1",
     "expo-secure-store": "~12.1.1",
+    "expo-sharing": "~11.2.2",
     "expo-splash-screen": "~0.18.2",
     "expo-status-bar": "~1.4.4",
     "luxon": "^3.4.4",

@@ -7,7 +7,8 @@ import {
   Text, 
   View, 
   Image,
-  RefreshControl 
+  RefreshControl,
+  Share, 
 } from "react-native";
 
 import firestore from "@react-native-firebase/firestore";
@@ -19,6 +20,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import React, { useState, useEffect } from "react";
+import * as Linking from 'expo-linking';
+import * as Sharing from 'expo-sharing';
 
 let testpoint = 200;
 
@@ -33,6 +36,33 @@ export default function Reward({
 
   const [isInvalid, setIsInvalid] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+    // 分享功能逻辑
+    const shareReward = async () => {
+      try {
+        const result = await Share.share({
+          message: 'Check out this amazing reward!',
+          url: 'https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/sewing%20machine.png?alt=media&token=f42e4f7e-ed65-441a-b05b-66f743a70554',  // 你可以放置一个链接到你的奖励页面
+          title: 'Reward Share'
+        });
+  
+        if (result.action === Share.sharedAction) {
+          if (result.activityType) {
+            console.log('Shared with activity type: ' + result.activityType);
+          } else {
+            console.log('Shared successfully');
+          }
+        } else if (result.action === Share.dismissedAction) {
+          console.log('Share dismissed');
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          Alert.alert('Error', error.message);
+        } else {
+          Alert.alert('Unknown error occurred');
+        }
+      }
+    };
 
   useEffect(() => {
     const RID = item.RID;
@@ -102,10 +132,12 @@ export default function Reward({
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.share}>
-        <Image 
-          style={{ height: 50, width: 50, marginTop: 5, marginBottom: 5, marginRight: 5, resizeMode: 'contain' }} 
-          source={require("../assets/share.png")} 
-        />
+        <TouchableOpacity onPress={shareReward}>
+          <Image 
+            style={{ height: 50, width: 50, marginTop: 5, marginBottom: 5, marginRight: 5, resizeMode: 'contain' }} 
+            source={require("../assets/share.png")} 
+          />
+        </TouchableOpacity>
       </View> 
 
       <View style={styles.box}>

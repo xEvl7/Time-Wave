@@ -7,6 +7,7 @@ import {
   Pressable,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
@@ -21,6 +22,9 @@ import {
 } from "../features/userSlice";
 import RightDrop from "../components/RightDrop";
 import { RootState } from "../store";
+import * as ImagePicker from "expo-image-picker";
+import { ImagePickerResult } from "expo-image-picker";
+import storage from "@react-native-firebase/storage";
 import firestore from "@react-native-firebase/firestore";
 
 const Profile = ({
@@ -30,7 +34,9 @@ const Profile = ({
     useAppSelector((state) => state.user.data) || {};
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(true);
-  const [logo, setLogo] = useState<string | null>(null); // 新增的状态来保存用户的头像 URL
+  const [logo, setLogo] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const contributionData = useAppSelector(
     (state: RootState) => state.user.contributionData
@@ -63,12 +69,97 @@ const Profile = ({
     return () => unsubscribe(); // 清理订阅
   }, [emailAddress]);
 
+  // 上传图片到 Firebase Storage
+  const uploadImage = async (uri: string) => {
+    const timestamp = new Date().getTime();
+    const filename = `image_${timestamp}.jpg`;
+    const reference = storage().ref(`user/${filename}`);
+    const task = reference.putFile(uri);
+
+    try {
+      await task;
+      const url = await reference.getDownloadURL();
+      return url;
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      throw error;
+    }
+  };
+
+  // 选择图片
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission to access camera roll is required!");
+      return;
+    }
+  
+    let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+  
+    if (!result.canceled && result.assets && result.assets[0].uri) {
+      setImage(result.assets[0].uri); // Update user-selected image
+    } else {
+      console.log('Image selection cancelled or no image selected.');
+    }
+  };
+
+  const savePicture = async () => {
+    if (!image) {
+      Alert.alert('No Image Selected', 'Please select an image before saving.');
+      return;
+    }
+
+    Alert.alert(
+      'Save picture',
+      'Confirm?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'OK',
+          onPress: async () => {
+            try {
+              const uploadedImageUrl = await uploadImage(image); // Upload image
+              setLogo(uploadedImageUrl); // Update logo state
+
+              const usersRef = firestore().collection("Users");
+              const currentUserEmail = auth().currentUser?.email;
+
+              if (currentUserEmail) {
+                const querySnapshot = await usersRef.where("emailAddress", "==", currentUserEmail).get();
+                if (!querySnapshot.empty) {
+                  querySnapshot.forEach(async (doc) => {
+                    await usersRef.doc(doc.id).update({
+                      logo: uploadedImageUrl,
+                      // 其他用户数据更新
+                    });
+                  });
+                  Alert.alert("Success", "User logo updated successfully!");
+                  setImage(null); // 將 image 設置為 null，讓按鈕消失
+                }
+              }
+            } catch (error) {
+              console.error("Error uploading image or updating user data:", error);
+              Alert.alert("Error", "Failed to upload image. Please try again.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const calculateLevel = (hours: number) => {
     if (hours <= 10) return 1;
     if (hours <= 20) return 2;
     if (hours <= 30) return 3;
     return 4;
   };
+  
   const currentLevel = calculateLevel(contributedHours);
 
   const handleLogout = async () => {
@@ -90,8 +181,9 @@ const Profile = ({
         await dispatch(fetchUserContributionData(emailAddress));
       } catch (error) {
         console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false); // 确保在最终清理状态
       }
-      setIsLoading(false);
     };
     fetchData();
   }, [dispatch, emailAddress]);
@@ -113,10 +205,17 @@ const Profile = ({
       screen: "Account",
     },
     { title: "Admin Panel", subtitle: "", screen: "AdminControl" },
-    { title: "Settings", subtitle: "", screen: "Setting" ,
+    { title: "Settings", subtitle: "", screen: "Setting",
       subButtom: [
         { title: "Notification"},
       ],
+      subItems: [
+        {
+          title: "Edit Profile",
+          onNavigate: () => navigation.navigate("NewProfile"),
+        },
+      ],
+      
     },
     {
       title: "About Us",
@@ -131,20 +230,31 @@ const Profile = ({
     },
   ];
 
+  if (isLoading) {
+    return <Text>Loading...</Text>; // 显示加载状态
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.profileHeader}>
-        <TouchableOpacity onPress={() => navigation.navigate("NewProfile")}>
+        <TouchableOpacity onPress={pickImage}>
           <Image
-            source={logo ? { uri: logo } : require("../assets/profile-picture.png")} // 更新头像显示
+            source={logo ? { uri: logo } : require("../assets/profile-picture.png")} // Show profile picture
             style={styles.profileImage}
           />
         </TouchableOpacity>
+
+        
         <View style={styles.profileDetails}>
           <Field label="Name" value={name} />
           <Field label="Email Address" value={emailAddress} />
         </View>
       </View>
+      {image && (
+          <TouchableOpacity onPress={savePicture} style={styles.saveButton}>
+            <Text style={styles.saveButtonText}>Save Picture</Text>
+          </TouchableOpacity>
+        )}
       <FlatList
         data={navigationItems}
         keyExtractor={(item) => item.title}
@@ -202,31 +312,36 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
   },
   fieldContainer: {
-    marginBottom: 15,
+    marginVertical: 15,
   },
   fieldLabel: {
+    fontWeight: "bold",
     fontSize: 14,
-    color: "gray",
   },
   fieldValue: {
     fontSize: 16,
-    fontWeight: "bold",
   },
   flatListContainer: {
-    paddingBottom: 20,
+    paddingVertical: 20,
   },
-  divider: {
-    height: 1,
-    backgroundColor: "lightgray",
-    marginVertical: 10,
+  saveButton: {
+    backgroundColor: "#2C8CFF",
+    padding: 10,
+    borderRadius: 5,
+  },
+  saveButtonText: {
+    color: "#FFFFFF",
+    textAlign: "center",
   },
   logoutButton: {
+    
     alignItems: "center",
     marginVertical: 20,
   },
   logoutButtonText: {
     color: "#FF8D13",
     fontSize: 16,
+    textAlign: "center",
     fontWeight: "bold",
   },
 });
