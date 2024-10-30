@@ -81,12 +81,10 @@ const ActivityFlatList: React.FC<ActivityFlatListProps> = ({ data, type }) => {
             </>
           ) : (
             <>
-              <Text style={styles.listCategoryText}>Points Rewards</Text>
+              <Text style={styles.listCategoryText}>Points</Text>
               <View style={styles.tabContainer}>
-                <Text style={styles.listNameText}>Points</Text>
-                <Text style={styles.listPointsText}>
-                  {type === "received" ? `+${item.points}` : `-${item.points}`}
-                </Text>
+                <Text style={styles.listNameText}>{item.title}</Text>
+                <Text style={styles.listPointsText}>{descriptionText}</Text>
               </View>
             </>
           )}

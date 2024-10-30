@@ -226,7 +226,9 @@ export const fetchPointsReceivedData = createAsyncThunk(
       );
     }
 
+
     const userDocument = querySnapshot.docs[0];
+
     const PointsReceivedCollection = await userDocument.ref
       .collection("PointsReceived")
       .orderBy("date", "desc")
@@ -306,23 +308,55 @@ export const fetchPointsUsedData = createAsyncThunk(
 
 export const fetchUserActivitiesData = createAsyncThunk(
   "user/fetchUserActivitiesData",
-  async (emailAddress: string) => {
+  async ({
+    email,
+    startDate,
+    endDate,
+  }: {
+    email: string;
+    startDate: string | null;
+    endDate: string | null;
+  }) => {
     const querySnapshot = await firestore()
       .collection("Users")
-      .where("emailAddress", "==", emailAddress)
+      .where("emailAddress", "==", email)
       .get();
 
     if (querySnapshot.size !== 1) {
-      throw new Error(
-        `${emailAddress} Either has no data or more than 1 data.`
-      );
+      throw new Error(`${email} Either has no data or more than 1 data.`);
     }
 
     const userDocument = querySnapshot.docs[0];
-    const UserActivitiesCollection = await userDocument.ref
-      .collection("Activities")
-      .orderBy("scanTime", "desc")
-      .get();
+
+    // 创建活动查询的基础引用
+    let activitiesRef = userDocument.ref.collection("Activities");
+
+    // 如果 startDate 存在，则添加对应的 where 语句
+    if (startDate) {
+      const start = new Date(startDate).getTime(); // 转换为时间戳
+      activitiesRef = activitiesRef.where("scanTime", ">=", new Date(start));
+    }
+
+    // 如果 endDate 存在，则添加对应的 where 语句
+    if (endDate) {
+      const end = new Date(endDate).getTime(); // 转换为时间戳
+      activitiesRef = activitiesRef.where("scanTime", "<=", new Date(end));
+    }
+
+    // 添加排序
+    activitiesRef = activitiesRef.orderBy("scanTime", "desc");
+
+    const UserActivitiesCollection = await activitiesRef.get();
+
+    // const start = new Date(startDate).getTime();
+    // const end = new Date(endDate).getTime();
+
+    // const UserActivitiesCollection = await userDocument.ref
+    //   .collection("Activities")
+    //   // .where('scanTime', '>=', start)
+    //   // .where('scanTime', '<=', end)
+    //   .orderBy("scanTime", "desc")
+    //   .get();
 
     const activities: UserActivitiesData[] = [];
 
