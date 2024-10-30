@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect ,useState} from "react";
 import { Image, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { loadUserDataFromStore } from "./features/userSlice";
 import { RootStackParamList, BottomTabParamList } from "./Screen.types";
+import firestore from "@react-native-firebase/firestore";
 
 import Welcome from "./screens/Welcome";
 import Login from "./screens/Login";
@@ -43,7 +44,7 @@ import ContributionsHistory from "./screens/ContributionsHistory";
 import RewardsDetailsPage from "./screens/RewardsDetailsPage";
 import TimeBankRewardsPage from "./screens/TimeBankRewardsPage";
 import AdminControl from "./screens/AdminControl";
-import CommunityActivityHistory from "./screens/CommunityActivityHistory";
+//import CommunityActivityHistory from "./screens/CommunityActivityHistory";
 import ActivityHistory from "./screens/ActivityHistory";
 import RecentActivities from "./screens/RecentActivities";
 
@@ -51,6 +52,25 @@ const Tab = createBottomTabNavigator<BottomTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const TabNavigator = () => {
+  const [logo, setLogo] = useState<string | null>(null);
+  const emailAddress = useAppSelector((state) => state.user.data?.emailAddress);
+   // 从 Firestore 获取用户头像
+   useEffect(() => {
+    const unsubscribe = firestore()
+      .collection("Users")
+      .where("emailAddress", "==", emailAddress)
+      .onSnapshot((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            const userData = doc.data();
+            setLogo(userData.logo); // 实时更新 logo
+          });
+        }
+      });
+
+    return () => unsubscribe(); // 清理订阅
+  }, [emailAddress]);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -67,7 +87,7 @@ const TabNavigator = () => {
             // iconName = focused ? "person" : "person-outline";
             return (
               <Image
-                source={require("./assets/profile-picture.png")}
+                source={logo ? { uri: logo } : require("./assets/profile-picture.png")}
                 style={[
                   styles.profileIcon,
                   { borderColor: focused ? "#FF8D13" : "transparent" },

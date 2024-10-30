@@ -12,6 +12,7 @@ type UserData = {
   phoneNumber: string;
   emailAddress: string;
   points: number;
+  logo: string | null; // 允许为 null
 };
 
 type UserContributionData = {

@@ -7,13 +7,12 @@ import {
   Text, 
   View, 
   Image,
-  RefreshControl 
+  RefreshControl,
+  Share, 
 } from "react-native";
 
 import firestore from "@react-native-firebase/firestore";
 import TextButton from "../components/TextButton";
-import HeaderText from "../components/text_components/HeaderText";
-import BackgroundImageBox from "../components/BackgroundImageBox";
 import ContentContainer from "../components/ContentContainer";
 
 import { fetchRewardData } from "../features/rewardSlice";
@@ -21,6 +20,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import React, { useState, useEffect } from "react";
+import * as Linking from 'expo-linking';
+import * as Sharing from 'expo-sharing';
 
 let testpoint = 200;
 
@@ -33,14 +34,63 @@ export default function Reward({
   const dispatch = useAppDispatch();
   const { item } = route.params; // 獲取傳來的item參數
 
+  const [isInvalid, setIsInvalid] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+    // 分享功能逻辑
+    const shareReward = async () => {
+      try {
+        const result = await Share.share({
+          message: 'Check out this amazing reward!',
+          url: 'https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/sewing%20machine.png?alt=media&token=f42e4f7e-ed65-441a-b05b-66f743a70554',  // 你可以放置一个链接到你的奖励页面
+          title: 'Reward Share'
+        });
+  
+        if (result.action === Share.sharedAction) {
+          if (result.activityType) {
+            console.log('Shared with activity type: ' + result.activityType);
+          } else {
+            console.log('Shared successfully');
+          }
+        } else if (result.action === Share.dismissedAction) {
+          console.log('Share dismissed');
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          Alert.alert('Error', error.message);
+        } else {
+          Alert.alert('Unknown error occurred');
+        }
+      }
+    };
+
   useEffect(() => {
     const RID = item.RID;
     dispatch(fetchRewardData(RID));
   }, [dispatch]);
 
-  let img = rewardData?.image;
+  useEffect(() => {
+    if (rewardData) {
+      const now = new Date();
+      console.log(now)
+      const validityStartDate = new Date(rewardData.validityStartDate);
+      console.log(rewardData.validityStartDate)
+      const validityEndDate = new Date(rewardData.validityEndDate);
+      console.log(validityEndDate)
 
-  const [refreshing, setRefreshing] = React.useState(false);
+      // 检查奖励是否无效
+      if (now < validityStartDate) {
+        setIsInvalid(true); // 奖励尚未生效
+        console.log('Too early')
+      } else if (now > validityEndDate) {
+        setIsInvalid(true); // 奖励已过期
+        console.log('Too late')
+      } else {
+        setIsInvalid(false); // 奖励有效
+        console.log('Now valid')
+      }
+    }
+  }, [rewardData]);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -53,7 +103,7 @@ export default function Reward({
     testpoint -= 100;
     Alert.alert(
       'Redeemed with 100 points!',
-      'Use this reward by ' + now.toLocaleDateString() + ' Remaining Balance: ' + testpoint + ' points',
+      'Use this reward by ' + new Date().toLocaleDateString() + ' Remaining Balance: ' + testpoint + ' points',
     );
   };
 
@@ -82,19 +132,21 @@ export default function Reward({
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.share}>
-        <Image 
-          style={{ height: 50, width: 50, marginTop: 5, marginBottom: 5, marginRight: 5, resizeMode: 'contain' }} 
-          source={require("../assets/share.png")} 
-        />
+        <TouchableOpacity onPress={shareReward}>
+          <Image 
+            style={{ height: 50, width: 50, marginTop: 5, marginBottom: 5, marginRight: 5, resizeMode: 'contain' }} 
+            source={require("../assets/share.png")} 
+          />
+        </TouchableOpacity>
       </View> 
 
       <View style={styles.box}>
         <Image style={{ width: 40, height: 40 }} source={require("../assets/jpg.png")} />
-        <Image source={{ uri: img }} style={{ width: 100, height: 100 }} />
+        <Image source={{ uri: rewardData?.image }} style={{ width: 100, height: 100 }} />
       </View>
       
       <ContentContainer>
-      <Text style={styles.boldtext}> {rewardData?.name} </Text>
+        <Text style={styles.boldtext}> {rewardData?.name} </Text>
 
         <View style={styles.alternativesContainer}>
           <View style={styles.pointContainer}>
@@ -149,7 +201,7 @@ export default function Reward({
         <TextButton 
           style={{ position: 'absolute', bottom: 20, left: 5, right: 5, backgroundColor: "#FF8D13", elevation: 1 }}  
           textStyle={styles.mainButtonText} 
-          onPress={showAlert}
+          onPress={isInvalid ? () => Alert.alert('This reward is invalid or expired.') : showAlert}
         >
           Redeem
         </TextButton>
@@ -157,8 +209,6 @@ export default function Reward({
     </View>
   );
 }
-
-const now = new Date(); // get the current date
 
 const styles = StyleSheet.create({
   scrollcontainer: {
@@ -194,10 +244,6 @@ const styles = StyleSheet.create({
     width: "65%",
     marginBottom: 10,
     marginLeft: 20,
-  },
-  textContainer: {
-    minWidth: "78%",
-    flex: 1,
   },
   redeemContainer: {
     minWidth: "78%",
