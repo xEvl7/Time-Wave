@@ -1,17 +1,14 @@
 import {
-  TouchableOpacity, 
+  TouchableOpacity,
   Alert,
-  Pressable, 
   ScrollView,
-  StyleSheet, 
-  Text, 
-  View, 
+  StyleSheet,
+  Text,
+  View,
   Image,
-  RefreshControl,
-  Share, 
+  Share,
 } from "react-native";
 
-import firestore from "@react-native-firebase/firestore";
 import TextButton from "../components/TextButton";
 import ContentContainer from "../components/ContentContainer";
 
@@ -20,8 +17,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import React, { useState, useEffect } from "react";
-import * as Linking from 'expo-linking';
-import * as Sharing from 'expo-sharing';
+import { DateTime } from "luxon";
 
 let testpoint = 200;
 
@@ -32,37 +28,50 @@ export default function Reward({
 
   const rewardData = useAppSelector((state) => state.reward.data);
   const dispatch = useAppDispatch();
-  const { item } = route.params; // 獲取傳來的item參數
+  const { item } = route.params; // 获取传来的 item 参数
+  const validityStartDate = rewardData?.validityStartDate;
+  const validityEndDate = rewardData?.validityEndDate;
+
+  // 使用 Firebase Timestamp 创建 JavaScript Date 对象
+  const starttimestamp = new Date(
+    validityStartDate?.seconds * 1000 + validityStartDate?.nanoseconds / 1e6
+  );
+  const endtimestamp = new Date(
+    validityEndDate?.seconds * 1000 + validityEndDate?.nanoseconds / 1e6
+  );
+
+  // 将 JavaScript Date 对象转换为 Luxon DateTime 对象
+  const startluxonDateTime = DateTime.fromJSDate(starttimestamp).setZone("Asia/Singapore");
+  const endluxonDateTime = DateTime.fromJSDate(endtimestamp).setZone("Asia/Singapore");
 
   const [isInvalid, setIsInvalid] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-    // 分享功能逻辑
-    const shareReward = async () => {
-      try {
-        const result = await Share.share({
-          message: 'Check out this amazing reward!',
-          url: 'https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/sewing%20machine.png?alt=media&token=f42e4f7e-ed65-441a-b05b-66f743a70554',  // 你可以放置一个链接到你的奖励页面
-          title: 'Reward Share'
-        });
-  
-        if (result.action === Share.sharedAction) {
-          if (result.activityType) {
-            console.log('Shared with activity type: ' + result.activityType);
-          } else {
-            console.log('Shared successfully');
-          }
-        } else if (result.action === Share.dismissedAction) {
-          console.log('Share dismissed');
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          Alert.alert('Error', error.message);
+  const shareReward = async () => {
+    try {
+      const result = await Share.share({
+        message: 'Check out this amazing reward!',
+        url: 'https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/sewing%20machine.png?alt=media&token=f42e4f7e-ed65-441a-b05b-66f743a70554',
+        title: 'Reward Share'
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('Shared with activity type: ' + result.activityType);
         } else {
-          Alert.alert('Unknown error occurred');
+          console.log('Shared successfully');
         }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
       }
-    };
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert('Error', error.message);
+      } else {
+        Alert.alert('Unknown error occurred');
+      }
+    }
+  };
 
   useEffect(() => {
     const RID = item.RID;
@@ -71,45 +80,37 @@ export default function Reward({
 
   useEffect(() => {
     if (rewardData) {
-      const now = new Date();
-      console.log(now)
-      const validityStartDate = new Date(rewardData.validityStartDate);
-      console.log(rewardData.validityStartDate)
-      const validityEndDate = new Date(rewardData.validityEndDate);
-      console.log(validityEndDate)
+      const now = DateTime.now();
+      console.log('Current Time:', now);
+      console.log('Validity Start Time:', startluxonDateTime);
+      console.log('Validity End Time:', endluxonDateTime);
 
       // 检查奖励是否无效
-      if (now < validityStartDate) {
+      if (now < startluxonDateTime) {
         setIsInvalid(true); // 奖励尚未生效
-        console.log('Too early')
-      } else if (now > validityEndDate) {
+        console.log('Too early');
+      } else if (now > endluxonDateTime) {
         setIsInvalid(true); // 奖励已过期
-        console.log('Too late')
+        console.log('Too late');
       } else {
         setIsInvalid(false); // 奖励有效
-        console.log('Now valid')
+        console.log('Now valid');
       }
     }
   }, [rewardData]);
-
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
 
   const showTip = () => {
     testpoint -= 100;
     Alert.alert(
       'Redeemed with 100 points!',
-      'Use this reward by ' + new Date().toLocaleDateString() + ' Remaining Balance: ' + testpoint + ' points',
+      'Use this reward by ' + DateTime.now().toFormat("d MMM yyyy") + 
+      ' Remaining Balance: ' + testpoint + ' points'
     );
   };
 
   const showAlert = () => {
-    var price = rewardData?.price;
-    if (price != undefined) {
+    const price = rewardData?.price;
+    if (price !== undefined) {
       if (testpoint >= price) {
         Alert.alert(
           'Get This Reward!',
@@ -123,7 +124,7 @@ export default function Reward({
       } else {
         Alert.alert(
           "You don't have enough points",
-          "Don't worry! The more time you contribute, the more timebank points you will earn.",
+          "Don't worry! The more time you contribute, the more timebank points you will earn."
         );
       }
     }
@@ -131,20 +132,20 @@ export default function Reward({
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.share}>
-        <TouchableOpacity onPress={shareReward}>
-          <Image 
-            style={{ height: 50, width: 50, marginTop: 5, marginBottom: 5, marginRight: 5, resizeMode: 'contain' }} 
-            source={require("../assets/share.png")} 
+      <View style={styles.box}>
+        <TouchableOpacity onPress={shareReward} style={styles.shareButton}>
+          <Image
+          style={{ height: 30, width: 30 }} // 调整大小以适应
+          source={require("../assets/share.png")}
           />
         </TouchableOpacity>
-      </View> 
+  
+        <Image source={{ uri: rewardData?.image }} style={styles.rewardImage} />
 
-      <View style={styles.box}>
-        <Image style={{ width: 40, height: 40 }} source={require("../assets/jpg.png")} />
-        <Image source={{ uri: rewardData?.image }} style={{ width: 100, height: 100 }} />
+        <Image style={styles.supplierLogo} source={{ uri: rewardData?.supplierLogo }} />
       </View>
-      
+
+
       <ContentContainer>
         <Text style={styles.boldtext}> {rewardData?.name} </Text>
 
@@ -153,25 +154,28 @@ export default function Reward({
             <Text style={styles.boldtext}> Prices</Text>
             <Text style={{ fontSize: 20 }}>{rewardData?.price} points </Text>
           </View>
-          <View style={styles.verticleLine} />{/* vertical line */}
+          <View style={styles.verticleLine} />
           <View style={styles.validityContainer}>
             <Text style={styles.boldtext}>Validity</Text>
-            <Text style={{ fontSize: 20 }}>{rewardData?.validityStartDate} to</Text>
-            <Text style={{ fontSize: 20 }}>{rewardData?.validityEndDate} </Text>
+            <Text style={{ fontSize: 20 }}>
+              {startluxonDateTime?.toFormat("d MMM yyyy")} to
+            </Text>
+            <Text style={{ fontSize: 20 }}>
+              {endluxonDateTime?.toFormat("d MMM yyyy")}
+            </Text>
           </View>
         </View>
-        
-        <View style={{ borderBottomColor: 'black', borderBottomWidth: StyleSheet.hairlineWidth }} />{/* line */}
+
+        <View style={{ borderBottomColor: 'black', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
         <View style={styles.scrollViewContainer}>
-          <ScrollView 
-            contentContainerStyle={styles.scrollcontainer} 
-            >
+          <ScrollView contentContainerStyle={styles.scrollcontainer}>
             <View style={styles.boxs}>
               <Text style={styles.boldtext}>Highlight</Text>
               <Text style={{ marginTop: 5, marginBottom: 10 }}>{rewardData?.highlight}</Text>
             </View>
             
+
             <View style={styles.boxs}>
               <Text style={styles.boldtext}>Terms & Conditions</Text>
               <Text style={{ marginTop: 5, marginBottom: 10 }}>{rewardData?.termsConditions}</Text>
@@ -183,7 +187,7 @@ export default function Reward({
             </View>
           </ScrollView>
         </View>
-        
+
       </ContentContainer>
 
       <View
@@ -195,12 +199,12 @@ export default function Reward({
           borderBottomColor: 'black',
           borderBottomWidth: StyleSheet.hairlineWidth,
         }}
-      />{/* line */}
+      />
 
       <View style={styles.redeemContainer}>
-        <TextButton 
-          style={{ position: 'absolute', bottom: 20, left: 5, right: 5, backgroundColor: "#FF8D13", elevation: 1 }}  
-          textStyle={styles.mainButtonText} 
+        <TextButton
+          style={{ position: 'absolute', bottom: 20, left: 5, right: 5, backgroundColor: "#FF8D13", elevation: 1 }}
+          textStyle={styles.mainButtonText}
           onPress={isInvalid ? () => Alert.alert('This reward is invalid or expired.') : showAlert}
         >
           Redeem
@@ -255,26 +259,36 @@ const styles = StyleSheet.create({
   },
   box: {
     flexDirection: "row",
-    height: "16%",
+    height: "22%",
     width: "100%",
     backgroundColor: "#FF8D13",
     alignItems: "center",
     justifyContent: "center",
+    position: 'relative', // 使得子元素能够绝对定位
   },
-  share: {
-    flexDirection: "row",
-    height: "7%",
-    width: "100%",
-    backgroundColor: "#FF8D13",
-    alignItems: "flex-start",
-    justifyContent: "flex-end",
+  shareButton: {
+    position: 'absolute', // 绝对定位
+    top: 10, // 距离顶部的距离
+    right: 10, // 距离右边的距离
+  },
+  rewardImage: {
+    width: 100,
+    height: 100,
+    // 其他样式...
+  },
+  supplierLogo: {
+    width: 40,
+    height: 40,
+    position: 'absolute', // 绝对定位
+    bottom: 10, // 距离底部的距离
+    left: 10, // 距离左边的距离
   },
   mainButtonText: {
     color: "#06090C",
   },
   verticleLine: {
     height: '100%',
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     backgroundColor: '#909090',
   },
 });
