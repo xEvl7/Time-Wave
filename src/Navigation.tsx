@@ -28,6 +28,8 @@ import Communities from "./screens/Communities";
 import ActivityInfo from "./screens/ActivityInfo";
 import ProfileInfo from "./screens/ProfileInfo";
 import ActivitySeeAll from "./screens/ActivitySeeAll";
+import CreateActivity from "./screens/CreateActivity";
+import EditActivity from "./screens/EditActivity";
 import OngoingActivities from "./screens/OngoingActivities";
 import CommunityProfile from "./screens/CommunityProfile";
 import MemberSeeAll from "./screens/MemberSeeAll";
@@ -215,6 +217,9 @@ const Navigation = () => {
             <Stack.Screen name="ActivityInfo" component={ActivityInfo} />
             <Stack.Screen name="ProfileInfo" component={ProfileInfo} />
             <Stack.Screen name="OngoingActivities" component={OngoingActivities}  />
+            <Stack.Screen name="CreateActivity" component={CreateActivity} />
+            <Stack.Screen name="EditActivity" component={EditActivity} />
+
 
             <Stack.Screen
               name="Account"
