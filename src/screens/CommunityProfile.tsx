@@ -7,16 +7,22 @@ import {
   Pressable,
   ImageSourcePropType,
   GestureResponderEvent,
+  TouchableOpacity,
   ScrollView,
-Alert } 
+  Alert } 
 from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-
+import * as ImagePicker from "expo-image-picker";
+import { ImagePickerResult } from "expo-image-picker";
+import storage from "@react-native-firebase/storage";
+import { RootState } from "../store";
+import firestore from "@react-native-firebase/firestore";
 import React, { useEffect, useState } from "react";
 import ContentContainer from "../components/ContentContainer";
 import ProfilePicture from "../components/ProfilePicture";
 import ParagraphText from "../components/text_components/ParagraphText";
 import { RootStackParamList } from "../Screen.types";
+import auth from "@react-native-firebase/auth";
 import {
   FirebaseFirestoreTypes,
   firebase,
@@ -24,7 +30,7 @@ import {
 import'@react-native-firebase/firestore';
 import { RouteProp, useRoute } from "@react-navigation/native";
 import PrimaryText from "../components/text_components/PrimaryText";
-import { useAppSelector } from "../hooks";
+import { useAppSelector, useAppDispatch  } from "../hooks";
 import { selectUserName } from "../features/userSlice";
 import { NavigationProp } from "@react-navigation/native";
 import ButtonText from "../components/text_components/ButtonText";
@@ -33,6 +39,7 @@ import TextButton from "../components/TextButton";
 import { TextInput } from "react-native-paper";
 import Navigation from "../Navigation";
 import { Header } from "react-native/Libraries/NewAppScreen";
+
 
 const CommunityProfile = ({
   navigation,
@@ -46,14 +53,13 @@ const CommunityProfile = ({
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [editDescription, setEditDescription] = useState(item.description);
-  const [editLogo, setEditLogo ]= useState(item.logo); //logo need to crop and update?
-  const [editName, setEditName ] = useState(item.name); //handle name history
+  //const [editLogo, setEditLogo ]= useState(item.logo); //logo need to crop and update?
+  const [editName, setEditName ] = useState(item.name); //handle name history  
+  const [image, setImage] = useState<string | null>(item.logo);
 
-
-  const communityRequest = firebase.firestore().collection("Communities").doc(item.id).collection("requests");
+  //const communityRequest = firebase.firestore().collection("Communities").doc(item.id).collection("requests");
   const update =  firebase.firestore().collection("Communities").doc(item.id);
 
-  console.log("into community profile ");
   console.log("item",item);
 
   //divide community's section
@@ -77,89 +83,134 @@ const CommunityProfile = ({
 
   //update edit
   const handleEdit = () =>{
+    savePicture;
     console.log("item");
     console.log(item.id);
-
-  
-    // firebase.firestore().collection("Communities").doc(item.id).update({admins: ["hkjtZmqCezPMdaIoLzaOqfAXg692", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"],
-    //     description: "3",
-	  //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?	alt=media&token=e8d46cac-54c4-4aeb-96bb-1953d9d2abdf",
-	  //     name: "3",
-    // });
-      console.log("update.update ok");
+    console.log("update.update ok");
       update.update({
         description: editDescription,//editDescription,
-        logo: editLogo,
+        logo: image, //editLogo,
         name: editName,
       });
-    //   firebase.firestore().collection("Communities").doc(item.id).update({
-    //     description: "3",
-    //     name: "3", 
-    //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?alt=media&token=e8d46cac-54c4-4aeb-96bb-1953d9d2abdf", 
-    //     admins: ["3VdDsH9fsVZdiwSZMseYE6er","hkjtZmqCezPMdaIoLzaOqfAXg692", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"], 
-    //     volunteer: ["hkjtZmqCezPMdaIoLzaOqfAX", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"],
-        
-    //     Reward: ["R1", "R2", "R3"]
-    // });
-    
-
-
     Alert.alert('',"Content Updated Successfuly",[
       { text: 'OK', onPress: () => console.log('OK Pressed') },
     ],
       { cancelable: true }
     );
-
   };
 
-  // const handleAdminProfile  = () => {
-  //   // to see all available communities
-  //   navigation.navigate("ActivitySeeAll", { item })
-  // };
-
   const handlePressJoin = () => {
-  //   firebase.firestore().collection("Communities").doc(item.id).update({
-  //     description: "3",
-  //     name: "3", 
-  //     logo: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/communityLogo%2F4ad9f82f-c5db-4b2b-ae3c-96a85213cd82.jpeg?alt=media&token=e8d46cac-54c4-4aeb-96bb-1953d9d2abdf", 
-  //     admins: ["3VdDsH9fsVZdiwSZMseYE6er","hkjtZmqCezPMdaIoLzaOqfAXg692", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"], 
-  //     volunteer: ["hkjtZmqCezPMdaIoLzaOqfAX", "Sz8tqFiwTadbmMSpK2lLuMHHU5l2"],
-      
-  //     Reward: ["R1", "R2", "R3"]
-  // });
-    Alert.alert('',"Join Request Sent Successfuly",[
+     Alert.alert('',"Join Request Sent Successfuly",[
       { text: 'OK', onPress: () => console.log('OK Pressed') },
     ],
     { cancelable: true }
   );
+  }
 
-  // const handleAdminProfile  = () => {
-  //   Alert.alert('',"Modify This Admin?",[
-  //     { text: 'View Profile', onPress: () =>{console.log('OK Pressed');navigation.navigate("ProfileInfo", { item }) }},
-  //     { text: 'Remove Admin', onPress: () => console.log('OK Pressed') },
-  //   ],
-  //     { cancelable: true }
-  //   );
+  // new
+
+  const uploadImage = async (uri: string) => {
+    const timestamp = new Date().getTime();
+    const filename = `image_${timestamp}.jpg`;
+    const reference = storage().ref(`user/${filename}`);
+    const task = reference.putFile(uri);
+    
+    try {
+      await task;
+      const url = await reference.getDownloadURL();
+      return url;
+      console.log("Uploaded image URL:", url);
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      throw error;
+    }
+  };
+
+  // 选择图片
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission to access camera roll is required!");
+      return;
+    }
+  
+    let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+  
+    if (!result.canceled && result.assets && result.assets[0].uri) {
+      setImage(result.assets[0].uri); // Update user-selected image
+    } else {
+      console.log('Image selection cancelled or no image selected.');
+    }
+  };
+
+  const savePicture = async () => {
+    if (!image) {
+      Alert.alert('No Image Selected', 'Please select an image before saving.');
+      return;
+    }
+
+    Alert.alert(
+      'Save picture',
+      'Confirm?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'OK',
+          onPress: async () => {
+            try {
+              const uploadedImageUrl = await uploadImage(image); // Upload image
+              setImage(uploadedImageUrl); // Update logo state
+
+              const usersRef = firestore().collection("Communities"); //.doc(docId);
+              //const currentUserEmail = auth().currentUser?.email;
+
+              if (docId) {
+                const querySnapshot = await usersRef.doc(item.id).get(); //where(doc ,"==" ,docId).get();//.doc(item.id).get();//.where("emailAddress", "==", docId).get(); //usersRef; //
+                if (!querySnapshot.exists) {
+                //for (const doc of querySnapshot.docs){
+                //querySnapshot.forEach(async (doc) => {
+                    await usersRef.doc(item.id).update({
+                      logo: uploadedImageUrl,
+                      // 其他用户数据更新
+                    });
+                  // });
+                  Alert.alert("Success", "User logo updated successfully!");
+                  setImage(null); // 將 image 設置為 null，讓按鈕消失
+                }
+              }
+            } catch (error) {
+              console.error("Error uploading image or updating user data:", error);
+              Alert.alert("Error", "Failed to upload image. Please try again.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // const reqDate = new Date();
+
+  // communityRequest.add({
+  //   uid:userId,
+  //   date:reqDate,
+  // })
+  // .then(() => {
+  //   console.log('User added!');
+  // })
+  // .catch(error => {
+  //   console.error('Error adding user: ', error);
+  // });
   // };
 
-  const reqDate = new Date();
-
-  communityRequest.add({
-    uid:userId,
-    date:reqDate,
-  })
-  .then(() => {
-    console.log('User added!');
-  })
-  .catch(error => {
-    console.error('Error adding user: ', error);
-  });
-  };
-
-  const handleSeeAllPress = () => {
-    // to see all available communities
-    navigation.navigate("ActivitySeeAll", { item })
-  };
+  // const handleSeeAllPress = () => {
+  //   navigation.navigate("MemberSeeAll", { item })
+  // };
 
   // const descriptionEdited = item.description;
 
@@ -167,14 +218,14 @@ const CommunityProfile = ({
       <>
       <View>
         <ScrollView>
-          <View style={styles.pictureContainer}>
+          <TouchableOpacity onPress={pickImage} style={styles.pictureContainer}>
               <Image       
-                  source={{
-                      uri: item.logo,
-                  }}
+                  source={
+                    {...image ? { uri: image } : require("../assets/profile-picture.png")}
+                  }
               style={styles.iconImage}/>   
               {/* <Text style ={styles.descriptionText}>a cover photo</Text>              */}
-          </View>
+          </TouchableOpacity >
             <ContentContainer>
               <View style={styles.Header}>
                 {isAdmin? ( 
@@ -192,7 +243,7 @@ const CommunityProfile = ({
 
               <View style={styles.contentContainer}>
                 <Text style={styles.subHeadertext}>About Our Community</Text>
-                  <ScrollView>
+                  {/* <ScrollView> */}
                       {/* <ParagraphText>{route.params.description} </ParagraphText> */}
                     {isAdmin? (
                       <TextInput 
@@ -205,28 +256,40 @@ const CommunityProfile = ({
                     ):(
                       <Text style={styles.descriptionText}> {item.description} </Text>
                     )}
-                  </ScrollView>
+                  {/* </ScrollView> */}
               </View>     
 
               <View style={styles.listHeader}>
-                <Text style={styles.subHeadertext} >Admins</Text>
+                {/* <Text style={styles.subHeadertext} >Admins</Text> */}
                 {/* <Header>Admins</Header> */}
-                <Pressable onPress={handleSeeAllPress}>
+                {/* <Pressable onPress={handleSeeAllPress}>
                   <ButtonText>See all</ButtonText>
-                </Pressable>
+                </Pressable> */}
               </View>                  
               <View style={styles.listContainer}>  
-                <AdminListSection navigation={navigation} item={item} isAdmin={isAdmin} docId={docId}/>
+                <AdminListSection 
+                  title={"Admins"} 
+                  navigation={navigation} 
+                  item={item} 
+                  isAdmin={isAdmin} 
+                  docId={docId}
+                />
               </View>
                   
               <View style={styles.listHeader}>
-                <Text style={styles.subHeadertext}>Volunteer Log History</Text>
+                {/* <Text style={styles.subHeadertext}>Volunteer Log History</Text>
                 <Pressable onPress={handleSeeAllPress}>
                   <ButtonText>See all</ButtonText>
-                </Pressable>
+                </Pressable> */}
               </View>
               <View style={styles.listContainer}>
-                <VolunteerListSection navigation={navigation} item={item} isAdmin={isAdmin} docId={docId}/>
+                <VolunteerListSection 
+                  title={"Volunteers"} 
+                  navigation={navigation} 
+                  item={item} 
+                  isAdmin={isAdmin} 
+                  docId={docId}
+                />
               </View>
 
               {/* activities */}
@@ -301,31 +364,34 @@ const NavigationItem = ({
 {/* const AdminListSection */}
 
 type UserListProps ={
-navigation: NavigationProp<RootStackParamList>;
-item: any;
-isAdmin: any;
-docId: any;
+  title: any;
+  navigation: NavigationProp<RootStackParamList>;
+  item: any;
+  isAdmin: any;
+  docId: any;
 };
 
 type UserType = {
-name: string;
-logo: string;
-isAdmin: any;
-docId: any;
-uid: any;
+  name: string;
+  logo: string;
+  isAdmin: any;
+  docId: any;
+  uid: any;
 };
 
 
 const renderAdminItems = ({
-item,
-navigation,
-isAdmin,
-docId,
+  title,
+  item,
+  navigation,
+  isAdmin,
+  docId,
 }:{
-item: UserType;
-navigation: any;
-isAdmin:any;
-docId: any;
+  title: any;
+  item: UserType;
+  navigation: any;
+  isAdmin:any;
+  docId: any;
 }) =>{
 
   const handleAdminProfile  = () => {
@@ -362,8 +428,11 @@ docId: any;
     );
   };
 
+
   return (
     <View>
+
+      
       { isAdmin ?(
                 <Pressable  
                   onPress={handleAdminProfile}
@@ -396,7 +465,7 @@ docId: any;
 
 
 
-const AdminListSection =({navigation,item,isAdmin, docId}:UserListProps) =>{
+const AdminListSection =({title,navigation,item,isAdmin, docId}:UserListProps) =>{
   const [user, setUserData] = useState<
         FirebaseFirestoreTypes.DocumentData[]
     >([]);
@@ -426,17 +495,28 @@ const AdminListSection =({navigation,item,isAdmin, docId}:UserListProps) =>{
   const limit = 5;
   const limitedAdminData = user.slice(0, limit);
 
+  const member = 1;  //admin
+  const handleSeeAllPress =()=>{
+    navigation.navigate("MemberSeeAll", { item ,member})
+    console.log("transfer see all ", item);
+  };
 
 
   return (
     <View>
+        <View style={styles.listHeader}>
+          <PrimaryText>{title}</PrimaryText>
+          <Pressable onPress={handleSeeAllPress}>
+            <ButtonText>See all</ButtonText>
+          </Pressable>
+        </View>
       <FlatList
       showsVerticalScrollIndicator={false}
         horizontal
         showsHorizontalScrollIndicator={false}
         data={limitedAdminData} // data from firebase
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => renderAdminItems({ item, navigation, isAdmin, docId })}
+        renderItem={({ item }) => renderAdminItems({ title, item, navigation, isAdmin, docId })}
         contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
         ListEmptyComponent={() => (
           <Text
@@ -457,9 +537,12 @@ const AdminListSection =({navigation,item,isAdmin, docId}:UserListProps) =>{
 
 // UserListSection
 const renderVolunteerItems = ({
+  title,
   item,
   navigation,
+  isAdmin,
   }:{
+  title:  any;
   item: UserType;
   navigation: any;
   isAdmin:any;
@@ -478,8 +561,8 @@ const renderVolunteerItems = ({
   </Pressable>
   );
   
-  const VolunteerListSection =({navigation,item,isAdmin}:UserListProps) =>{
-    const [user, setUserData] = useState<
+  const VolunteerListSection =({title,navigation,item,isAdmin}:UserListProps) =>{
+    const [userData, setUserData] = useState<
           FirebaseFirestoreTypes.DocumentData[]
       >([]);
   
@@ -496,7 +579,7 @@ const renderVolunteerItems = ({
               
               const fetchedUser = volunteerUser.docs.map((doc) => doc.data());
               setUserData(fetchedUser);
-              // console.log("name ", fetchedUser);
+              console.log("name ", fetchedUser);
          } catch (error) {
              console.error("Error fetching communities data:", error);
          }
@@ -506,19 +589,32 @@ const renderVolunteerItems = ({
      }, []);
   
     const limit = 5;
-    const limitedVolunteerData = user.slice(0, limit);
+    const limitedVolunteerData = userData.slice(0, limit);
+    const member = 0;
+
+    const handleSeeAllPress =()=>{
+      navigation.navigate("MemberSeeAll", { item, member })
+      console.log("transfer see all ", item);
+    };
   
   
   
     return (
       <View>
+        <View style={styles.listHeader}>
+          <PrimaryText>{title}</PrimaryText>
+          <Pressable onPress={handleSeeAllPress}>
+            <ButtonText>See all</ButtonText>
+          </Pressable>
+        </View>
+
         <FlatList
         showsVerticalScrollIndicator={false}
           horizontal
           showsHorizontalScrollIndicator={false}
           data={limitedVolunteerData} // data from firebase
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => renderAdminItems({ item, navigation, isAdmin })}
+          renderItem={({ item }) => renderVolunteerItems({title, item, navigation, isAdmin })}
           contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
           ListEmptyComponent={() => (
             <Text
@@ -551,8 +647,8 @@ type ActivityType = {
   logo: string;
   test: string;
   // Date: firebase.firestore.Timestamp;
-  startTime:firebase.firestore.Timestamp;
-  endTime: firebase.firestore.Timestamp;
+  startTime: Firebase.firestore.Timestamp;
+  endTime: Firebase.firestore.Timestamp;
   TandC: string;
   contactInfo: string;
   Location: string;
@@ -598,6 +694,7 @@ const OngoingListSection = ({ title, navigation,item }: ListSectionProps) => {
 
 const  reqDate = new Date();
 useEffect(() => {
+  console.log(" date is : ", item.endTime);
   if(item.endTime<= reqDate){
     console.log("past activity !");
   }
@@ -791,69 +888,6 @@ const PastListSection = ({ title, navigation,item }: ListSectionProps) => {
   );
 };
 
-
-// type people = {
-//     name: string;
-//     logo: string;
-// };
-
-// //type Activities = {
-// //  
-// //};
-
-// //Display people from firebase
-// const renderCommunitiesPeople = ({
-//     item,
-//     navigation,
-// }:{
-//     item: people;
-//     navigation: any;
-// }) => (   
-//         <View style={styles.peopleGrid}>
-//             <Image
-//             source={{
-//                 uri: item.logo,
-//             }}
-//             style = {styles.icon}
-//             />
-//             <Text style={styles.names}>{item.name}</Text>
-//         </View>
-// );
-
-// const CommunitiesProfile = ({ title, navigation }: ListSectionProps) =>{
-//     const [communitiesData, setCommunitiesData] = useState<
-//         FirebaseFirestoreTypes.DocumentData[]
-//     >([]);
-
-//     useEffect(() => {
-//         const fetchCommunitiesData = async () => {
-//             try{
-//                 const response = await firebase
-//                     .firestore()
-//                     .collection("Communities")
-//                     .get();
-//                 const fetchedCommunitiesData = response.docs.map((doc) => doc.data());
-//                 setCommunitiesData(fetchedCommunitiesData);
-//             } catch (error) {
-//                 console.error("Error fetching communities data:", error);
-//             }
-//         };
-
-//         fetchCommunitiesData();
-//     },[]);
-
-//     // const limit = 3;
-//     // const limitedPeopleData = communitiesData.slice(0,limit);
- 
-//     return(
-//         <View>
-//             <FlatList
-//             data={communitiesData}
-//             keyExtractor={(item)}
-//         </View>
-//     )
-
-// };
 
 export default CommunityProfile;
 

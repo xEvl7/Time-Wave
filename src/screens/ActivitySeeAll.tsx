@@ -25,6 +25,8 @@ import {
   import { selectUserName } from "../features/userSlice";
   import { NavigationProp } from "@react-navigation/native";
   import ButtonText from "../components/text_components/ButtonText";
+import TextButton from "../components/TextButton";
+import CreateActivity from "./CreateActivity";
   
   const ActivitySeeAll = ({
     navigation,
@@ -45,6 +47,7 @@ import {
               item={item}
             />
           </ScrollView>
+          <TextButton onPress={()=>navigation.navigate("CreateActivity" )}> New Activity</TextButton>
         </View>
       </>
     );
