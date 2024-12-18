@@ -37,10 +37,14 @@ const RecentActivities = ({
 
   const [isLoading, setIsLoading] = useState(true);
 
+  const [startDate, setStartDate] = useState<string | null>(null); // 初始为 null
+  const [endDate, setEndDate] = useState<string | null>(null); // 初始为 null
+
   useEffect(() => {
     dispatch(fetchPointsReceivedData(email));
     dispatch(fetchPointsUsedData(email));
-    dispatch(fetchUserActivitiesData(email));
+    // dispatch(fetchUserActivitiesData(email));
+    dispatch(fetchUserActivitiesData({ email, startDate, endDate }));
   }, [dispatch, email]);
 
   useEffect(() => {
@@ -77,19 +81,89 @@ const RecentActivities = ({
           : `Activity: ${activity.activityName || "Unknown"}`, // Description for activities
     }));
 
-    return [...pointsData, ...usedData, ...activities].map((item) => ({
-      date: item.date,
-      time: item.time,
-      title: item.title,
-      description: item.description,
-    }));
+    // console.log("Points Data:", pointsData);
+    // console.log("Used Data:", usedData);
+    // console.log("Activities:", activities);
+
+    // Combine and sort the data
+    const combinedData = [...pointsData, ...usedData, ...activities];
+
+    // console.log("Combined Data:", combinedData);
+
+    // Parse and sort by date and time
+    const sortedData = combinedData.sort((a, b) => {
+      const dateA = safeParseDateTime(a.date, a.time);
+      const dateB = safeParseDateTime(b.date, b.time);
+      return dateB - dateA; // Sort in descending order (latest first)
+    });
+
+    // console.log("Sorted Data:", sortedData);
+
+    // Return only the top 10 results
+    return sortedData.slice(0, 10);
   };
 
-  const sortedActivities = normalizeData().sort((a, b) => {
-    const dateA = new Date(`${a.date} ${a.time}`).getTime();
-    const dateB = new Date(`${b.date} ${b.time}`).getTime();
-    return dateB - dateA; // Sort in descending order (latest first)
-  });
+  // Helper function to safely parse date and time
+  const safeParseDateTime = (dateStr: string, timeStr: string) => {
+    const validDateStr = convertDate(dateStr); // 转换为 "YYYY-MM-DD"
+    const validTimeStr = validateTime(timeStr); // 确保时间有效
+    const dateTimeStr = `${validDateStr}T${validTimeStr}`; // 拼接成 ISO 格式字符串
+
+    const parsedDate = Date.parse(dateTimeStr);
+    return isNaN(parsedDate) ? Date.parse("1970-01-01T00:00:00") : parsedDate; // 解析失败则返回默认时间
+  };
+
+  // Helper function to convert "Wed, 25 Sep 2024" to "2024-09-25"
+  const convertDate = (dateStr) => {
+    const months = {
+      Jan: "01",
+      Feb: "02",
+      Mar: "03",
+      Apr: "04",
+      May: "05",
+      Jun: "06",
+      Jul: "07",
+      Aug: "08",
+      Sep: "09",
+      Oct: "10",
+      Nov: "11",
+      Dec: "12",
+    };
+
+    if (!dateStr) return "1970-01-01"; // 如果日期无效，返回默认日期
+
+    const [dayOfWeek, day, monthStr, year] = dateStr.split(" ");
+    const month = months[monthStr];
+
+    if (!day || !month || !year) return "1970-01-01"; // 确保日期解析有效
+
+    return `${year}-${month}-${day.padStart(2, "0")}`; // 返回标准格式日期
+  };
+
+  // 新增的时间验证函数
+  const validateTime = (timeStr) => {
+    const validTime = /^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?\s?(AM|PM)?$/i;
+
+    if (validTime.test(timeStr)) {
+      if (timeStr.includes("AM") || timeStr.includes("PM")) {
+        // 如果时间包含 AM/PM，我们需要转换为 24 小时制
+        const [time, modifier] = timeStr.split(" ");
+        let [hours, minutes] = time.split(":");
+        if (modifier.toUpperCase() === "PM" && hours !== "12") {
+          hours = String(Number(hours) + 12);
+        }
+        if (modifier.toUpperCase() === "AM" && hours === "12") {
+          hours = "00";
+        }
+        return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`;
+      }
+      return timeStr;
+    }
+
+    return "00:00:00"; // 无效时间返回午夜
+  };
+
+  const sortedActivities = normalizeData();
 
   return (
     <View style={styles.container}>
