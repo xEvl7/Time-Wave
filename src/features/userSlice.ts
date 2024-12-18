@@ -305,6 +305,7 @@ export const fetchPointsUsedData = createAsyncThunk(
   }
 );
 
+
 export const fetchUserActivitiesData = createAsyncThunk(
   "user/fetchUserActivitiesData",
   async (emailAddress: string) => {
