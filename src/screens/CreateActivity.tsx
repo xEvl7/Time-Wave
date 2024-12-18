@@ -33,8 +33,8 @@ const CreateActivity = ({
 
   const [image, setImage] = useState<string | null>(null);
   const [availableAdmins, setAvailableAdmins] = useState<any[]>([]);
-  
 
+  //handle create
   const handleCreateActivity = async (data: ActivityProps) => {
     if (!ownUserId) {
       console.error("Current user ID is required.");
@@ -55,6 +55,7 @@ const CreateActivity = ({
 
     await activityRef.set(data);
 
+    //no need to choose admin?
     const usersSnapshot = await firestore().collection("Users").get();
     const batch = firestore().batch();
 
