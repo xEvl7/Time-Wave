@@ -157,6 +157,7 @@ const CreateActivity = ({
             + Add a cover photo
           </Text>
         </View>
+        
         <View style={{ paddingTop: 10 }}>
           <PrimaryText>Activity Name</PrimaryText>
           <ValidatedTextInput
@@ -166,6 +167,7 @@ const CreateActivity = ({
             rules={{ required: "Activity name is required." }}
           />
         </View>
+        
         <View style={{ flex: 1, paddingTop: 10, paddingBottom: 10 }}>
           <PrimaryText>Activity Description</PrimaryText>
           <ValidatedTextInput
