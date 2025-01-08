@@ -227,7 +227,6 @@ export const fetchPointsReceivedData = createAsyncThunk(
       );
     }
 
-
     const userDocument = querySnapshot.docs[0];
 
     const PointsReceivedCollection = await userDocument.ref
@@ -235,21 +234,29 @@ export const fetchPointsReceivedData = createAsyncThunk(
       .orderBy("date", "desc")
       .get();
 
+    // 获取用户的本地时区
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const activities: PointsReceivedData[] = [];
 
     // Iterate over each document in the "PointsReceived" sub-collection
     PointsReceivedCollection.forEach((doc) => {
-      const firestoreTimestamp = doc.data().date; // Assuming this is the Timestamp field
-      const timestamp = new Date(
-        firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6
-      );
+      const firestoreTimestamp = doc.data().date;
 
-      const luxonDateTime =
-        DateTime.fromJSDate(timestamp).setZone("Asia/Singapore");
+      const timestampMillis =
+        firestoreTimestamp.seconds * 1000 +
+        firestoreTimestamp.nanoseconds / 1e6;
+
+      // Step 1: Interpret timestamp as if it were UTC+8
+      const luxonDateTime = DateTime.fromMillis(timestampMillis, {
+        zone: "Asia/Shanghai",
+      }).plus({ hours: 0 }); // No additional offset since we treat it as UTC+8
+
+      // Step 2: Convert to user’s local timezone
+      const localDateTime = luxonDateTime.setZone(userTimeZone);
 
       const pointsReceivedData: PointsReceivedData = {
-        date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
-        time: luxonDateTime.toFormat("hh:mm a"), // "11:00 AM"
+        date: localDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
+        time: localDateTime.toFormat("hh:mm a"), // "11:00 AM"
         points: doc.data().points,
       };
 
@@ -281,21 +288,32 @@ export const fetchPointsUsedData = createAsyncThunk(
       .orderBy("date", "desc")
       .get();
 
+    // 获取用户的本地时区
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const activities: PointsUsedData[] = [];
 
     // Iterate over each document in the "PointsUsed" sub-collection
     PointsUsedCollection.forEach((doc) => {
-      const firestoreTimestamp = doc.data().date; // Assuming this is the Timestamp field
-      const timestamp = new Date(
-        firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6
-      );
+      const firestoreTimestamp = doc.data().date;
 
-      const luxonDateTime =
-        DateTime.fromJSDate(timestamp).setZone("Asia/Singapore");
+      const timestampMillis =
+        firestoreTimestamp.seconds * 1000 +
+        firestoreTimestamp.nanoseconds / 1e6;
+
+      // Step 1: Interpret timestamp as if it were UTC+8
+      const luxonDateTime = DateTime.fromMillis(timestampMillis, {
+        zone: "Asia/Shanghai",
+      }).plus({ hours: 0 }); // No additional offset since we treat it as UTC+8
+
+      // Step 2: Convert to user’s local timezone
+      const localDateTime = luxonDateTime.setZone(userTimeZone);
+
+      // console.log("Original (Interpreted as UTC+8):", luxonDateTime.toString());
+      // console.log("Converted to User Zone:", localDateTime.toString());
 
       const pointsUsedData: PointsUsedData = {
-        date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
-        time: luxonDateTime.toFormat("hh:mm a"), // "11:00 AM"
+        date: localDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
+        time: localDateTime.toFormat("hh:mm a"), // "11:00 AM"
         points: doc.data().points,
       };
 
@@ -326,6 +344,9 @@ export const fetchUserActivitiesData = createAsyncThunk(
     if (querySnapshot.size !== 1) {
       throw new Error(`${email} Either has no data or more than 1 data.`);
     }
+
+    // 获取用户的本地时区
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const userDocument = querySnapshot.docs[0];
 
@@ -363,13 +384,19 @@ export const fetchUserActivitiesData = createAsyncThunk(
 
     // Iterate over each document in the "PointsUsed" sub-collection
     UserActivitiesCollection.forEach((doc) => {
-      const firestoreTimestamp = doc.data().scanTime; // Assuming this is the Timestamp field
-      const timestamp = new Date(
-        firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6
-      );
+      const firestoreTimestamp = doc.data().scanTime;
 
-      const luxonDateTime =
-        DateTime.fromJSDate(timestamp).setZone("Asia/Singapore");
+      const timestampMillis =
+        firestoreTimestamp.seconds * 1000 +
+        firestoreTimestamp.nanoseconds / 1e6;
+
+      // Step 1: Interpret timestamp as if it were UTC+8
+      const luxonDateTime = DateTime.fromMillis(timestampMillis, {
+        zone: "Asia/Shanghai",
+      }).plus({ hours: 0 }); // No additional offset since we treat it as UTC+8
+
+      // Step 2: Convert to user’s local timezone
+      const localDateTime = luxonDateTime.setZone(userTimeZone);
 
       const userActivitiesData: UserActivitiesData = {
         activityId: doc.data().activityId || "Unknown Activity Id",
@@ -377,8 +404,8 @@ export const fetchUserActivitiesData = createAsyncThunk(
         communityId: doc.data().communityId || "Unknown Community Id",
         generateTime:
           doc.data().generateTime?.toDate()?.toLocaleString() || "N/A",
-        scanDate: luxonDateTime.toFormat("EEE, d LLL yyyy") || "N/A",
-        scanTime: luxonDateTime.toFormat("hh:mm a") || "N/A",
+        scanDate: localDateTime.toFormat("EEE, d LLL yyyy") || "N/A",
+        scanTime: localDateTime.toFormat("hh:mm a") || "N/A",
         type: doc.data().type || "Unknown Type",
 
         // date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
@@ -408,9 +435,14 @@ export const storePointsReceivedDataToFirebase = createAsyncThunk(
         throw new Error("Current user data not available.");
       }
 
-      // Convert Date to Firestore Timestamp
+      // Convert user timezone date to UTC before storing in Firestore
+      const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const utcDateTime = DateTime.fromJSDate(pointsReceivedData.date, {
+        zone: userTimeZone,
+      }).toUTC();
+
       const firestoreTimestamp = firestore.Timestamp.fromDate(
-        pointsReceivedData.date
+        utcDateTime.toJSDate() // Convert Luxon DateTime back to JS Date
       );
 
       // Add other fields as needed

@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -36,6 +37,7 @@ const RecentActivities = ({
   );
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [startDate, setStartDate] = useState<string | null>(null); // 初始为 null
   const [endDate, setEndDate] = useState<string | null>(null); // 初始为 null
@@ -52,6 +54,14 @@ const RecentActivities = ({
       setIsLoading(false);
     }
   }, [pointsReceivedData, pointsUsedData, activitiesData]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    dispatch(fetchPointsReceivedData(email));
+    dispatch(fetchPointsUsedData(email));
+    dispatch(fetchUserActivitiesData({ email, startDate, endDate }));
+    setIsRefreshing(false); // 数据加载完后停止刷新
+  };
 
   const normalizeData = () => {
     const pointsData = (pointsReceivedData || []).map((point) => ({
@@ -182,7 +192,17 @@ const RecentActivities = ({
           style={styles.loadingIndicator}
         />
       ) : (
-        <ActivityFlatList data={sortedActivities} type="combined" />
+        <ActivityFlatList
+          data={sortedActivities}
+          type="combined"
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={["#FF8D13"]}
+            />
+          }
+        />
       )}
     </View>
   );

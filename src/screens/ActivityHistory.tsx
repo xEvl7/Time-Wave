@@ -7,6 +7,7 @@ import {
   TextInput,
   Button,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -40,6 +41,7 @@ const ActivityHistory = ({
   );
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<"community" | "points">(
     "community"
   );
@@ -63,6 +65,16 @@ const ActivityHistory = ({
     // Update loading state based on the completion of all fetches
     setIsLoading(!(pointsReceivedData && pointsUsedData && activitiesData));
   }, [pointsReceivedData, pointsUsedData, activitiesData]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    if (email) {
+      dispatch(fetchPointsReceivedData(email));
+      dispatch(fetchPointsUsedData(email));
+      dispatch(fetchUserActivitiesData({ email, startDate, endDate }));
+    }
+    setIsRefreshing(false); // 数据加载完后停止刷新
+  };
 
   // Combined points data with date filtering
   const pointsData = () => {
@@ -264,7 +276,9 @@ const ActivityHistory = ({
             Start Date: {startDate || "Not Selected"}
           </Text>
           <Calendar
-            onDayPress={(day) => handleDateSelection(day.dateString, "startDate")}
+            onDayPress={(day) =>
+              handleDateSelection(day.dateString, "startDate")
+            }
             markedDates={{
               [startDate]: {
                 selected: true,
@@ -299,7 +313,17 @@ const ActivityHistory = ({
           style={styles.loadingIndicator}
         />
       ) : (
-        <ActivityFlatList data={displayedData} type={activeTab} />
+        <ActivityFlatList
+          data={displayedData}
+          type={activeTab}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={["#FF8D13"]}
+            />
+          }
+        />
       )}
     </View>
   );

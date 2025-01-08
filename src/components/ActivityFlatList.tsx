@@ -29,9 +29,10 @@ interface CombinedActivity {
 interface ActivityFlatListProps {
   data: (CommunityActivity | PointsActivity | CombinedActivity)[];
   type: "received" | "used" | "community" | "combined"; // Added combined type
+  refreshControl?: JSX.Element; // Add refreshControl as an optional prop
 }
 
-const ActivityFlatList: React.FC<ActivityFlatListProps> = ({ data, type }) => {
+const ActivityFlatList: React.FC<ActivityFlatListProps> = ({ data, type, refreshControl }) => {
   const renderItem = ({
     item,
   }: {
@@ -99,6 +100,7 @@ const ActivityFlatList: React.FC<ActivityFlatListProps> = ({ data, type }) => {
       data={data}
       keyExtractor={(item, index) => index.toString()}
       renderItem={renderItem}
+      refreshControl={refreshControl} // Pass refreshControl here
     />
   );
 };
