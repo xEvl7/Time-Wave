@@ -46,8 +46,13 @@ import {
 
     return (
       <>
+<<<<<<< Updated upstream
         <View style={styles.listContainer}>
           <ContentContainer>
+=======
+      <ContentContainer>     
+        <View style={styles.listContainer}>
+>>>>>>> Stashed changes
             <ScrollView>
               <ActivityListSection
                 title={''}
@@ -55,11 +60,18 @@ import {
                 item={item}
               />
             </ScrollView>
+<<<<<<< Updated upstream
             <TextButton onPress={handlePressJoin}> New Activity </TextButton>
           
           </ContentContainer>
         </View>
       </>
+=======
+            <TextButton onPress={()=>navigation.navigate("CreateActivity" )}> New Activity</TextButton>
+          </View>
+        </ContentContainer>
+      </>      
+>>>>>>> Stashed changes
     );
   };
   

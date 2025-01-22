@@ -16,6 +16,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { RouteProp, useRoute } from "@react-navigation/native";
 
+import { RouteProp, useRoute } from "@react-navigation/native";
+
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import * as ImagePicker from "expo-image-picker";
@@ -40,7 +42,7 @@ const CreateActivity = ({
   const ownUserId = useAppSelector((state) => state.user.data?.uid);
 
   const [image, setImage] = useState<string | null>(null);
-  const [availableAdmins, setAvailableAdmins] = useState<any[]>([]);
+  //const [availableAdmins, setAvailableAdmins] = useState<any[]>([]);
 
   const handleCreateCommunity = async (data: CommunityProps) => {
     if (!ownUserId) {
