@@ -87,11 +87,13 @@ const CommunityProfile = ({
     console.log("item");
     console.log(item.id);
     console.log("update.update ok");
-      update.update({
+      
+    update.update({
         description: editDescription,//editDescription,
         logo: image, //editLogo,
         name: editName,
       });
+
     Alert.alert('',"Content Updated Successfuly",[
       { text: 'OK', onPress: () => console.log('OK Pressed') },
     ],
@@ -642,16 +644,16 @@ type ListSectionProps ={
 };
 
 type ActivityType = {
-  Name: string;
-  Description: string;
+  name: string;
+  description: string;
   logo: string;
-  test: string;
+  // test: string;
   // Date: firebase.firestore.Timestamp;
   startTime: Firebase.firestore.Timestamp;
   endTime: Firebase.firestore.Timestamp;
   TandC: string;
   contactInfo: string;
-  Location: string;
+  location: string;
 };
 
 
@@ -677,10 +679,10 @@ const renderOngoingItems = ({
       {/* </View> */}
     </View>
     <View style={styles.text}>
-      <Text style={styles.description}>{item.Name}</Text>
-      <Text style={styles.subDescription}>{item.Description}</Text>
+      <Text style={styles.description}>{item.name}</Text>
+      <Text style={styles.subDescription}>{item.description}</Text>
       <View style={styles.pointContainer}>
-        <Text style={styles.point}>{item.test}</Text>
+        <Text style={styles.point}>{item.location}</Text>
       </View>
     </View>
   </View>
@@ -711,14 +713,12 @@ useEffect(() => {
         // console.log("item id: ",item.id);
           const communityResponds = await firebase
           .firestore()
-          .collection("Communities")
-          .doc(item.id)
-          .collection("Coming Activities")
+          .collection("Activities")
+          .where(firebase.firestore.FieldPath.documentId(), 'in', item.activities)
           .get();
-          // console.log(communityResponds);
           
           const fetchedActivitiesData = communityResponds.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+          // console.log(fetchedActivitiesData.startTime);
         // const response = communityResponds.docs.map(async communityDoc => {
         //   const activitiesQuerySnapshot = await communityDoc.ref
         //   .collection("Past Activities")
@@ -736,6 +736,18 @@ useEffect(() => {
 
     fetchActivitiesData();
   }, []);
+
+  const  reqDate = new Date();
+  console.log("endTime",activitiesData);
+  // console.log("jsDate: ",item.endTime.toDate().toLocaleString());
+  useEffect(() => {
+    if(item.endTime<= reqDate){
+      console.log("past activity !");
+    }
+    else{ 
+      console.log("ongoing activity!");
+    }
+  }, []); 
 
   // to limit how many communities data to show in home page
   const limit = 5;
