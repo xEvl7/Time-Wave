@@ -57,7 +57,7 @@ export const checkUserAdmin = createAsyncThunk(
       ...doc.data(),
     })) as CommunityProps[];
 
-    console.log("communities",communities);
+    // console.log("communities",communities);
     const community = communities.find((community) =>
       community.admins.includes(uid)
     );

@@ -1,79 +1,213 @@
 import {
-  TouchableOpacity, 
+  TouchableOpacity,
   Alert,
-  Pressable, 
   ScrollView,
-  StyleSheet, 
-  Text, 
-  View, 
+  StyleSheet,
+  Text,
+  View,
   Image,
-  RefreshControl 
+  Share,
 } from "react-native";
 
-import firestore from "@react-native-firebase/firestore";
 import TextButton from "../components/TextButton";
-import HeaderText from "../components/text_components/HeaderText";
-import BackgroundImageBox from "../components/BackgroundImageBox";
 import ContentContainer from "../components/ContentContainer";
 
 import { fetchRewardData } from "../features/rewardSlice";
+import { storePointsUsedDataToFirebase } from "../features/userSlice"; // 新增
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import React, { useState, useEffect } from "react";
-
-let testpoint = 200;
+import { DateTime } from "luxon";
+import firestore from "@react-native-firebase/firestore";
+import { fetchUserData } from "../features/userSlice";
 
 export default function Reward({
   navigation,
-  route
+  route,
 }: NativeStackScreenProps<RootStackParamList, "Reward">) {
-
   const rewardData = useAppSelector((state) => state.reward.data);
   const dispatch = useAppDispatch();
-  const { item } = route.params; // 獲取傳來的item參數
+  const email = useAppSelector((state) => state.user.data?.emailAddress);
+  const point = useAppSelector((state) => state.user.data?.points);
+  const { item } = route.params; // 获取传来的 item 参数
+  const validityStartDate = rewardData?.validityStartDate;
+  const validityEndDate = rewardData?.validityEndDate;
+  const [newPoint, setNewPoint] = useState(point ||'' );
+  const [error, setError] = useState<string | null>(null); // 保存错误信息
+  const [isLoading, setIsLoading] = useState(false); // 添加加载状态
+
+
+  const updateUserPoints = async () => {
+    if (!email) {
+      setError("Email is undefined");
+      return;
+    }
+  
+    try {
+      setIsLoading(true);
+      setError(null); // 清除之前的错误信息
+  
+      const userSnapshot = await firestore()
+        .collection('Users')
+        .where("emailAddress", "==", email)
+        .get();
+  
+      if (!userSnapshot.empty) {
+        const userDoc = userSnapshot.docs[0].ref;
+        await userDoc.update({
+          points: Number(newPoint),
+        });
+  
+        // 更新 Redux 中的积分
+        await dispatch(fetchUserData(email)).unwrap();
+  
+        console.log("User data updated successfully");
+      } else {
+        setError("User not found");
+      }
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const storePointsUsedDataToFirebase = async () => {
+    try {
+      // 获取当前时间戳
+      const currentTime = firestore.Timestamp.fromDate(new Date());
+  
+      // 创建存储数据
+      const pointsUsedData = {
+        points: rewardData?.price,
+        date: currentTime,  // 当前时间戳
+      };
+  
+      // 查找该用户文档
+      const userSnapshot = await firestore()
+        .collection("Users")
+        .where("emailAddress", "==", email)
+        .get();
+  
+      // 如果查询到用户
+      if (!userSnapshot.empty) {
+        // 获取用户文档的引用
+        const userDocRef = userSnapshot.docs[0].ref;
+  
+        // 将数据添加到 "PointsUsed" 子集合
+        await userDocRef.collection("PointsUsed").add(pointsUsedData);
+  
+        console.log("Points used data stored successfully.");
+      } else {
+        console.log("User not found");
+      }
+    } catch (error) {
+      console.error("Error storing points used data:", error);
+    }
+  };
+   
+ 
+
+  const starttimestamp = new Date(
+    validityStartDate?.seconds * 1000 + validityStartDate?.nanoseconds / 1e6
+  );
+  const endtimestamp = new Date(
+    validityEndDate?.seconds * 1000 + validityEndDate?.nanoseconds / 1e6
+  );
+
+  const startluxonDateTime = DateTime.fromJSDate(starttimestamp).setZone(
+    "Asia/Singapore"
+  );
+  const endluxonDateTime = DateTime.fromJSDate(endtimestamp).setZone(
+    "Asia/Singapore"
+  );
+
+  const [isInvalid, setIsInvalid] = useState(false);
+
+  const shareReward = async () => {
+    try {
+      const result = await Share.share({
+        message: "Check out this amazing reward!",
+        url: "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/sewing%20machine.png?alt=media&token=f42e4f7e-ed65-441a-b05b-66f743a70554",
+        title: "Reward Share",
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log(result.activityType ? result.activityType : "Shared successfully");
+      } else if (result.action === Share.dismissedAction) {
+        console.log("Share dismissed");
+      }
+    } catch (error) {
+      Alert.alert("Error", error instanceof Error ? error.message : "Unknown error occurred");
+    }
+  };
 
   useEffect(() => {
     const RID = item.RID;
     dispatch(fetchRewardData(RID));
   }, [dispatch]);
 
-  let img = rewardData?.image;
+  useEffect(() => {
+    if (rewardData) {
+      const now = DateTime.now();
 
-  const [refreshing, setRefreshing] = React.useState(false);
+      if (now < startluxonDateTime) {
+        setIsInvalid(true);
+        console.log("Too early");
+      } else if (now > endluxonDateTime) {
+        setIsInvalid(true);
+        console.log("Too late");
+      } else {
+        setIsInvalid(false);
+        console.log("Now valid");
+      }
+    }
+  }, [rewardData]);
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
+  const showTip = async () => {
+    try {
+      // 更新积分
+      let count = point;
+      count -= rewardData?.price;
 
-  const showTip = () => {
-    testpoint -= 100;
-    Alert.alert(
-      'Redeemed with 100 points!',
-      'Use this reward by ' + now.toLocaleDateString() + ' Remaining Balance: ' + testpoint + ' points',
-    );
+      await setNewPoint(count); // 更新状态
+
+  
+      // 更新 Firebase
+      await storePointsUsedDataToFirebase();
+      // 调用更新用户积分的函数
+      await updateUserPoints();
+      // 更新 Redux 中的积分
+      await dispatch(fetchUserData(email)); // 重新加载用户数据
+  
+      // 显示成功提示
+      Alert.alert(
+        "Redeemed Successfully!",
+        `You have used ${rewardData?.price} points. Remaining Balance: ${count} points.`
+      );
+    } catch (error) {
+      Alert.alert("Error", error instanceof Error ? error.message : "Failed to redeem points");
+    }
   };
 
   const showAlert = () => {
-    var price = rewardData?.price;
-    if (price != undefined) {
-      if (testpoint >= price) {
+    const price = rewardData?.price;
+    if (price !== undefined) {
+      if (point >= price) {
         Alert.alert(
-          'Get This Reward!',
-          'Redeem with ' + rewardData?.price + ' points?',
+          "Get This Reward!",
+          `Redeem with ${price} points?`,
           [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Confirm', onPress: () => showTip() },
+            { text: "Cancel", style: "cancel" },
+            { text: "Confirm", onPress: () => showTip() },
           ],
           { cancelable: false }
         );
       } else {
         Alert.alert(
-          "You don't have enough points",
-          "Don't worry! The more time you contribute, the more timebank points you will earn.",
+          "Insufficient Points",
+          "You don't have enough points to redeem this reward."
         );
       }
     }
@@ -81,75 +215,69 @@ export default function Reward({
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.share}>
-        <Image 
-          style={{ height: 50, width: 50, marginTop: 5, marginBottom: 5, marginRight: 5, resizeMode: 'contain' }} 
-          source={require("../assets/share.png")} 
-        />
-      </View> 
-
       <View style={styles.box}>
-        <Image style={{ width: 40, height: 40 }} source={require("../assets/jpg.png")} />
-        <Image source={{ uri: img }} style={{ width: 100, height: 100 }} />
+        <TouchableOpacity onPress={shareReward} style={styles.shareButton}>
+          <Image
+            style={{ height: 30, width: 30 }}
+            source={require("../assets/share.png")}
+          />
+        </TouchableOpacity>
+
+        <Image source={{ uri: rewardData?.image }} style={styles.rewardImage} />
+
+        <Image style={styles.supplierLogo} source={{ uri: rewardData?.supplierLogo }} />
       </View>
-      
+
       <ContentContainer>
-      <Text style={styles.boldtext}> {rewardData?.name} </Text>
+        <Text style={styles.boldtext}> {rewardData?.name} </Text>
 
         <View style={styles.alternativesContainer}>
           <View style={styles.pointContainer}>
             <Text style={styles.boldtext}> Prices</Text>
             <Text style={{ fontSize: 20 }}>{rewardData?.price} points </Text>
           </View>
-          <View style={styles.verticleLine} />{/* vertical line */}
+          <View style={styles.verticleLine} />
           <View style={styles.validityContainer}>
             <Text style={styles.boldtext}>Validity</Text>
-            <Text style={{ fontSize: 20 }}>{rewardData?.validityStartDate} to</Text>
-            <Text style={{ fontSize: 20 }}>{rewardData?.validityEndDate} </Text>
+            <Text style={{ fontSize: 20 }}>
+              {startluxonDateTime?.toFormat("d MMM yyyy")} to
+            </Text>
+            <Text style={{ fontSize: 20 }}>
+              {endluxonDateTime?.toFormat("d MMM yyyy")}
+            </Text>
           </View>
         </View>
-        
-        <View style={{ borderBottomColor: 'black', borderBottomWidth: StyleSheet.hairlineWidth }} />{/* line */}
 
         <View style={styles.scrollViewContainer}>
-          <ScrollView 
-            contentContainerStyle={styles.scrollcontainer} 
-            >
+          <ScrollView contentContainerStyle={styles.scrollcontainer}>
             <View style={styles.boxs}>
               <Text style={styles.boldtext}>Highlight</Text>
               <Text style={{ marginTop: 5, marginBottom: 10 }}>{rewardData?.highlight}</Text>
             </View>
-            
             <View style={styles.boxs}>
               <Text style={styles.boldtext}>Terms & Conditions</Text>
               <Text style={{ marginTop: 5, marginBottom: 10 }}>{rewardData?.termsConditions}</Text>
             </View>
-
             <View style={styles.boxs}>
               <Text style={styles.boldtext}>Contact Info</Text>
               <Text style={{ marginTop: 5, marginBottom: 10 }}>{rewardData?.contactInfo}</Text>
             </View>
           </ScrollView>
         </View>
-        
       </ContentContainer>
 
-      <View
-        style={{
-          position: 'absolute',
-          top: 620,
-          left: 5,
-          right: 5,
-          borderBottomColor: 'black',
-          borderBottomWidth: StyleSheet.hairlineWidth,
-        }}
-      />{/* line */}
-
       <View style={styles.redeemContainer}>
-        <TextButton 
-          style={{ position: 'absolute', bottom: 20, left: 5, right: 5, backgroundColor: "#FF8D13", elevation: 1 }}  
-          textStyle={styles.mainButtonText} 
-          onPress={showAlert}
+        <TextButton
+          style={{
+            position: "absolute",
+            bottom: 20,
+            left: 5,
+            right: 5,
+            backgroundColor: "#FF8D13",
+            elevation: 1,
+          }}
+          textStyle={styles.mainButtonText}
+          onPress={isInvalid ? () => Alert.alert("This reward is invalid or expired.") : showAlert}
         >
           Redeem
         </TextButton>
@@ -158,7 +286,6 @@ export default function Reward({
   );
 }
 
-const now = new Date(); // get the current date
 
 const styles = StyleSheet.create({
   scrollcontainer: {
@@ -195,10 +322,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 20,
   },
-  textContainer: {
-    minWidth: "78%",
-    flex: 1,
-  },
   redeemContainer: {
     minWidth: "78%",
     height: "10%",
@@ -209,26 +332,36 @@ const styles = StyleSheet.create({
   },
   box: {
     flexDirection: "row",
-    height: "16%",
+    height: "22%",
     width: "100%",
     backgroundColor: "#FF8D13",
     alignItems: "center",
     justifyContent: "center",
+    position: 'relative', // 使得子元素能够绝对定位
   },
-  share: {
-    flexDirection: "row",
-    height: "7%",
-    width: "100%",
-    backgroundColor: "#FF8D13",
-    alignItems: "flex-start",
-    justifyContent: "flex-end",
+  shareButton: {
+    position: 'absolute', // 绝对定位
+    top: 10, // 距离顶部的距离
+    right: 10, // 距离右边的距离
+  },
+  rewardImage: {
+    width: 100,
+    height: 100,
+    // 其他样式...
+  },
+  supplierLogo: {
+    width: 40,
+    height: 40,
+    position: 'absolute', // 绝对定位
+    bottom: 10, // 距离底部的距离
+    left: 10, // 距离左边的距离
   },
   mainButtonText: {
     color: "#06090C",
   },
   verticleLine: {
     height: '100%',
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     backgroundColor: '#909090',
   },
 });

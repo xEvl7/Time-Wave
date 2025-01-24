@@ -141,7 +141,7 @@ const Account = ({
           </Text>
           <View style={styles.rowContainer}>
             <Text style={styles.Text2}>{contributedHours}</Text>
-            <Text style={styles.Text1}>TimeBank Rewards Hours</Text>
+            <Text style={styles.Text1}>Accumulated Hours</Text>
           </View>
           <View style={styles.line}></View>
           <TouchableOpacity
@@ -164,7 +164,7 @@ const Account = ({
           <Text style={styles.Text1}>You have</Text>
           <View style={styles.rowContainer}>
             <Text style={styles.Text2}>{userData?.points}</Text>
-            <Text style={styles.Text1}>TimeBank Rewards Points</Text>
+            <Text style={styles.Text1}>Points</Text>
           </View>
           <View style={styles.line}></View>
           <TouchableOpacity

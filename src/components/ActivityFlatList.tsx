@@ -1,35 +1,106 @@
 import React from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 
-const ActivityFlatList = ({
-  data,
-  type,
-}: {
-  data: any;
-  type: "received" | "used";
-}) => {
+interface CommunityActivity {
+  activityId: string;
+  activityName: string;
+  communityId: string;
+  generateTime: any;
+  scanDate: any;
+  scanTime: any;
+  type: string;
+}
+
+interface PointsActivity {
+  date: string;
+  time: string;
+  points: number;
+}
+
+interface CombinedActivity {
+  date: string;
+  time: string;
+  title: string;
+  description: string;
+  points?: number; // Optional for combined activities
+  activityName?: string; // Optional for combined activities
+}
+
+interface ActivityFlatListProps {
+  data: (CommunityActivity | PointsActivity | CombinedActivity)[];
+  type: "received" | "used" | "community" | "combined"; // Added combined type
+  refreshControl?: JSX.Element; // Add refreshControl as an optional prop
+}
+
+const ActivityFlatList: React.FC<ActivityFlatListProps> = ({ data, type, refreshControl }) => {
+  const renderItem = ({
+    item,
+  }: {
+    item: CommunityActivity | PointsActivity | CombinedActivity; // Updated item type
+  }) => {
+    // Type guard to determine if item is CommunityActivity
+    const isCommunityActivity = (
+      item: CommunityActivity | PointsActivity | CombinedActivity
+    ): item is CommunityActivity => {
+      return (item as CommunityActivity).scanDate !== undefined;
+    };
+
+    let dateText = "";
+    let timeText = "";
+    let descriptionText = "";
+
+    if (isCommunityActivity(item)) {
+      dateText = item.scanDate;
+      timeText = item.scanTime;
+      descriptionText = item.activityName;
+    } else if ("points" in item) {
+      dateText = item.date;
+      timeText = item.time;
+      descriptionText = `Points: ${item.points || 0}`;
+    } else {
+      dateText = item.date;
+      timeText = item.time;
+      descriptionText = item.description; // For combined activities
+    }
+
+    return (
+      <View>
+        <View style={styles.listContainer1}>
+          <Text style={styles.listDateText}>{dateText}</Text>
+        </View>
+        <View style={styles.listContainer2}>
+          <Text style={styles.listTimeText}>{timeText}</Text>
+          {type === "combined" ? (
+            <>
+              <Text style={styles.listCategoryText}>{item.title}</Text>
+              <Text style={styles.listNameText}>{descriptionText}</Text>
+            </>
+          ) : isCommunityActivity(item) ? (
+            <>
+              <Text style={styles.listCategoryText}>{item.type}</Text>
+              <Text style={styles.listNameText}>{item.activityName}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.listCategoryText}>Points</Text>
+              <View style={styles.tabContainer}>
+                <Text style={styles.listNameText}>{item.title}</Text>
+                <Text style={styles.listPointsText}>{descriptionText}</Text>
+              </View>
+            </>
+          )}
+        </View>
+      </View>
+    );
+  };
+
   return (
     <FlatList
       contentContainerStyle={{ paddingBottom: 100 }}
       data={data}
       keyExtractor={(item, index) => index.toString()}
-      renderItem={({ item }) => (
-        <View>
-          <View style={styles.listContainer1}>
-            <Text style={styles.listDateText}>{item.date}</Text>
-          </View>
-          <View style={styles.listContainer2}>
-            <Text style={styles.listTimeText}>{item.time}</Text>
-            <Text style={styles.listCategoryText}>Time Points Rewards</Text>
-            <View style={styles.tabContainer}>
-              <Text style={styles.listNameText}>TimeBank Rewards Points</Text>
-              <Text style={styles.listPointsText}>
-                {type === "received" ? `+${item.points}` : `-${item.points}`}
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
+      renderItem={renderItem}
+      refreshControl={refreshControl} // Pass refreshControl here
     />
   );
 };

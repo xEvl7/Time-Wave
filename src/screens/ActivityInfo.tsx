@@ -31,6 +31,7 @@ import {
 } from "@react-native-firebase/firestore";
 import ButtonText from "../components/text_components/ButtonText";
 import { Line } from "react-native-svg";
+// import EditActivity from "./screens/EditActivity";
 
 const ActivityInfo = ({
   navigation,
@@ -147,11 +148,14 @@ const ActivityInfo = ({
           
         </ContentContainer>
       </ScrollView>
-      {isAdmin? ( 
-        <TextButton onPress={handlePressEdit}> New Activity </TextButton>
-      ):(
-        <></>                 
-      )}
+     
+     // {isAdmin? ( 
+     //   <TextButton onPress={handlePressEdit}> New Activity </TextButton>
+     // ):(
+     //   <></>                 
+     // )}
+
+      <TextButton onPress={() => navigation.navigate("EditActivity",item)}> Edit Activity</TextButton>
     </View>
 
     

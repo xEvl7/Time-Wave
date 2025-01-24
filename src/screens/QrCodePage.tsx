@@ -1,15 +1,18 @@
 import { StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
-
 import SvgQRCode from "react-native-qrcode-svg";
 import TextButton from "../components/TextButton";
 import ContentContainer from "../components/ContentContainer";
-import { DateTime } from "luxon";
 import firestore, { firebase } from "@react-native-firebase/firestore";
 import { checkUserAdmin } from "../features/communitySlice";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import { useSelector } from "react-redux";
-import { RootState } from "../store";
+import { Picker } from "@react-native-picker/picker";
+
+// Define the type for Activity
+type Activity = {
+  id: string;
+  name: string;
+};
 
 const QrCodePage = () => {
   return (
@@ -34,6 +37,13 @@ const QrCodeSection = ({ title, type }: QrCodeSectionProps) => {
   const [selectedCommunity, setSelectedCommunity] = useState<string | null>(
     null
   );
+
+  // Explicitly set the type to Activity[]
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+  const [selectedActivityName, setSelectedActivityName] = useState<
+    string | null
+  >(null); // Store selected activity name
 
   const dispatch = useAppDispatch();
   const ownUserId = useAppSelector((state) => state.user.data?.uid);
@@ -70,24 +80,44 @@ const QrCodeSection = ({ title, type }: QrCodeSectionProps) => {
     }
   };
 
+  const fetchActivitiesForCommunity = async (communityId: string) => {
+    try {
+      const activitiesSnapshot = await firestore()
+        .collection("Activities")
+        .where("communityId", "==", communityId)
+        .get();
+      const activitiesList: Activity[] = activitiesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        name: doc.data().name, // Assuming there's a 'name' field
+      }));
+      console.log("activitiesList: ", activitiesList);
+      setActivities(activitiesList);
+      if (activitiesList.length > 0) {
+        setSelectedActivity(activitiesList[0].id); // Set default activity
+        setSelectedActivityName(activitiesList[0].name); // Set default activity name
+      }
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    }
+  };
+
   const handlePressShowQRCode = async () => {
-    if (!selectedCommunity) {
-      console.error("No community selected.");
+    if (!selectedActivity) {
+      console.error("No activity selected.");
       return;
     }
 
     setShowQrCode(true);
 
-    // Get the current time in Malaysia timezone including minutes and seconds
     const malaysiaTime = firebase.firestore.Timestamp.now();
-    console.log("malaysiaTime", malaysiaTime);
-
     const newData = {
       generateTime: malaysiaTime,
       communityId: selectedCommunity,
+      activityId: selectedActivity,
+      activityName: selectedActivityName,
       type: type, // "check-in" or "check-out"
     };
-
+    console.log("qrCode generated info: ", newData);
     setData(JSON.stringify(newData));
 
     try {
@@ -98,10 +128,20 @@ const QrCodeSection = ({ title, type }: QrCodeSectionProps) => {
     }
   };
 
+  useEffect(() => {
+    if (selectedCommunity) {
+      fetchActivitiesForCommunity(selectedCommunity); // Fetch activities whenever community changes
+    }
+  }, [selectedCommunity]);
+
   if (showQrCode)
     return (
       <View style={styles.sectionContainer}>
         <Text style={[styles.text, { marginBottom: 20 }]}>{title}</Text>
+        {/* Display the selected activity name */}
+        <Text style={[styles.text, { marginBottom: 20 }]}>
+          Activity: {selectedActivityName}
+        </Text>
         <SvgQRCode size={200} value={data} />
       </View>
     );
@@ -110,11 +150,28 @@ const QrCodeSection = ({ title, type }: QrCodeSectionProps) => {
     <View style={styles.sectionContainer}>
       <Text style={styles.text}>Show {title}</Text>
       <Text style={styles.instructionText}>
-        Enter your Community PIN to generate QR Code
+        Select your Activity to generate QR Code
       </Text>
+      <Picker
+        selectedValue={selectedActivity}
+        onValueChange={(itemValue, itemIndex) => {
+          setSelectedActivity(itemValue);
+          setSelectedActivityName(activities[itemIndex].name); // Set the activity name
+        }}
+        style={styles.picker}
+      >
+        {activities.map((activity) => (
+          <Picker.Item
+            key={activity.id}
+            label={activity.name}
+            value={activity.id}
+          />
+        ))}
+      </Picker>
       <TextButton
-        style={{ paddingHorizontal: 50 }}
+        style={{ paddingHorizontal: 20 }}
         onPress={handlePressShowQRCode}
+        // disabled={!selectedActivity} // Disable if no activity selected
       >
         Show QR Code
       </TextButton>
@@ -142,5 +199,13 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 20,
     fontWeight: "500",
+  },
+  picker: {
+    height: 50,
+    width: 200,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: "#FF8D13",
+    borderRadius: 5,
   },
 });

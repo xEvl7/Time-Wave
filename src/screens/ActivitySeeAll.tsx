@@ -24,8 +24,10 @@ import {
   import { useAppSelector } from "../hooks";
   import { selectUserName } from "../features/userSlice";
   import { NavigationProp } from "@react-navigation/native";
-  import ButtonText from "../components/text_components/ButtonText";  
+  import ButtonText from "../components/text_components/ButtonText";
   import TextButton from "../components/TextButton";
+  import CreateActivity from "./CreateActivity";
+
   
   const ActivitySeeAll = ({
     navigation,
@@ -46,32 +48,18 @@ import {
 
     return (
       <>
-<<<<<<< Updated upstream
-        <View style={styles.listContainer}>
-          <ContentContainer>
-=======
       <ContentContainer>     
-        <View style={styles.listContainer}>
->>>>>>> Stashed changes
-            <ScrollView>
-              <ActivityListSection
-                title={''}
-                navigation={navigation}  
-                item={item}
-              />
-            </ScrollView>
-<<<<<<< Updated upstream
-            <TextButton onPress={handlePressJoin}> New Activity </TextButton>
-          
-          </ContentContainer>
+       <View style={styles.listContainer}>
+          <ScrollView>
+            <ActivityListSection
+              title={''}
+              navigation={navigation}  
+              item={item}
+            />
+          </ScrollView>
+          <TextButton onPress={()=>navigation.navigate("CreateActivity" )}> New Activity</TextButton>
         </View>
       </>
-=======
-            <TextButton onPress={()=>navigation.navigate("CreateActivity" )}> New Activity</TextButton>
-          </View>
-        </ContentContainer>
-      </>      
->>>>>>> Stashed changes
     );
   };
   

@@ -12,6 +12,7 @@ type UserData = {
   phoneNumber: string;
   emailAddress: string;
   points: number;
+  logo: string | null; // 允许为 null
 };
 
 type UserContributionData = {
@@ -45,11 +46,22 @@ type PointsUsedData = {
   points: number;
 };
 
+type UserActivitiesData = {
+  activityId: string;
+  activityName: string;
+  communityId: string;
+  generateTime: any;
+  scanDate: any;
+  scanTime: any;
+  type: string;
+};
+
 type UserState = {
   data?: UserData;
   contributionData?: { [year: string]: UserContributionData };
   pointsReceivedData?: PointsReceivedData[];
   pointsUsedData?: PointsUsedData[];
+  activitiesData?: UserActivitiesData[];
 };
 
 export const updateUserData = createAsyncThunk(
@@ -201,7 +213,6 @@ export const fetchUserContributionData2 = createAsyncThunk(
   }
 );
 
-
 export const fetchPointsReceivedData = createAsyncThunk(
   "user/fetchPointsReceivedData",
   async (emailAddress: string) => {
@@ -217,26 +228,35 @@ export const fetchPointsReceivedData = createAsyncThunk(
     }
 
     const userDocument = querySnapshot.docs[0];
+
     const PointsReceivedCollection = await userDocument.ref
       .collection("PointsReceived")
       .orderBy("date", "desc")
       .get();
 
+    // 获取用户的本地时区
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const activities: PointsReceivedData[] = [];
 
     // Iterate over each document in the "PointsReceived" sub-collection
     PointsReceivedCollection.forEach((doc) => {
-      const firestoreTimestamp = doc.data().date; // Assuming this is the Timestamp field
-      const timestamp = new Date(
-        firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6
-      );
+      const firestoreTimestamp = doc.data().date;
 
-      const luxonDateTime =
-        DateTime.fromJSDate(timestamp).setZone("Asia/Singapore");
+      const timestampMillis =
+        firestoreTimestamp.seconds * 1000 +
+        firestoreTimestamp.nanoseconds / 1e6;
+
+      // Step 1: Interpret timestamp as if it were UTC+8
+      const luxonDateTime = DateTime.fromMillis(timestampMillis, {
+        zone: "Asia/Shanghai",
+      }).plus({ hours: 0 }); // No additional offset since we treat it as UTC+8
+
+      // Step 2: Convert to user’s local timezone
+      const localDateTime = luxonDateTime.setZone(userTimeZone);
 
       const pointsReceivedData: PointsReceivedData = {
-        date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
-        time: luxonDateTime.toFormat("hh:mm a"), // "11:00 AM"
+        date: localDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
+        time: localDateTime.toFormat("hh:mm a"), // "11:00 AM"
         points: doc.data().points,
       };
 
@@ -268,25 +288,133 @@ export const fetchPointsUsedData = createAsyncThunk(
       .orderBy("date", "desc")
       .get();
 
+    // 获取用户的本地时区
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const activities: PointsUsedData[] = [];
 
     // Iterate over each document in the "PointsUsed" sub-collection
     PointsUsedCollection.forEach((doc) => {
-      const firestoreTimestamp = doc.data().date; // Assuming this is the Timestamp field
-      const timestamp = new Date(
-        firestoreTimestamp.seconds * 1000 + firestoreTimestamp.nanoseconds / 1e6
-      );
+      const firestoreTimestamp = doc.data().date;
 
-      const luxonDateTime =
-        DateTime.fromJSDate(timestamp).setZone("Asia/Singapore");
+      const timestampMillis =
+        firestoreTimestamp.seconds * 1000 +
+        firestoreTimestamp.nanoseconds / 1e6;
+
+      // Step 1: Interpret timestamp as if it were UTC+8
+      const luxonDateTime = DateTime.fromMillis(timestampMillis, {
+        zone: "Asia/Shanghai",
+      }).plus({ hours: 0 }); // No additional offset since we treat it as UTC+8
+
+      // Step 2: Convert to user’s local timezone
+      const localDateTime = luxonDateTime.setZone(userTimeZone);
+
+      // console.log("Original (Interpreted as UTC+8):", luxonDateTime.toString());
+      // console.log("Converted to User Zone:", localDateTime.toString());
 
       const pointsUsedData: PointsUsedData = {
-        date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
-        time: luxonDateTime.toFormat("hh:mm a"), // "11:00 AM"
+        date: localDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
+        time: localDateTime.toFormat("hh:mm a"), // "11:00 AM"
         points: doc.data().points,
       };
 
       activities.push(pointsUsedData);
+    });
+
+    // Return the array of PointsUsedData
+    return activities;
+  }
+);
+
+
+export const fetchUserActivitiesData = createAsyncThunk(
+  "user/fetchUserActivitiesData",
+  async ({
+    email,
+    startDate,
+    endDate,
+  }: {
+    email: string;
+    startDate: string | null;
+    endDate: string | null;
+  }) => {
+    const querySnapshot = await firestore()
+      .collection("Users")
+      .where("emailAddress", "==", email)
+      .get();
+
+    if (querySnapshot.size !== 1) {
+      throw new Error(`${email} Either has no data or more than 1 data.`);
+    }
+
+    // 获取用户的本地时区
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const userDocument = querySnapshot.docs[0];
+
+    // 创建活动查询的基础引用
+    let activitiesRef = userDocument.ref.collection("Activities");
+
+    // 如果 startDate 存在，则添加对应的 where 语句
+    if (startDate) {
+      const start = new Date(startDate).getTime(); // 转换为时间戳
+      activitiesRef = activitiesRef.where("scanTime", ">=", new Date(start));
+    }
+
+    // 如果 endDate 存在，则添加对应的 where 语句
+    if (endDate) {
+      const end = new Date(endDate).getTime(); // 转换为时间戳
+      activitiesRef = activitiesRef.where("scanTime", "<=", new Date(end));
+    }
+
+    // 添加排序
+    activitiesRef = activitiesRef.orderBy("scanTime", "desc");
+
+    const UserActivitiesCollection = await activitiesRef.get();
+
+    // const start = new Date(startDate).getTime();
+    // const end = new Date(endDate).getTime();
+
+    // const UserActivitiesCollection = await userDocument.ref
+    //   .collection("Activities")
+    //   // .where('scanTime', '>=', start)
+    //   // .where('scanTime', '<=', end)
+    //   .orderBy("scanTime", "desc")
+    //   .get();
+
+    const activities: UserActivitiesData[] = [];
+
+    // Iterate over each document in the "PointsUsed" sub-collection
+    UserActivitiesCollection.forEach((doc) => {
+      const firestoreTimestamp = doc.data().scanTime;
+
+      const timestampMillis =
+        firestoreTimestamp.seconds * 1000 +
+        firestoreTimestamp.nanoseconds / 1e6;
+
+      // Step 1: Interpret timestamp as if it were UTC+8
+      const luxonDateTime = DateTime.fromMillis(timestampMillis, {
+        zone: "Asia/Shanghai",
+      }).plus({ hours: 0 }); // No additional offset since we treat it as UTC+8
+
+      // Step 2: Convert to user’s local timezone
+      const localDateTime = luxonDateTime.setZone(userTimeZone);
+
+      const userActivitiesData: UserActivitiesData = {
+        activityId: doc.data().activityId || "Unknown Activity Id",
+        activityName: doc.data().activityName || "Unknown Activity Name",
+        communityId: doc.data().communityId || "Unknown Community Id",
+        generateTime:
+          doc.data().generateTime?.toDate()?.toLocaleString() || "N/A",
+        scanDate: localDateTime.toFormat("EEE, d LLL yyyy") || "N/A",
+        scanTime: localDateTime.toFormat("hh:mm a") || "N/A",
+        type: doc.data().type || "Unknown Type",
+
+        // date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
+        // time: luxonDateTime.toFormat("hh:mm a"), // "11:00 AM"
+        // points: doc.data().points,
+      };
+
+      activities.push(userActivitiesData);
     });
 
     // Return the array of PointsUsedData
@@ -308,9 +436,14 @@ export const storePointsReceivedDataToFirebase = createAsyncThunk(
         throw new Error("Current user data not available.");
       }
 
-      // Convert Date to Firestore Timestamp
+      // Convert user timezone date to UTC before storing in Firestore
+      const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const utcDateTime = DateTime.fromJSDate(pointsReceivedData.date, {
+        zone: userTimeZone,
+      }).toUTC();
+
       const firestoreTimestamp = firestore.Timestamp.fromDate(
-        pointsReceivedData.date
+        utcDateTime.toJSDate() // Convert Luxon DateTime back to JS Date
       );
 
       // Add other fields as needed
@@ -420,6 +553,20 @@ const userSlice = createSlice({
           console.log(`Successfully fetched User Points Used's data`);
         }
       )
+      .addCase(fetchPointsUsedData.rejected, (_, action) => {
+        console.error(action.error);
+      })
+      .addCase(
+        fetchUserActivitiesData.fulfilled,
+        (state, action: PayloadAction<UserActivitiesData[]>) => {
+          state.activitiesData = action.payload;
+          console.log(action.payload);
+          console.log(`Successfully fetched User Activities's data`);
+        }
+      )
+      .addCase(fetchUserActivitiesData.rejected, (_, action) => {
+        console.error(action.error);
+      })
       .addCase(
         storePointsReceivedDataToFirebase.fulfilled,
         (state, action: PayloadAction<PointsReceivedData2>) => {
@@ -429,9 +576,6 @@ const userSlice = createSlice({
         }
       )
       .addCase(storePointsReceivedDataToFirebase.rejected, (_, action) => {
-        console.error(action.error);
-      })
-      .addCase(fetchPointsUsedData.rejected, (_, action) => {
         console.error(action.error);
       });
   },
