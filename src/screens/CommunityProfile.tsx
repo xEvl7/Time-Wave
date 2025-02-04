@@ -590,7 +590,7 @@ const renderVolunteerItems = ({
   
     const limit = 5;
     const limitedVolunteerData = userData.slice(0, limit);
-    const member = 0;
+    const member = 0; //volunteer
 
     const handleSeeAllPress =()=>{
       navigation.navigate("MemberSeeAll", { item, member })

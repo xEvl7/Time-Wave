@@ -1,4 +1,5 @@
 import { CommunityProps } from "./features/communitySlice";
+import { ActivityProps } from "./features/activitySlice";
 
 export type RootStackParamList = {
   SignUp: undefined;
@@ -20,17 +21,18 @@ export type RootStackParamList = {
   CreateCommunity: {
     selectedAdmins: Array<{ id: number; name: string; avatar: any; uid: string }>;
   };
+  CreateActivity: { item: any };
   SelectAdmin: undefined;
   CommunityInfo: CommunityProps;
   ProfileInfo: { item: any };
   Communities: undefined;
   CommunityProfile: { item: any };
-  ActivityInfo: undefined;
+  ActivityInfo: ActivityProps;
   OngoingActivities: undefined;
   ActivitySeeAll: { item: any };
   MemberSeeAll: { item: any, member:any };
   AddAdmin: { item:any, member:any };
-  CreateActivity: { item: any };
+  
   EditActivity: { item: any };
 
   Profile: undefined;

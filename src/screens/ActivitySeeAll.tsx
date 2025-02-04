@@ -39,16 +39,18 @@ import CreateActivity from "./CreateActivity";
 
     return (
       <>
-       <View style={styles.listContainer}>
-          <ScrollView>
-            <ActivityListSection
-              title={''}
-              navigation={navigation}  
-              item={item}
-            />
-          </ScrollView>
-          <TextButton onPress={()=>navigation.navigate("CreateActivity" )}> New Activity</TextButton>
-        </View>
+        <ContentContainer>
+          <View style={styles.listContainer}>
+            <ScrollView>
+              <ActivityListSection
+                title={''}
+                navigation={navigation}  
+                item={item}
+              />
+            </ScrollView>
+            <TextButton onPress={()=>navigation.navigate("CreateActivity", {item: item.id} )}> New Activity</TextButton>
+          </View>
+        </ContentContainer>
       </>
     );
   };
@@ -104,6 +106,7 @@ import CreateActivity from "./CreateActivity";
   
     useEffect(() => {
       // get communities data from firebase (query part - can be declared what data to show)
+      //"coming data" path should be updated to fetch and filter from activity's collection
       const fetchActivityData = async () => {
         try {
           console.log("seeall id", item.id);

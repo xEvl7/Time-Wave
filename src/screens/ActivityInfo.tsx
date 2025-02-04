@@ -37,22 +37,23 @@ const ActivityInfo = ({
   route,
 }: NativeStackScreenProps<RootStackParamList, "ActivityInfo">) => {
   const {item} = route.params;
-  // const date = timestamp; 
+  console.log("end date",route.params.endDate);
+  // // const date = timestamp; 
  
-  const convertTime = (timestamp: item.Date): string=> {
-    if(item.Date){
-      const date = timestamp.toDate();
-      return date.toLocaleDateString("en-GB",{
-        day:"numeric",
-        month:"short",
-        year:"numeric"
-      });
-    }else {
-      console.log('Field is missing or undefined');
-    }
+  // const convertTime = (timestamp: item.Date): string=> {
+  //   if(item.Date){
+  //     const date = timestamp.toDate();
+  //     return date.toLocaleDateString("en-GB",{
+  //       day:"numeric",
+  //       month:"short",
+  //       year:"numeric"
+  //     });
+  //   }else {
+  //     console.log('Field is missing or undefined');
+  //   }
     
 
-  };
+  // };
 
   return (
     <>
@@ -65,7 +66,7 @@ const ActivityInfo = ({
           <Image  
             style={styles.iconImage}
             source={{
-              uri: item.logo
+              uri: route.params.logo,
             }}           
             />   
           {/* <Pressable><Image></Image></Pressable> */}
@@ -73,19 +74,20 @@ const ActivityInfo = ({
         {/* Name and description part */}
         <ContentContainer>
           <View style={styles.nameContainer}>
-            <Text style={styles.activityName}>{item.Name}</Text>
+            <Text style={styles.activityName}>{route.params.name}</Text>
           </View>
           
           <View style={styles.LDcontainer}>
           <View style={styles.LDItem}>
             <Text style={styles.LDtitle}>Location</Text>
-            <Text style={styles.textTitle}>{item.Location}</Text>
+            <Text style={styles.textDetails}>{route.params.location}</Text>
           </View>
           <View style={styles.line1}></View>
           {/* <View></View>  line*/}
           <View style={styles.LDItem}>
             <Text style={styles.LDtitle}>Date</Text>
-            <Text style={styles.textTitle}>{convertTime(item.Date)}</Text>
+            <Text style={styles.textDetails}>{route.params.endDate}</Text>
+            {/* // convertTime(item.Date)}</Text> */}
           </View>
           <View style={styles.line2}></View>
           {/* line */}
@@ -93,16 +95,16 @@ const ActivityInfo = ({
 
           <View style={styles.detailsContainer}>
             <Text style={styles.textTitle}>Description</Text>
-            <Text style={styles.textDetails}>{item.Description}</Text>
+            <Text style={styles.textDetails}>{route.params.description}</Text>
             <Text style={styles.textTitle}>Terms & Condition</Text>
-            <Text style={styles.textDetails}>{item.TandC}</Text>
+            <Text style={styles.textDetails}>{route.params.tac}</Text>
             <Text style={styles.textTitle}>Contact Info</Text>
-            <Text style={styles.textDetails}>{item.contactInfo}</Text>
+            <Text style={styles.textDetails}>{route.params.createdBy}</Text>
           </View>
           
         </ContentContainer>
       </ScrollView>
-      <TextButton onPress={() => navigation.navigate("EditActivity",item)}> Edit Activity</TextButton>
+      {/* <TextButton onPress={() => navigation.navigate("EditActivity",item)}> Edit Activity</TextButton> */}
     </View>
 
     
