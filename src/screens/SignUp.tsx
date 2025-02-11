@@ -162,6 +162,8 @@ const SignUp = ({
           phoneNumber: data.phoneNumber,
           emailAddress: data.emailAddress,
           points: 0,
+          logo: null,
+          feedbackStatus: false,
         };
 
         dispatch(updateUserData(userData));
@@ -176,9 +178,7 @@ const SignUp = ({
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={{ flexGrow: 1 }}
-    >
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <BackgroundImageBox
         style={{ height: "20%" }}
         source={require("../assets/background/register.png")}

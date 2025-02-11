@@ -13,7 +13,9 @@ const ForgotPassword = () => {
   return (
     <>
       <View style={styles.container}>
-        <BackgroundImageBox source={null} />
+        <BackgroundImageBox
+          source={require("../assets/background/welcome.png")}
+        />
         <ContentContainer>
           <HeaderText>
             OTP will be send to your registered phone number
@@ -23,15 +25,16 @@ const ForgotPassword = () => {
             name={"phoneNumber"}
             placeholder={"Phone Number"}
           />
+          <TextButton onPress={() => null}>Send OTP</TextButton>
+          <Pressable onPress={() => null}>
+            <Text style={styles.resendButton}>Resend OTP</Text>
+          </Pressable>
           <ValidatedTextInput
             control={control}
             name={"otp"}
             placeholder={"OTP Code"}
           />
-          <TextButton>Send OTP</TextButton>
-          <Pressable>
-            <Text style={styles.resendButton}>Resend OTP</Text>
-          </Pressable>
+          <TextButton onPress={() => null}>Forgot Password</TextButton>
         </ContentContainer>
       </View>
     </>
@@ -42,12 +45,13 @@ export default ForgotPassword;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
   },
   resendButton: {
     textAlign: "center",
     fontSize: 12,
-    marginTop: 15,
-    color: "#FF8D13"
+    // marginTop: 15,
+    marginBottom: 15,
+    color: "#FF8D13",
   },
 });

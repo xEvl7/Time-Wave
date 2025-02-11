@@ -19,6 +19,7 @@ import { RootState } from "../store";
 import ProgressBar from "../components/ProgressBar";
 import SectionContainer from "../components/SectionContainer";
 import ListItem from "../components/ListItem";
+import { useFocusEffect } from "@react-navigation/native";
 
 const Account = ({
   navigation,
@@ -34,30 +35,37 @@ const Account = ({
     | string
     | undefined;
 
-  useEffect(() => {
-    if (!email) return;
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!email) return;
 
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        await dispatch(fetchUserData(email));
-        await dispatch(fetchUserContributionData(email));
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-      setIsLoading(false);
-    };
-    fetchData();
-  }, [dispatch, email]);
+      const fetchData = async () => {
+        setIsLoading(true);
+        try {
+          await dispatch(fetchUserData(email));
+          await dispatch(fetchUserContributionData(email));
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+        setIsLoading(false);
+      };
 
-  const selectedYear = "2023"; //** */
-  const selectedMonth = "Dec"; //** */
+      fetchData();
+    }, [dispatch, email])
+  );
+
+  // const selectedYear = "2025";
+  // const selectedMonth = "Feb";
+  const currentDate = new Date();
+  const selectedYear = currentDate.getFullYear(); // 获取当前年份 (2025)
+  const selectedMonth = currentDate.toLocaleString("en-US", { month: "short" }); // 获取当前月份 (Feb)
+
   const totalContrHours =
     contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours || 0;
 
   const [contributedHours, setContributedHours] =
     useState<number>(totalContrHours);
-  const progressPercentage = (contributedHours / 20);
+  const progressPercentage = contributedHours / 20;
 
   const calculateLevel = (hours: number) => {
     if (hours <= 10) return 1;
@@ -71,7 +79,7 @@ const Account = ({
   const hoursLeftToNextLevel = currentLevelMaxHours + 10 - contributedHours;
 
   /* Date Variable */
-  const currentDate = new Date();
+  // const currentDate = new Date();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const nextMonthFirstDay = new Date(year, month + 1, 1);

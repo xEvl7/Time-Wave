@@ -22,10 +22,7 @@ export default function TextButton({
   children,
 }: TextButtonProps) {
   return (
-    <Pressable
-      style={[styles.button, style]}
-      onPress={onPress}
-    >
+    <Pressable style={[styles.button, style]} onPress={onPress}>
       <Text style={[styles.buttonText, textStyle]}>{children}</Text>
     </Pressable>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect ,useState} from "react";
+import React, { useEffect, useState } from "react";
 import { Image, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -50,6 +50,7 @@ import AdminControl from "./screens/AdminControl";
 //import CommunityActivityHistory from "./screens/CommunityActivityHistory";
 import ActivityHistory from "./screens/ActivityHistory";
 import RecentActivities from "./screens/RecentActivities";
+import GoogleFormScreen from "./screens/GoogleFormScreen";
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -57,8 +58,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const TabNavigator = () => {
   const [logo, setLogo] = useState<string | null>(null);
   const emailAddress = useAppSelector((state) => state.user.data?.emailAddress);
-   // 从 Firestore 获取用户头像
-   useEffect(() => {
+  // 从 Firestore 获取用户头像
+  useEffect(() => {
     const unsubscribe = firestore()
       .collection("Users")
       .where("emailAddress", "==", emailAddress)
@@ -90,7 +91,9 @@ const TabNavigator = () => {
             // iconName = focused ? "person" : "person-outline";
             return (
               <Image
-                source={logo ? { uri: logo } : require("./assets/profile-picture.png")}
+                source={
+                  logo ? { uri: logo } : require("./assets/profile-picture.png")
+                }
                 style={[
                   styles.profileIcon,
                   { borderColor: focused ? "#FF8D13" : "transparent" },
@@ -174,10 +177,10 @@ const Navigation = () => {
       >
         {isSignedIn ? (
           <>
-            <Stack.Group screenOptions={{ presentation: "modal" }}>
+            {/* <Stack.Group screenOptions={{ presentation: "modal" }}>
               <Stack.Screen name="AppInfo" component={AppInfo} />
               <Stack.Screen name="Benefits" component={Benefits} />
-            </Stack.Group>
+            </Stack.Group> */}
 
             <Stack.Screen
               name="HomeTabs"
@@ -222,6 +225,13 @@ const Navigation = () => {
                 title: "Reward",
               }}
             />
+            <Stack.Screen
+              name="GoogleFormScreen"
+              component={GoogleFormScreen}
+              options={{
+                title: "Google Form Screen",
+              }}
+            />
             <Stack.Screen name="NewProfile" component={NewProfile} />
             <Stack.Screen name="Setting" component={Setting} />
             <Stack.Screen
@@ -231,15 +241,20 @@ const Navigation = () => {
             <Stack.Screen name="EditProfile" component={EditProfile} />
             <Stack.Screen name="Communities" component={Communities} />
             <Stack.Screen name="ActivitySeeAll" component={ActivitySeeAll} />
-            <Stack.Screen name="CommunityProfile" component={CommunityProfile} />
+            <Stack.Screen
+              name="CommunityProfile"
+              component={CommunityProfile}
+            />
             <Stack.Screen name="MemberSeeAll" component={MemberSeeAll} />
             <Stack.Screen name="AddAdmin" component={AddAdmin} />
             <Stack.Screen name="ActivityInfo" component={ActivityInfo} />
             <Stack.Screen name="ProfileInfo" component={ProfileInfo} />
-            <Stack.Screen name="OngoingActivities" component={OngoingActivities}  />
+            <Stack.Screen
+              name="OngoingActivities"
+              component={OngoingActivities}
+            />
             <Stack.Screen name="CreateActivity" component={CreateActivity} />
             <Stack.Screen name="EditActivity" component={EditActivity} />
-
 
             <Stack.Screen
               name="Account"
@@ -292,7 +307,11 @@ const Navigation = () => {
           </>
         ) : (
           <>
-            <Stack.Screen name="Welcome" component={Welcome} />
+            <Stack.Screen
+              name="Welcome"
+              component={Welcome}
+              // options={{headerShown: false,}}
+            />
             <Stack.Screen name="LogIn" component={Login} />
             <Stack.Screen name="SignUp" component={SignUp} />
             <Stack.Screen

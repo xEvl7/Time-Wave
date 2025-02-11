@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import firestore from "@react-native-firebase/firestore";
+import firestore, { firebase } from "@react-native-firebase/firestore";
 import * as SecureStore from "expo-secure-store";
 import { USER_DATA } from "../constants";
 import { RootState } from "../store";
@@ -12,7 +12,8 @@ type UserData = {
   phoneNumber: string;
   emailAddress: string;
   points: number;
-  logo: string | null; // 允许为 null
+  logo: string | null;
+  feedbackStatus: Boolean;
 };
 
 type UserContributionData = {
@@ -150,8 +151,13 @@ export const fetchUserContributionData = createAsyncThunk(
     });
 
     // Check if the keys and values exist before accessing them
-    const selectedYear = "2023";
-    const selectedMonth = "Dec";
+    // const selectedYear = "2025";
+    // const selectedMonth = "Feb";
+    const currentDate = new Date();
+    const selectedYear = currentDate.getFullYear(); // 获取当前年份 (2025)
+    const selectedMonth = currentDate.toLocaleString("en-US", {
+      month: "short",
+    }); // 获取当前月份 (Feb)
 
     if (
       contributionData[selectedYear] &&
@@ -188,6 +194,7 @@ export const fetchUserContributionData2 = createAsyncThunk(
       .collection("Contributions")
       .get();
 
+    // get all history
     const groupedData: { [year: string]: UserContribution[] } = {};
 
     userContributionCollection.forEach((doc) => {
@@ -324,7 +331,6 @@ export const fetchPointsUsedData = createAsyncThunk(
     return activities;
   }
 );
-
 
 export const fetchUserActivitiesData = createAsyncThunk(
   "user/fetchUserActivitiesData",
@@ -472,6 +478,23 @@ export const storePointsReceivedDataToFirebase = createAsyncThunk(
   }
 );
 
+const updateFeedbackStatus = createAsyncThunk(
+  "user/updateFeedbackStatus",
+  async ({ userId, status }: { userId: string; status: boolean }) => {
+    if (userId) {
+      await firestore().collection("Users").doc(userId).set(
+        {
+          feedbackStatus: status,
+        },
+        { merge: true }
+      );
+      return { userId, feedbackStatus: status };
+    } else {
+      throw new Error("User ID is undefined");
+    }
+  }
+);
+
 export const logOut = () => ({
   type: "user/logOut",
 });
@@ -577,7 +600,19 @@ const userSlice = createSlice({
       )
       .addCase(storePointsReceivedDataToFirebase.rejected, (_, action) => {
         console.error(action.error);
-      });
+      })
+      .addCase(
+        updateFeedbackStatus.fulfilled,
+        (
+          state,
+          action: PayloadAction<{ userId: string; feedbackStatus: boolean }>
+        ) => {
+          const { userId, feedbackStatus } = action.payload;
+          if (state.data?.uid === userId) {
+            state.data.feedbackStatus = feedbackStatus;
+          }
+        }
+      );
   },
 });
 

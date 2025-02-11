@@ -8,7 +8,7 @@ type HeaderTextProps = {
 
 const HeaderText = ({ style, children }: HeaderTextProps) => {
   return <Text style={[styles.header, style]}>{children}</Text>;
-}
+};
 
 const styles = StyleSheet.create({
   header: {

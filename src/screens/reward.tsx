@@ -13,7 +13,7 @@ import TextButton from "../components/TextButton";
 import ContentContainer from "../components/ContentContainer";
 
 import { fetchRewardData } from "../features/rewardSlice";
-import { storePointsUsedDataToFirebase } from "../features/userSlice"; // 新增
+import { storePointsUsedDataToFirebase, updateFeedbackStatus } from "../features/userSlice"; // 新增
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
@@ -21,6 +21,8 @@ import React, { useState, useEffect } from "react";
 import { DateTime } from "luxon";
 import firestore from "@react-native-firebase/firestore";
 import { fetchUserData } from "../features/userSlice";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { RootState } from "../store";
 
 export default function Reward({
   navigation,
@@ -33,35 +35,34 @@ export default function Reward({
   const { item } = route.params; // 获取传来的 item 参数
   const validityStartDate = rewardData?.validityStartDate;
   const validityEndDate = rewardData?.validityEndDate;
-  const [newPoint, setNewPoint] = useState(point ||'' );
+  const [newPoint, setNewPoint] = useState(point || "");
   const [error, setError] = useState<string | null>(null); // 保存错误信息
   const [isLoading, setIsLoading] = useState(false); // 添加加载状态
-
 
   const updateUserPoints = async () => {
     if (!email) {
       setError("Email is undefined");
       return;
     }
-  
+
     try {
       setIsLoading(true);
       setError(null); // 清除之前的错误信息
-  
+
       const userSnapshot = await firestore()
-        .collection('Users')
+        .collection("Users")
         .where("emailAddress", "==", email)
         .get();
-  
+
       if (!userSnapshot.empty) {
         const userDoc = userSnapshot.docs[0].ref;
         await userDoc.update({
           points: Number(newPoint),
         });
-  
+
         // 更新 Redux 中的积分
         await dispatch(fetchUserData(email)).unwrap();
-  
+
         console.log("User data updated successfully");
       } else {
         setError("User not found");
@@ -77,27 +78,27 @@ export default function Reward({
     try {
       // 获取当前时间戳
       const currentTime = firestore.Timestamp.fromDate(new Date());
-  
+
       // 创建存储数据
       const pointsUsedData = {
         points: rewardData?.price,
-        date: currentTime,  // 当前时间戳
+        date: currentTime, // 当前时间戳
       };
-  
+
       // 查找该用户文档
       const userSnapshot = await firestore()
         .collection("Users")
         .where("emailAddress", "==", email)
         .get();
-  
+
       // 如果查询到用户
       if (!userSnapshot.empty) {
         // 获取用户文档的引用
         const userDocRef = userSnapshot.docs[0].ref;
-  
+
         // 将数据添加到 "PointsUsed" 子集合
         await userDocRef.collection("PointsUsed").add(pointsUsedData);
-  
+
         console.log("Points used data stored successfully.");
       } else {
         console.log("User not found");
@@ -106,8 +107,6 @@ export default function Reward({
       console.error("Error storing points used data:", error);
     }
   };
-   
- 
 
   const starttimestamp = new Date(
     validityStartDate?.seconds * 1000 + validityStartDate?.nanoseconds / 1e6
@@ -116,12 +115,10 @@ export default function Reward({
     validityEndDate?.seconds * 1000 + validityEndDate?.nanoseconds / 1e6
   );
 
-  const startluxonDateTime = DateTime.fromJSDate(starttimestamp).setZone(
-    "Asia/Singapore"
-  );
-  const endluxonDateTime = DateTime.fromJSDate(endtimestamp).setZone(
-    "Asia/Singapore"
-  );
+  const startluxonDateTime =
+    DateTime.fromJSDate(starttimestamp).setZone("Asia/Singapore");
+  const endluxonDateTime =
+    DateTime.fromJSDate(endtimestamp).setZone("Asia/Singapore");
 
   const [isInvalid, setIsInvalid] = useState(false);
 
@@ -134,12 +131,17 @@ export default function Reward({
       });
 
       if (result.action === Share.sharedAction) {
-        console.log(result.activityType ? result.activityType : "Shared successfully");
+        console.log(
+          result.activityType ? result.activityType : "Shared successfully"
+        );
       } else if (result.action === Share.dismissedAction) {
         console.log("Share dismissed");
       }
     } catch (error) {
-      Alert.alert("Error", error instanceof Error ? error.message : "Unknown error occurred");
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "Unknown error occurred"
+      );
     }
   };
 
@@ -173,21 +175,23 @@ export default function Reward({
 
       await setNewPoint(count); // 更新状态
 
-  
       // 更新 Firebase
       await storePointsUsedDataToFirebase();
       // 调用更新用户积分的函数
       await updateUserPoints();
       // 更新 Redux 中的积分
       await dispatch(fetchUserData(email)); // 重新加载用户数据
-  
+
       // 显示成功提示
       Alert.alert(
         "Redeemed Successfully!",
         `You have used ${rewardData?.price} points. Remaining Balance: ${count} points.`
       );
     } catch (error) {
-      Alert.alert("Error", error instanceof Error ? error.message : "Failed to redeem points");
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "Failed to redeem points"
+      );
     }
   };
 
@@ -213,6 +217,59 @@ export default function Reward({
     }
   };
 
+    useEffect(() => {
+      if (!email) return;
+  
+      const fetchData = async () => {
+        setIsLoading(true);
+        try {
+          await dispatch(fetchUserData(email));
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+        setIsLoading(false);
+      };
+      fetchData();
+    }, [dispatch, email]);
+
+  // const userData = useAppSelector((state: RootState) => state.user.data);
+  const feedbackStatus = useAppSelector((state) => state.user.data?.feedbackStatus);
+  const uid = useAppSelector((state) => state.user.data?.uid);
+
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+
+  useEffect(() => {
+    // 检查是否从表单页面返回，并接收到 formSubmitted 状态
+    if (route.params?.formSubmitted) {
+      setIsFormSubmitted(route.params.formSubmitted);
+    }
+  }, [route.params]);
+
+  // const showAlert = () => {
+  //   console.log("feedbackStatus", feedbackStatus);
+  //   Alert.alert(
+  //     "Redeem Reward",
+  //     isFormSubmitted
+  //       ? "Congratulations! You can now redeem your reward."
+  //       : "Please fill out the form to redeem this reward.",
+  //     [
+  //       { text: "Cancel", style: "cancel" },
+  //       {
+  //         text: isFormSubmitted ? "Proceed" : "Go to Form",
+  //         onPress: () => {
+  //           if (isFormSubmitted) {
+  //             console.log("Proceeding with reward redemption...");
+  //             updateFeedbackStatus({ userId: uid, status: true });
+  //           } else {
+  //             navigation.navigate("GoogleFormScreen");
+  //           }
+  //         },
+  //       },
+  //     ]
+  //   );
+  // };
+  
+
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.box}>
@@ -225,7 +282,10 @@ export default function Reward({
 
         <Image source={{ uri: rewardData?.image }} style={styles.rewardImage} />
 
-        <Image style={styles.supplierLogo} source={{ uri: rewardData?.supplierLogo }} />
+        <Image
+          style={styles.supplierLogo}
+          source={{ uri: rewardData?.supplierLogo }}
+        />
       </View>
 
       <ContentContainer>
@@ -252,21 +312,32 @@ export default function Reward({
           <ScrollView contentContainerStyle={styles.scrollcontainer}>
             <View style={styles.boxs}>
               <Text style={styles.boldtext}>Highlight</Text>
-              <Text style={{ marginTop: 5, marginBottom: 10 }}>{rewardData?.highlight}</Text>
+              <Text style={{ marginTop: 5, marginBottom: 10 }}>
+                {rewardData?.highlight}
+              </Text>
             </View>
             <View style={styles.boxs}>
               <Text style={styles.boldtext}>Terms & Conditions</Text>
-              <Text style={{ marginTop: 5, marginBottom: 10 }}>{rewardData?.termsConditions}</Text>
+              <Text style={{ marginTop: 5, marginBottom: 10 }}>
+                {rewardData?.termsConditions}
+              </Text>
             </View>
             <View style={styles.boxs}>
               <Text style={styles.boldtext}>Contact Info</Text>
-              <Text style={{ marginTop: 5, marginBottom: 10 }}>{rewardData?.contactInfo}</Text>
+              <Text style={{ marginTop: 5, marginBottom: 10 }}>
+                {rewardData?.contactInfo}
+              </Text>
             </View>
           </ScrollView>
         </View>
       </ContentContainer>
 
       <View style={styles.redeemContainer}>
+        <Text style={styles.infoText}>
+          {isFormSubmitted
+            ? "You have successfully submitted the form. Ready to redeem!"
+            : "You need to complete the form to redeem your reward."}
+        </Text>
         <TextButton
           style={{
             position: "absolute",
@@ -277,7 +348,11 @@ export default function Reward({
             elevation: 1,
           }}
           textStyle={styles.mainButtonText}
-          onPress={isInvalid ? () => Alert.alert("This reward is invalid or expired.") : showAlert}
+          onPress={
+            isInvalid
+              ? () => Alert.alert("This reward is invalid or expired.")
+              : showAlert
+          }
         >
           Redeem
         </TextButton>
@@ -286,23 +361,22 @@ export default function Reward({
   );
 }
 
-
 const styles = StyleSheet.create({
   scrollcontainer: {
     padding: 5,
   },
   scrollViewContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 145, // Adjust as needed
     bottom: 100, // Adjust as needed to fit your design
     left: 5,
     right: 5,
   },
   boxs: {
-    width: '90%',
+    width: "90%",
     marginVertical: 10,
-    justifyContent: 'space-evenly',
-    alignItems: 'flex-start',
+    justifyContent: "space-evenly",
+    alignItems: "flex-start",
   },
   boldtext: { fontWeight: "bold", fontSize: 25 },
   alternativesContainer: {
@@ -325,7 +399,7 @@ const styles = StyleSheet.create({
   redeemContainer: {
     minWidth: "78%",
     height: "10%",
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     right: 0,
     left: 0,
@@ -337,10 +411,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF8D13",
     alignItems: "center",
     justifyContent: "center",
-    position: 'relative', // 使得子元素能够绝对定位
+    position: "relative", // 使得子元素能够绝对定位
   },
   shareButton: {
-    position: 'absolute', // 绝对定位
+    position: "absolute", // 绝对定位
     top: 10, // 距离顶部的距离
     right: 10, // 距离右边的距离
   },
@@ -352,7 +426,7 @@ const styles = StyleSheet.create({
   supplierLogo: {
     width: 40,
     height: 40,
-    position: 'absolute', // 绝对定位
+    position: "absolute", // 绝对定位
     bottom: 10, // 距离底部的距离
     left: 10, // 距离左边的距离
   },
@@ -360,8 +434,13 @@ const styles = StyleSheet.create({
     color: "#06090C",
   },
   verticleLine: {
-    height: '100%',
+    height: "100%",
     width: StyleSheet.hairlineWidth,
-    backgroundColor: '#909090',
+    backgroundColor: "#909090",
+  },
+  infoText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
   },
 });

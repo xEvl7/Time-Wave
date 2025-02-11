@@ -21,7 +21,7 @@ const ContentContainer = ({ children, style }: ContentContainerProps) => {
         style={{
           flex: 1,
           marginHorizontal: 25,
-          // marginVertical: 15,
+          marginVertical: 15,
         }}
       >
         {children}

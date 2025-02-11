@@ -5,6 +5,7 @@ import ContentContainer from "../components/ContentContainer";
 import ParagraphText from "../components/text_components/ParagraphText";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
+import React from "react";
 
 export default function Welcome({
   navigation,
@@ -12,8 +13,9 @@ export default function Welcome({
   return (
     <>
       <BackgroundImageBox
+        style={{ height: "38%" }}
         source={require("../assets/background/welcome.png")}
-        imageStyle={{ marginBottom: 30 }}
+        // imageStyle={{ marginBottom: 30 }}
       ></BackgroundImageBox>
       <ContentContainer>
         <HeaderText>Welcome to Time Wave</HeaderText>

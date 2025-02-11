@@ -18,7 +18,12 @@ export type RootStackParamList = {
 
   // CreateCommunity: undefined;
   CreateCommunity: {
-    selectedAdmins: Array<{ id: number; name: string; avatar: any; uid: string }>;
+    selectedAdmins: Array<{
+      id: number;
+      name: string;
+      avatar: any;
+      uid: string;
+    }>;
   };
   SelectAdmin: undefined;
   CommunityInfo: CommunityProps;
@@ -28,8 +33,8 @@ export type RootStackParamList = {
   ActivityInfo: undefined;
   OngoingActivities: undefined;
   ActivitySeeAll: { item: any };
-  MemberSeeAll: { item: any, member:any };
-  AddAdmin: { item:any, member:any };
+  MemberSeeAll: { item: any; member: any };
+  AddAdmin: { item: any; member: any };
   CreateActivity: { item: any };
   EditActivity: { item: any };
 
@@ -52,7 +57,8 @@ export type RootStackParamList = {
   PastRewardsPage: undefined;
   RewardsDetailsPage: undefined;
   TimeBankRewardsPage: undefined;
-  Reward: undefined;
+  Reward: { formSubmitted?: boolean };
+  GoogleFormScreen: undefined;
   Setting: undefined;
   ChangeYourPassword: undefined;
   EditProfile: undefined;

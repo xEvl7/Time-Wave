@@ -23,7 +23,6 @@ type FormData = {
 export default function Login({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "LogIn">) {
-
   const { control, handleSubmit } = useForm<FormData>({
     defaultValues: {
       emailAddress: "test@gmail.com",
@@ -31,7 +30,7 @@ export default function Login({
     },
   });
 
-  const userData = useAppSelector((state) => state.user.data);
+  // const userData = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
 
   const handleLogin = async (data: FormData) => {
@@ -68,66 +67,64 @@ export default function Login({
       enableOnAndroid={true}
       extraScrollHeight={-300}
     >
-        <BackgroundImageBox
-          style={{ height: "38%" }}
-          source={require("../assets/background/login.png")}
-        ></BackgroundImageBox>
-        <ContentContainer>
-          <HeaderText>Sign In Now</HeaderText>
-          <ValidatedTextInput
-            name={"emailAddress"}
-            placeholder={"Email"}
-            control={control}
-            rules={{
-              required: "Email Address is required.",
-              pattern: {
-                value: /^[\w-\.]+@([\w-]+\.)com$/,
-                message: "Invalid Email Address.",
-              },
-            }}
-          />
-          <ValidatedTextInput
-            name={"password"}
-            placeholder={"Password"}
-            control={control}
-            rules={{
-              required: "Password is required.",
-            }}
-            secureTextEntry
-          />
-          <TextButton
-            onPress={handleSubmit(handleLogin)}
-          >
-            Login
-          </TextButton>
-          <View style={styles.alternativesContainer}>
-            <Pressable onPress={() => navigation.navigate("ForgotPassword")}>
-              <Text style={{ fontSize: 12, color: "#FF8D13" }}>Forgot Password</Text>
+      <BackgroundImageBox
+        style={{ height: "38%" }}
+        source={require("../assets/background/login.png")}
+      ></BackgroundImageBox>
+      <ContentContainer>
+        <HeaderText>Sign In Now</HeaderText>
+        <ValidatedTextInput
+          name={"emailAddress"}
+          placeholder={"Email"}
+          control={control}
+          rules={{
+            required: "Email Address is required.",
+            pattern: {
+              value: /^[\w-\.]+@([\w-]+\.)com$/,
+              message: "Invalid Email Address.",
+            },
+          }}
+        />
+        <ValidatedTextInput
+          name={"password"}
+          placeholder={"Password"}
+          control={control}
+          rules={{
+            required: "Password is required.",
+          }}
+          secureTextEntry
+        />
+        <TextButton onPress={handleSubmit(handleLogin)}>Login</TextButton>
+        <View style={styles.alternativesContainer}>
+          <Pressable onPress={() => navigation.navigate("ForgotPassword")}>
+            <Text style={{ fontSize: 12, color: "#FF8D13" }}>
+              Forgot Password
+            </Text>
+          </Pressable>
+          <Text style={{ marginTop: 30, marginBottom: 20 }}>Log in with:</Text>
+          <View style={styles.thirdPartyAuthContainer}>
+            <Pressable>
+              <Image source={require("../assets/logo/google-logo.png")}></Image>
             </Pressable>
-            <Text style={{ marginTop: 30, marginBottom: 20 }}>Log in with:</Text>
-            <View style={styles.thirdPartyAuthContainer}>
-              <Pressable>
-                <Image source={require("../assets/logo/google-logo.png")}></Image>
-              </Pressable>
-              {/* <Pressable>
+            {/* <Pressable>
               <Image source={require("../assets/logo/apple-logo.png")}></Image>
             </Pressable> */}
-              <Pressable>
-                <Image
-                  source={require("../assets/logo/facebook-logo.png")}
-                ></Image>
-              </Pressable>
-            </View>
-            <View style={styles.registerContainer}>
-              <Text>New member?</Text>
-              <Pressable onPress={() => navigation.navigate("SignUp")}>
-                <Text style={{ color: "#FF8D13" }}>
-                  Click here to register now
-                </Text>
-              </Pressable>
-            </View>
+            <Pressable>
+              <Image
+                source={require("../assets/logo/facebook-logo.png")}
+              ></Image>
+            </Pressable>
           </View>
-        </ContentContainer>
+          <View style={styles.registerContainer}>
+            <Text>New member?</Text>
+            <Pressable onPress={() => navigation.navigate("SignUp")}>
+              <Text style={{ color: "#FF8D13" }}>
+                Click here to register now
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </ContentContainer>
     </KeyboardAwareScrollView>
   );
 }
@@ -135,7 +132,7 @@ export default function Login({
 const styles = StyleSheet.create({
   alternativesContainer: {
     alignItems: "center",
-    marginTop: 20,
+    // marginTop: 20,
   },
   thirdPartyAuthContainer: {
     flexDirection: "row",

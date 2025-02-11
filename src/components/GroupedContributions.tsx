@@ -2,13 +2,17 @@ import React from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 
 interface UserContribution {
-    // year: string;
-    month: string;
-    totalContrHours: number;
-    updatedDate: any;
-  }
-  
-const GroupedContributions = ({ data }: { data: { [year: string]: UserContribution[] } }) => {
+  // year: string;
+  month: string;
+  totalContrHours: number;
+  updatedDate: any;
+}
+
+const GroupedContributions = ({
+  data,
+}: {
+  data: { [year: string]: UserContribution[] };
+}) => {
   const renderItem = ({ item }: { item: UserContribution }) => (
     <View style={styles.itemContainer}>
       <Text style={styles.itemMonth}>{item.month}</Text>
@@ -17,7 +21,11 @@ const GroupedContributions = ({ data }: { data: { [year: string]: UserContributi
     </View>
   );
 
-  const renderYear = ({ item }: { item: { year: string; contributions: UserContribution[] } }) => (
+  const renderYear = ({
+    item,
+  }: {
+    item: { year: string; contributions: UserContribution[] };
+  }) => (
     <View style={styles.yearContainer}>
       <Text style={styles.yearHeader}>{item.year}</Text>
       <FlatList
@@ -28,10 +36,29 @@ const GroupedContributions = ({ data }: { data: { [year: string]: UserContributi
     </View>
   );
 
-  const groupedData = Object.keys(data).map((year) => ({
-    year,
-    contributions: data[year],
-  }));
+  const monthOrder: { [key: string]: number } = {
+    Jan: 12,
+    Feb: 11,
+    Mar: 10,
+    Apr: 9,
+    May: 8,
+    Jun: 7,
+    Jul: 6,
+    Aug: 5,
+    Sep: 4,
+    Oct: 3,
+    Nov: 2,
+    Dec: 1,
+  };
+
+  const groupedData = Object.keys(data)
+    .map(Number) // 把字符串年份转换为数字
+    .sort((a, b) => b - a) // **年份降序**
+    .map((year) => ({
+      year: String(year), // 转回字符串
+      contributions: [...data[String(year)]] // **创建新数组，防止修改原数据**
+        .sort((a, b) => monthOrder[a.month] - monthOrder[b.month]), // **月份降序**
+    }));
 
   return (
     <FlatList
