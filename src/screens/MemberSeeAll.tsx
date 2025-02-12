@@ -6,7 +6,8 @@ import {
   FlatList,
   Pressable,
   ScrollView,
-  Alert  
+  Alert,
+  TextInput  
 } from "react-native";
 import { Button, Checkbox } from "react-native-paper";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";  
@@ -284,15 +285,14 @@ const MemberListSection = ({
   handleSelect 
 }: ListSectionProps) => {
   const [memberData, setMemberData] = useState<FirebaseFirestoreTypes.DocumentData[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const memberType = member ? item.admins : item.volunteer;
-  console.log("member type is?", memberType);
-  
+
   // Fetch members data from Firebase
   useEffect(() => {    
     const fetchMemberData = async () => {
       try {
-        console.log("seeall id", item.id);
         const response = await firebase
           .firestore()
           .collection("Users")
@@ -300,27 +300,41 @@ const MemberListSection = ({
           .get();
 
         const fetchedMemberData = response.docs.map((doc) => doc.data());
-        // .filter((admin) => admin.uid !== ownUserId); // Filter out current user;
         setMemberData(fetchedMemberData);
       } catch (error) {
         console.error("Error fetching communities member data:", error);
       }
     };
 
-    if (memberType.length > 0) { // Ensure the array is not empty
+    if (memberType.length > 0) {
       fetchMemberData();
     } else {
       setMemberData([]);
     }
   }, [item.id, memberType]);
 
-  console.log("member Data:", memberData);
+  // Filter members based on search query
+  const filteredMemberData = memberData.filter((member) =>
+    member.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <View>
+      {/* Search Bar */}
+      <View style={{ margin: 10 }}>
+        <TextInput
+          mode="outlined"
+          placeholder="Search members..."
+          value={searchQuery}
+          onChangeText={(text) => setSearchQuery(text)}
+          style={{ backgroundColor: "white" }}
+        />
+      </View>
+
+      {/* Member List */}
       <FlatList
-        data={memberData} // Data from Firebase
-        keyExtractor={(item, index) => item.uid || index.toString()} // Prefer unique keys
+        data={filteredMemberData}
+        keyExtractor={(item, index) => item.uid || index.toString()}
         renderItem={({ item }) => renderMemberItem({ 
           item, 
           navigation, 
@@ -332,9 +346,7 @@ const MemberListSection = ({
         })}
         contentContainerStyle={{ padding: 10 }}
         ListEmptyComponent={() => (
-          <Text style={styles.emptyText}>
-            No data available
-          </Text>
+          <Text style={styles.emptyText}>No members found</Text>
         )}
       />
     </View>
