@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit"; 
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import firestore from "@react-native-firebase/firestore";
 import { RootState } from "../store";
 import * as SecureStore from "expo-secure-store";
@@ -7,20 +7,20 @@ import { DateTime } from "luxon";
 
 // 定义奖励数据类型
 export type RewardData = {
-    RID: string;
-    category: string;
-    supplierLogo: string;
-    supplierName: string;
-    contactInfo: string;
-    highlight: string;
-    image: string;
-    name: string;
-    price: number;
-    qtyAvailable: number;
-    status: string;
-    termsConditions: string;
-    validityStartDate: any;
-    validityEndDate: any;
+  RID: string;
+  category: string;
+  supplierLogo: string;
+  supplierName: string;
+  contactInfo: string;
+  highlight: string;
+  image: string;
+  name: string;
+  price: number;
+  qtyAvailable: number;
+  status: string;
+  termsConditions: string;
+  validityStartDate: any;
+  validityEndDate: any;
 };
 
 // 定义 RewardState 类型，包含奖励数据和搜索查询
@@ -41,6 +41,35 @@ export const updateRewardData = createAsyncThunk(
   }
 );
 
+// // 异步操作：从 Firebase 获取奖励数据
+// export const fetchRewardData = createAsyncThunk(
+//   "reward/fetchRewardData",
+//   async (RID: string) => {
+//     const querySnapshot = await firestore()
+//       .collection("Rewards")
+//       .where("RID", "==", RID)
+//       .get();
+
+//     if (querySnapshot.size !== 1) {
+//       throw new Error(`${RID} Either has no data or more than 1 data.`);
+//     }
+
+//     const rewardData = querySnapshot.docs[0].data() as RewardData;
+//     return rewardData;
+//   }
+// );
+
+// // 异步操作：从 Secure Store 加载奖励数据
+// export const loadRewardDataFromStore = createAsyncThunk(
+//   "user/loadUserDataFromCache",
+//   async () => {
+//     let rewardDataJson: string | null = await SecureStore.getItemAsync(REWARD_DATA);
+
+//     if (rewardDataJson) return JSON.parse(rewardDataJson);
+//     return rewardDataJson;
+//   }
+// );
+
 // 异步操作：从 Firebase 获取奖励数据
 export const fetchRewardData = createAsyncThunk(
   "reward/fetchRewardData",
@@ -55,7 +84,17 @@ export const fetchRewardData = createAsyncThunk(
     }
 
     const rewardData = querySnapshot.docs[0].data() as RewardData;
-    return rewardData;
+
+    // 🔥 转换 `validityStartDate` 和 `validityEndDate`
+    return {
+      ...rewardData,
+      validityStartDate: rewardData.validityStartDate?.seconds
+        ? new Date(rewardData.validityStartDate.seconds * 1000).toISOString()
+        : null,
+      validityEndDate: rewardData.validityEndDate?.seconds
+        ? new Date(rewardData.validityEndDate.seconds * 1000).toISOString()
+        : null,
+    };
   }
 );
 
@@ -63,10 +102,59 @@ export const fetchRewardData = createAsyncThunk(
 export const loadRewardDataFromStore = createAsyncThunk(
   "user/loadUserDataFromCache",
   async () => {
-    let rewardDataJson: string | null = await SecureStore.getItemAsync(REWARD_DATA);
+    let rewardDataJson: string | null = await SecureStore.getItemAsync(
+      REWARD_DATA
+    );
 
-    if (rewardDataJson) return JSON.parse(rewardDataJson);
-    return rewardDataJson;
+    if (rewardDataJson) {
+      let rewardData = JSON.parse(rewardDataJson);
+
+      // 🔥 确保数据可序列化
+      return {
+        ...rewardData,
+        validityStartDate:
+          typeof rewardData.validityStartDate === "string"
+            ? rewardData.validityStartDate
+            : null,
+        validityEndDate:
+          typeof rewardData.validityEndDate === "string"
+            ? rewardData.validityEndDate
+            : null,
+      };
+    }
+
+    return null;
+  }
+);
+
+// 分页加载 rewards（Lazy Load）
+export const fetchRewardsPaginated = createAsyncThunk(
+  "reward/fetchRewardsPaginated",
+  async ({ limit, lastDoc }: { limit: number; lastDoc?: any }) => {
+    let query = firestore()
+      .collection("Rewards")
+      .orderBy("validityEndDate")
+      .limit(limit);
+
+    if (lastDoc) {
+      query = query.startAfter(lastDoc);
+    }
+
+    const querySnapshot = await query.get();
+    const rewards = querySnapshot.docs.map((doc) => ({
+      ...doc.data(),
+      validityStartDate: doc.data().validityStartDate?.seconds
+        ? new Date(doc.data().validityStartDate.seconds * 1000).toISOString()
+        : null,
+      validityEndDate: doc.data().validityEndDate?.seconds
+        ? new Date(doc.data().validityEndDate.seconds * 1000).toISOString()
+        : null,
+    }));
+
+    return {
+      rewards,
+      lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1],
+    };
   }
 );
 
@@ -106,7 +194,9 @@ const rewardSlice = createSlice({
         (state, action: PayloadAction<RewardData | null>) => {
           if (action.payload) {
             state.data = action.payload;
-            console.log(`Successfully Loaded ${state.data.name}'s data from Secure Store.`);
+            console.log(
+              `Successfully Loaded ${state.data.name}'s data from Secure Store.`
+            );
           } else {
             console.log("User data is undefined.");
           }
@@ -139,9 +229,10 @@ const selectFilteredRewards = (state: RootState) => {
   const { allRewards, searchQuery } = state.reward;
 
   // 通过搜索查询过滤奖励数据
-  return allRewards.filter((reward) =>
-    reward.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    reward.supplierName.toLowerCase().includes(searchQuery.toLowerCase())
+  return allRewards.filter(
+    (reward) =>
+      reward.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reward.supplierName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 };
 

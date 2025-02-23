@@ -57,7 +57,7 @@ export type RootStackParamList = {
   PastRewardsPage: undefined;
   RewardsDetailsPage: undefined;
   TimeBankRewardsPage: undefined;
-  Reward: { formSubmitted?: boolean };
+  Reward: { item: { RID: string } };
   GoogleFormScreen: undefined;
   Setting: undefined;
   ChangeYourPassword: undefined;

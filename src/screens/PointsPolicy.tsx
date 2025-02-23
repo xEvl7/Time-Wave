@@ -8,8 +8,6 @@ import {
 import React, { useState, useEffect } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
-import { useAppDispatch } from "../hooks";
-import { storePointsReceivedDataToFirebase } from "../features/userSlice";
 import PolicyFragment from "../components/PolicyFragment";
 
 const PointsPolicy = ({
@@ -20,24 +18,7 @@ const PointsPolicy = ({
   const [activeTab, setActiveTab] = useState<
     "level1" | "level2" | "level3" | "level4"
   >("level1");
-  // const dispatch = useAppDispatch();
 
-  // const pointsReceivedData = {
-  //   date: new Date(),
-  //   points: 20,
-  // };
-
-  // useEffect(() => {
-  //   dispatch(storePointsReceivedDataToFirebase(pointsReceivedData));
-  // }, [dispatch]);
-
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     const userLevel = "level1";
-  //     setActiveTab(userLevel);
-  //     setIsLoading(false);
-  //   }, 500);
-  // }, []);
   useEffect(() => {
     setTimeout(() => {
       const userLevel = route.params?.level || "level1";

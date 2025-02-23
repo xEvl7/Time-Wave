@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import firestore, {
-  firebase,
   FirebaseFirestoreTypes,
 } from "@react-native-firebase/firestore";
 import * as SecureStore from "expo-secure-store";
@@ -45,7 +44,13 @@ type PointsReceivedData2 = {
 };
 
 type PointsUsedData = {
-  date: FirebaseFirestoreTypes.Timestamp;
+  date: any;
+  time: any;
+  points: number;
+};
+
+type PointsUsedData2 = {
+  date: any;
   points: number;
 };
 
@@ -74,6 +79,45 @@ export const updateUserData = createAsyncThunk(
     await SecureStore.setItemAsync(USER_DATA, JSON.stringify(userData));
     console.log(`Saved ${userData.name}'s data to Secure Store.`);
     return userData;
+  }
+);
+
+// 更新用户积分的异步 thunk
+export const updateUserPoints = createAsyncThunk(
+  "user/updateUserPoints",
+  async (
+    { emailAddress, points }: { emailAddress: string; points: number },
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const state = getState() as RootState;
+      const currentUser = state.user.data;
+
+      if (!currentUser?.emailAddress) {
+        return rejectWithValue("User email not found");
+      }
+
+      const userSnapshot = await firestore()
+        .collection("Users")
+        .where("emailAddress", "==", emailAddress)
+        .get();
+
+      if (!userSnapshot.empty) {
+        const userDoc = userSnapshot.docs[0].ref;
+        await userDoc.update({ points });
+
+        console.log("Latest user's points: ", points);
+
+        return { emailAddress, points }; // 返回更新后的数据
+      } else {
+        return rejectWithValue("User not found");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
+
+      return rejectWithValue(errorMessage);
+    }
   }
 );
 
@@ -222,11 +266,12 @@ export const fetchUserContributionData2 = createAsyncThunk(
 export const fetchPointsReceivedData = createAsyncThunk(
   "user/fetchPointsReceivedData",
   async (emailAddress: string) => {
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const querySnapshot = await firestore()
       .collection("Users")
       .where("emailAddress", "==", emailAddress)
       .get();
-
     if (querySnapshot.size !== 1) {
       throw new Error(
         `${emailAddress} Either has no data or more than 1 data.`
@@ -234,17 +279,12 @@ export const fetchPointsReceivedData = createAsyncThunk(
     }
 
     const userDocument = querySnapshot.docs[0];
-
     const PointsReceivedCollection = await userDocument.ref
       .collection("PointsReceived")
       .orderBy("date", "desc")
       .get();
-
-    // 获取用户的本地时区
-    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const activities: PointsReceivedData[] = [];
 
-    // Iterate over each document in the "PointsReceived" sub-collection
     PointsReceivedCollection.forEach((doc) => {
       const firestoreTimestamp = doc.data().date;
 
@@ -252,13 +292,9 @@ export const fetchPointsReceivedData = createAsyncThunk(
         firestoreTimestamp.seconds * 1000 +
         firestoreTimestamp.nanoseconds / 1e6;
 
-      // Step 1: Interpret timestamp as if it were UTC+8
-      const luxonDateTime = DateTime.fromMillis(timestampMillis, {
-        zone: "Asia/Shanghai",
-      }).plus({ hours: 0 }); // No additional offset since we treat it as UTC+8
-
-      // Step 2: Convert to user’s local timezone
-      const localDateTime = luxonDateTime.setZone(userTimeZone);
+      const localDateTime = DateTime.fromMillis(timestampMillis, {
+        zone: userTimeZone,
+      });
 
       const pointsReceivedData: PointsReceivedData = {
         date: localDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
@@ -269,7 +305,6 @@ export const fetchPointsReceivedData = createAsyncThunk(
       activities.push(pointsReceivedData);
     });
 
-    // Return the array of PointsReceivedData
     return activities;
   }
 );
@@ -277,6 +312,8 @@ export const fetchPointsReceivedData = createAsyncThunk(
 export const fetchPointsUsedData = createAsyncThunk(
   "user/fetchPointsUsedData",
   async (emailAddress: string) => {
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const querySnapshot = await firestore()
       .collection("Users")
       .where("emailAddress", "==", emailAddress)
@@ -293,12 +330,8 @@ export const fetchPointsUsedData = createAsyncThunk(
       .collection("PointsUsed")
       .orderBy("date", "desc")
       .get();
-
-    // 获取用户的本地时区
-    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const activities: PointsUsedData[] = [];
 
-    // Iterate over each document in the "PointsUsed" sub-collection
     PointsUsedCollection.forEach((doc) => {
       const firestoreTimestamp = doc.data().date;
 
@@ -306,16 +339,9 @@ export const fetchPointsUsedData = createAsyncThunk(
         firestoreTimestamp.seconds * 1000 +
         firestoreTimestamp.nanoseconds / 1e6;
 
-      // Step 1: Interpret timestamp as if it were UTC+8
-      const luxonDateTime = DateTime.fromMillis(timestampMillis, {
-        zone: "Asia/Shanghai",
-      }).plus({ hours: 0 }); // No additional offset since we treat it as UTC+8
-
-      // Step 2: Convert to user’s local timezone
-      const localDateTime = luxonDateTime.setZone(userTimeZone);
-
-      // console.log("Original (Interpreted as UTC+8):", luxonDateTime.toString());
-      // console.log("Converted to User Zone:", localDateTime.toString());
+      const localDateTime = DateTime.fromMillis(timestampMillis, {
+        zone: userTimeZone,
+      });
 
       const pointsUsedData: PointsUsedData = {
         date: localDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
@@ -326,7 +352,6 @@ export const fetchPointsUsedData = createAsyncThunk(
       activities.push(pointsUsedData);
     });
 
-    // Return the array of PointsUsedData
     return activities;
   }
 );
@@ -342,53 +367,32 @@ export const fetchUserActivitiesData = createAsyncThunk(
     startDate: string | null;
     endDate: string | null;
   }) => {
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     const querySnapshot = await firestore()
       .collection("Users")
       .where("emailAddress", "==", email)
       .get();
-
     if (querySnapshot.size !== 1) {
       throw new Error(`${email} Either has no data or more than 1 data.`);
     }
 
-    // 获取用户的本地时区
-    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
     const userDocument = querySnapshot.docs[0];
-
-    // 创建活动查询的基础引用
-    let activitiesRef = userDocument.ref.collection("Activities");
-
-    // 如果 startDate 存在，则添加对应的 where 语句
+    let activitiesRef: FirebaseFirestoreTypes.Query<FirebaseFirestoreTypes.DocumentData> =
+      userDocument.ref.collection("Activities");
     if (startDate) {
-      const start = new Date(startDate).getTime(); // 转换为时间戳
+      const start = new Date(startDate).getTime();
       activitiesRef = activitiesRef.where("scanTime", ">=", new Date(start));
     }
-
-    // 如果 endDate 存在，则添加对应的 where 语句
     if (endDate) {
-      const end = new Date(endDate).getTime(); // 转换为时间戳
+      const end = new Date(endDate).getTime();
       activitiesRef = activitiesRef.where("scanTime", "<=", new Date(end));
     }
-
-    // 添加排序
     activitiesRef = activitiesRef.orderBy("scanTime", "desc");
 
     const UserActivitiesCollection = await activitiesRef.get();
-
-    // const start = new Date(startDate).getTime();
-    // const end = new Date(endDate).getTime();
-
-    // const UserActivitiesCollection = await userDocument.ref
-    //   .collection("Activities")
-    //   // .where('scanTime', '>=', start)
-    //   // .where('scanTime', '<=', end)
-    //   .orderBy("scanTime", "desc")
-    //   .get();
-
     const activities: UserActivitiesData[] = [];
 
-    // Iterate over each document in the "PointsUsed" sub-collection
     UserActivitiesCollection.forEach((doc) => {
       const firestoreTimestamp = doc.data().scanTime;
 
@@ -396,13 +400,9 @@ export const fetchUserActivitiesData = createAsyncThunk(
         firestoreTimestamp.seconds * 1000 +
         firestoreTimestamp.nanoseconds / 1e6;
 
-      // Step 1: Interpret timestamp as if it were UTC+8
-      const luxonDateTime = DateTime.fromMillis(timestampMillis, {
-        zone: "Asia/Shanghai",
-      }).plus({ hours: 0 }); // No additional offset since we treat it as UTC+8
-
-      // Step 2: Convert to user’s local timezone
-      const localDateTime = luxonDateTime.setZone(userTimeZone);
+      const localDateTime = DateTime.fromMillis(timestampMillis, {
+        zone: userTimeZone,
+      });
 
       const userActivitiesData: UserActivitiesData = {
         activityId: doc.data().activityId || "Unknown Activity Id",
@@ -413,16 +413,11 @@ export const fetchUserActivitiesData = createAsyncThunk(
         scanDate: localDateTime.toFormat("EEE, d LLL yyyy") || "N/A",
         scanTime: localDateTime.toFormat("hh:mm a") || "N/A",
         type: doc.data().type || "Unknown Type",
-
-        // date: luxonDateTime.toFormat("EEE, d LLL yyyy"), // "Sun, 6 Aug 2023"
-        // time: luxonDateTime.toFormat("hh:mm a"), // "11:00 AM"
-        // points: doc.data().points,
       };
 
       activities.push(userActivitiesData);
     });
 
-    // Return the array of PointsUsedData
     return activities;
   }
 );
@@ -441,12 +436,14 @@ export const storePointsReceivedDataToFirebase = createAsyncThunk(
         return rejectWithValue("User email not found");
       }
 
-      // 将用户本地时区的日期转换为 UTC 再存入 Firestore
-      const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const utcDateTime = DateTime.fromJSDate(pointsReceivedData.date, {
-        zone: userTimeZone,
-      }).toUTC();
+      // 确保 `date` 是 JavaScript `Date`
+      const localDate =
+        pointsReceivedData.date instanceof Date
+          ? pointsReceivedData.date
+          : new Date(pointsReceivedData.date);
 
+      // 转换成 UTC 存入 Firestore
+      const utcDateTime = DateTime.fromJSDate(localDate).toUTC();
       const firestoreTimestamp = firestore.Timestamp.fromDate(
         utcDateTime.toJSDate()
       );
@@ -487,43 +484,100 @@ export const storePointsReceivedDataToFirebase = createAsyncThunk(
 
 export const storePointsUsedDataToFirebase = createAsyncThunk(
   "user/storePointsUsedDataToFirebase",
-  async (_, { getState, rejectWithValue }) => {
+  async (pointsUsedData: PointsUsedData2, { getState, rejectWithValue }) => {
     try {
-      const state = getState() as RootState; // 获取 Redux 状态
-      const currentUser = state.user.data; // 获取当前用户数据
+      const state = getState() as RootState;
+      const currentUser = state.user.data;
 
       if (!currentUser?.emailAddress) {
         return rejectWithValue("User email not found");
       }
 
-      const currentTime = firestore.Timestamp.fromDate(new Date());
-      const pointsUsedData: PointsUsedData = {
-        points: state.reward.data?.price || 0, // 确保 price 存在
-        date: currentTime,
+      // 确保 `date` 是 JavaScript `Date`
+      const localDate =
+        pointsUsedData.date instanceof Date
+          ? pointsUsedData.date
+          : new Date(pointsUsedData.date);
+
+      // 转换成 UTC 存入 Firestore
+      const utcDateTime = DateTime.fromJSDate(localDate).toUTC();
+      const firestoreTimestamp = firestore.Timestamp.fromDate(
+        utcDateTime.toJSDate()
+      );
+
+      // 需要存储的积分数据
+      const serializedPointsReceivedData = {
+        date: firestoreTimestamp,
+        points: pointsUsedData.points,
       };
 
-      // 查询 Firestore 里的用户数据
+      // 先通过 emailAddress 查找用户文档
       const userSnapshot = await firestore()
         .collection("Users")
         .where("emailAddress", "==", currentUser.emailAddress)
         .get();
 
       if (!userSnapshot.empty) {
+        // 获取用户文档的引用
         const userDocRef = userSnapshot.docs[0].ref;
 
-        // 将数据存入 Firestore 的 "PointsUsed" 子集合
-        await userDocRef.collection("PointsUsed").add(pointsUsedData);
-        console.log("Points used data stored successfully.");
-        return pointsUsedData;
+        // 存入 "PointsUsed" 子集合
+        await userDocRef
+          .collection("PointsUsed")
+          .add(serializedPointsReceivedData);
+
+        return pointsUsedData; // 成功后返回数据
       } else {
         return rejectWithValue("User not found in Firestore");
       }
-    } catch (error: any) {
-      console.error("Error storing points used data:", error);
-      return rejectWithValue(error.message);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
+
+      return rejectWithValue(errorMessage);
     }
   }
 );
+
+// export const storePointsUsedDataToFirebase = createAsyncThunk(
+//   "user/storePointsUsedDataToFirebase",
+//   async (_, { getState, rejectWithValue }) => {
+//     try {
+//       const state = getState() as RootState; // 获取 Redux 状态
+//       const currentUser = state.user.data; // 获取当前用户数据
+
+//       if (!currentUser?.emailAddress) {
+//         return rejectWithValue("User email not found");
+//       }
+
+//       const currentTime = firestore.Timestamp.fromDate(new Date());
+//       const pointsUsedData: PointsUsedData2 = {
+//         points: state.reward.data?.price || 0, // 确保 price 存在
+//         date: currentTime,
+//       };
+
+//       // 查询 Firestore 里的用户数据
+//       const userSnapshot = await firestore()
+//         .collection("Users")
+//         .where("emailAddress", "==", currentUser.emailAddress)
+//         .get();
+
+//       if (!userSnapshot.empty) {
+//         const userDocRef = userSnapshot.docs[0].ref;
+
+//         // 将数据存入 Firestore 的 "PointsUsed" 子集合
+//         await userDocRef.collection("PointsUsed").add(pointsUsedData);
+//         console.log("Points used data stored successfully.");
+//         return pointsUsedData;
+//       } else {
+//         return rejectWithValue("User not found in Firestore");
+//       }
+//     } catch (error: any) {
+//       console.error("Error storing points used data:", error);
+//       return rejectWithValue(error.message);
+//     }
+//   }
+// );
 
 export const updateIsFeedbackFilled = createAsyncThunk(
   "user/updateIsFeedbackFilled",
@@ -632,6 +686,27 @@ const userSlice = createSlice({
           state.data = action.payload;
         }
       )
+      .addCase(updateUserPoints.pending, () => {
+        console.log("Updating user's points ...");
+      })
+      .addCase(
+        updateUserPoints.fulfilled,
+        (
+          state,
+          action: PayloadAction<{ emailAddress: string; points: number }>
+        ) => {
+          if (
+            state.data &&
+            state.data.emailAddress === action.payload.emailAddress
+          ) {
+            state.data.points = action.payload.points;
+          }
+          console.log("Updated user's points.");
+        }
+      )
+      .addCase(updateUserPoints.rejected, () => {
+        console.log("User data is undefined.");
+      })
       .addCase(
         fetchPointsReceivedData.fulfilled,
         (state, action: PayloadAction<PointsReceivedData[]>) => {
