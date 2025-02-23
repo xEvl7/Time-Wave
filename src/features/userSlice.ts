@@ -1,5 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import firestore, { firebase } from "@react-native-firebase/firestore";
+import firestore, {
+  firebase,
+  FirebaseFirestoreTypes,
+} from "@react-native-firebase/firestore";
 import * as SecureStore from "expo-secure-store";
 import { USER_DATA } from "../constants";
 import { RootState } from "../store";
@@ -13,7 +16,7 @@ type UserData = {
   emailAddress: string;
   points: number;
   logo: string | null;
-  feedbackStatus: Boolean;
+  isFeedbackFilled: Boolean;
 };
 
 type UserContributionData = {
@@ -42,8 +45,7 @@ type PointsReceivedData2 = {
 };
 
 type PointsUsedData = {
-  date: any;
-  time: any;
+  date: FirebaseFirestoreTypes.Timestamp;
   points: number;
 };
 
@@ -150,14 +152,11 @@ export const fetchUserContributionData = createAsyncThunk(
       contributionData[year] = monthData;
     });
 
-    // Check if the keys and values exist before accessing them
-    // const selectedYear = "2025";
-    // const selectedMonth = "Feb";
     const currentDate = new Date();
-    const selectedYear = currentDate.getFullYear(); // 获取当前年份 (2025)
+    const selectedYear = currentDate.getFullYear();
     const selectedMonth = currentDate.toLocaleString("en-US", {
       month: "short",
-    }); // 获取当前月份 (Feb)
+    });
 
     if (
       contributionData[selectedYear] &&
@@ -435,41 +434,49 @@ export const storePointsReceivedDataToFirebase = createAsyncThunk(
     { getState, rejectWithValue }
   ) => {
     try {
-      const state = getState() as RootState; // Explicitly define the type
+      const state = getState() as RootState;
       const currentUser = state.user.data;
 
-      if (!currentUser) {
-        throw new Error("Current user data not available.");
+      if (!currentUser?.emailAddress) {
+        return rejectWithValue("User email not found");
       }
 
-      // Convert user timezone date to UTC before storing in Firestore
+      // 将用户本地时区的日期转换为 UTC 再存入 Firestore
       const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const utcDateTime = DateTime.fromJSDate(pointsReceivedData.date, {
         zone: userTimeZone,
       }).toUTC();
 
       const firestoreTimestamp = firestore.Timestamp.fromDate(
-        utcDateTime.toJSDate() // Convert Luxon DateTime back to JS Date
+        utcDateTime.toJSDate()
       );
 
-      // Add other fields as needed
+      // 需要存储的积分数据
       const serializedPointsReceivedData = {
         date: firestoreTimestamp,
         points: pointsReceivedData.points,
       };
 
-      // Target the specific user document and PointsReceived subcollection
-      const userDocumentRef = firestore()
+      // 先通过 emailAddress 查找用户文档
+      const userSnapshot = await firestore()
         .collection("Users")
-        .doc(currentUser.uid);
+        .where("emailAddress", "==", currentUser.emailAddress)
+        .get();
 
-      await userDocumentRef
-        .collection("PointsReceived")
-        .add(serializedPointsReceivedData);
+      if (!userSnapshot.empty) {
+        // 获取用户文档的引用
+        const userDocRef = userSnapshot.docs[0].ref;
 
-      return pointsReceivedData;
+        // 存入 "PointsReceived" 子集合
+        await userDocRef
+          .collection("PointsReceived")
+          .add(serializedPointsReceivedData);
+
+        return pointsReceivedData; // 成功后返回数据
+      } else {
+        return rejectWithValue("User not found in Firestore");
+      }
     } catch (error) {
-      // Explicitly type the error variable
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
 
@@ -478,20 +485,88 @@ export const storePointsReceivedDataToFirebase = createAsyncThunk(
   }
 );
 
-const updateFeedbackStatus = createAsyncThunk(
-  "user/updateFeedbackStatus",
-  async ({ userId, status }: { userId: string; status: boolean }) => {
-    if (userId) {
-      await firestore().collection("Users").doc(userId).set(
-        {
-          feedbackStatus: status,
-        },
-        { merge: true }
-      );
-      return { userId, feedbackStatus: status };
-    } else {
-      throw new Error("User ID is undefined");
+export const storePointsUsedDataToFirebase = createAsyncThunk(
+  "user/storePointsUsedDataToFirebase",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState; // 获取 Redux 状态
+      const currentUser = state.user.data; // 获取当前用户数据
+
+      if (!currentUser?.emailAddress) {
+        return rejectWithValue("User email not found");
+      }
+
+      const currentTime = firestore.Timestamp.fromDate(new Date());
+      const pointsUsedData: PointsUsedData = {
+        points: state.reward.data?.price || 0, // 确保 price 存在
+        date: currentTime,
+      };
+
+      // 查询 Firestore 里的用户数据
+      const userSnapshot = await firestore()
+        .collection("Users")
+        .where("emailAddress", "==", currentUser.emailAddress)
+        .get();
+
+      if (!userSnapshot.empty) {
+        const userDocRef = userSnapshot.docs[0].ref;
+
+        // 将数据存入 Firestore 的 "PointsUsed" 子集合
+        await userDocRef.collection("PointsUsed").add(pointsUsedData);
+        console.log("Points used data stored successfully.");
+        return pointsUsedData;
+      } else {
+        return rejectWithValue("User not found in Firestore");
+      }
+    } catch (error: any) {
+      console.error("Error storing points used data:", error);
+      return rejectWithValue(error.message);
     }
+  }
+);
+
+export const updateIsFeedbackFilled = createAsyncThunk(
+  "user/updateIsFeedbackFilled",
+  async ({
+    emailAddress,
+    status,
+  }: {
+    emailAddress: string;
+    status: boolean;
+  }) => {
+    if (!emailAddress) {
+      throw new Error("Email is undefined");
+    }
+
+    const querySnapshot = await firestore()
+      .collection("Users")
+      .where("emailAddress", "==", emailAddress)
+      .get();
+
+    console.log(
+      "🔥 Firestore Query Result:",
+      querySnapshot.docs.map((doc) => doc.data())
+    );
+
+    if (querySnapshot.size !== 1) {
+      throw new Error(
+        `${emailAddress} Either has no data or more than 1 data.`
+      );
+    }
+
+    const userDocument = querySnapshot.docs[0]; // 获取文档
+    const userId = userDocument.id; // 获取用户的 document ID
+
+    console.log("📌 Updating User ID:", userId);
+
+    await firestore().collection("Users").doc(userId).set(
+      {
+        isFeedbackFilled: status,
+      },
+      { merge: true } // 只更新 `isFeedbackFilled` 字段，不影响其他数据
+    );
+
+    return { emailAddress, isFeedbackFilled: status };
   }
 );
 
@@ -593,23 +668,30 @@ const userSlice = createSlice({
       .addCase(
         storePointsReceivedDataToFirebase.fulfilled,
         (state, action: PayloadAction<PointsReceivedData2>) => {
-          // Update your state if needed
-          // state.pointsReceivedData = [...state.pointsReceivedData, action.payload];
           console.log("Successfully stored points received data to Firebase");
         }
       )
       .addCase(storePointsReceivedDataToFirebase.rejected, (_, action) => {
         console.error(action.error);
       })
+      .addCase(storePointsUsedDataToFirebase.fulfilled, (state, action) => {
+        console.log("Successfully stored points used data to Firebase");
+      })
+      .addCase(storePointsUsedDataToFirebase.rejected, (_, action) => {
+        console.error(action.error);
+      })
       .addCase(
-        updateFeedbackStatus.fulfilled,
+        updateIsFeedbackFilled.fulfilled,
         (
           state,
-          action: PayloadAction<{ userId: string; feedbackStatus: boolean }>
+          action: PayloadAction<{
+            emailAddress: string;
+            isFeedbackFilled: boolean;
+          }>
         ) => {
-          const { userId, feedbackStatus } = action.payload;
-          if (state.data?.uid === userId) {
-            state.data.feedbackStatus = feedbackStatus;
+          const { emailAddress, isFeedbackFilled } = action.payload;
+          if (state.data?.emailAddress === emailAddress) {
+            state.data.isFeedbackFilled = isFeedbackFilled;
           }
         }
       );

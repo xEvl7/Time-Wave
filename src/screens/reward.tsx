@@ -8,12 +8,10 @@ import {
   Image,
   Share,
 } from "react-native";
-
 import TextButton from "../components/TextButton";
 import ContentContainer from "../components/ContentContainer";
-
 import { fetchRewardData } from "../features/rewardSlice";
-import { storePointsUsedDataToFirebase, updateFeedbackStatus } from "../features/userSlice"; // 新增
+import { updateIsFeedbackFilled } from "../features/userSlice"; // 新增
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
@@ -59,6 +57,7 @@ export default function Reward({
         await userDoc.update({
           points: Number(newPoint),
         });
+        console.log("newPoint", newPoint);
 
         // 更新 Redux 中的积分
         await dispatch(fetchUserData(email)).unwrap();
@@ -146,9 +145,10 @@ export default function Reward({
   };
 
   useEffect(() => {
-    const RID = item.RID;
-    dispatch(fetchRewardData(RID));
-  }, [dispatch]);
+    if (item?.RID) {
+      dispatch(fetchRewardData(item.RID));
+    }
+  }, [dispatch, item?.RID]); // 仅当 `item.RID` 变化时重新拉取
 
   useEffect(() => {
     if (rewardData) {
@@ -195,7 +195,59 @@ export default function Reward({
     }
   };
 
+  useEffect(() => {
+    if (!email) return;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        await dispatch(fetchUserData(email));
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [dispatch, email]);
+
+  const isFeedbackFilled = useAppSelector(
+    (state) => state.user.data?.isFeedbackFilled
+  );
+
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+
+  useEffect(() => {
+    // 检查是否从表单页面返回，并接收到 formSubmitted 状态
+    if (route.params?.formSubmitted) {
+      setIsFormSubmitted(route.params.formSubmitted);
+    }
+  }, [route.params]);
+
   const showAlert = () => {
+    console.log("isFeedbackFilled", isFeedbackFilled);
+    Alert.alert(
+      "Redeem Reward",
+      isFeedbackFilled
+        ? "Congratulations! You can now redeem your reward."
+        : "Please fill out the form to redeem this reward.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: isFeedbackFilled ? "Proceed" : "Go to Form",
+          onPress: () => {
+            if (isFeedbackFilled) {
+              console.log("Proceeding with reward redemption...");
+              proceedRedemption();
+            } else {
+              navigation.navigate("GoogleFormScreen");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const proceedRedemption = () => {
     const price = rewardData?.price;
     if (price !== undefined) {
       if (point >= price) {
@@ -216,59 +268,6 @@ export default function Reward({
       }
     }
   };
-
-    useEffect(() => {
-      if (!email) return;
-  
-      const fetchData = async () => {
-        setIsLoading(true);
-        try {
-          await dispatch(fetchUserData(email));
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-        setIsLoading(false);
-      };
-      fetchData();
-    }, [dispatch, email]);
-
-  // const userData = useAppSelector((state: RootState) => state.user.data);
-  const feedbackStatus = useAppSelector((state) => state.user.data?.feedbackStatus);
-  const uid = useAppSelector((state) => state.user.data?.uid);
-
-  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
-
-  useEffect(() => {
-    // 检查是否从表单页面返回，并接收到 formSubmitted 状态
-    if (route.params?.formSubmitted) {
-      setIsFormSubmitted(route.params.formSubmitted);
-    }
-  }, [route.params]);
-
-  // const showAlert = () => {
-  //   console.log("feedbackStatus", feedbackStatus);
-  //   Alert.alert(
-  //     "Redeem Reward",
-  //     isFormSubmitted
-  //       ? "Congratulations! You can now redeem your reward."
-  //       : "Please fill out the form to redeem this reward.",
-  //     [
-  //       { text: "Cancel", style: "cancel" },
-  //       {
-  //         text: isFormSubmitted ? "Proceed" : "Go to Form",
-  //         onPress: () => {
-  //           if (isFormSubmitted) {
-  //             console.log("Proceeding with reward redemption...");
-  //             updateFeedbackStatus({ userId: uid, status: true });
-  //           } else {
-  //             navigation.navigate("GoogleFormScreen");
-  //           }
-  //         },
-  //       },
-  //     ]
-  //   );
-  // };
-  
 
   return (
     <View style={{ flex: 1 }}>

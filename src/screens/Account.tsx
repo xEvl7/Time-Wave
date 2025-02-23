@@ -6,8 +6,9 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import {
@@ -26,6 +27,8 @@ const Account = ({
 }: NativeStackScreenProps<RootStackParamList, "Account">) => {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   const userData = useAppSelector((state: RootState) => state.user.data);
   const contributionData = useAppSelector(
     (state: RootState) => state.user.contributionData
@@ -35,37 +38,43 @@ const Account = ({
     | string
     | undefined;
 
+  const fetchData = async () => {
+    if (!email) return;
+    setIsLoading(true);
+    try {
+      await dispatch(fetchUserData(email));
+      await dispatch(fetchUserContributionData(email));
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+    setIsLoading(false);
+  };
+
   useFocusEffect(
-    React.useCallback(() => {
-      if (!email) return;
-
-      const fetchData = async () => {
-        setIsLoading(true);
-        try {
-          await dispatch(fetchUserData(email));
-          await dispatch(fetchUserContributionData(email));
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-        setIsLoading(false);
-      };
-
+    useCallback(() => {
       fetchData();
-    }, [dispatch, email])
+    }, [email])
   );
 
-  // const selectedYear = "2025";
-  // const selectedMonth = "Feb";
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  };
+
   const currentDate = new Date();
-  const selectedYear = currentDate.getFullYear(); // 获取当前年份 (2025)
-  const selectedMonth = currentDate.toLocaleString("en-US", { month: "short" }); // 获取当前月份 (Feb)
+  const selectedYear = currentDate.getFullYear();
+  const selectedMonth = currentDate.toLocaleString("en-US", { month: "short" });
 
   const totalContrHours =
     contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours || 0;
 
   const [contributedHours, setContributedHours] =
     useState<number>(totalContrHours);
-  const progressPercentage = contributedHours / 20;
+
+  useEffect(() => {
+    setContributedHours(totalContrHours);
+  }, [totalContrHours]);
 
   const calculateLevel = (hours: number) => {
     if (hours <= 10) return 1;
@@ -75,24 +84,31 @@ const Account = ({
   };
 
   const currentLevel = calculateLevel(contributedHours);
-  const currentLevelMaxHours = currentLevel * 10; // Example max hours for the current level
+  const currentLevelMaxHours = currentLevel * 10;
   const hoursLeftToNextLevel = currentLevelMaxHours + 10 - contributedHours;
 
+  // 计算进度条百分比，并确保它在 0-1 之间
+  const progressPercentage = Math.min(
+    Math.max((contributedHours - (currentLevelMaxHours - 10)) / 10, 0),
+    1
+  );
+
   /* Date Variable */
-  // const currentDate = new Date();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const nextMonthFirstDay = new Date(year, month + 1, 1);
   const lastDay = new Date(nextMonthFirstDay.getTime() - 1);
-  const lastDate = lastDay.getDate();
-  const lastMonth = lastDay.toLocaleString("default", { month: "short" });
-  const lastYear = month == 11 ? year + 1 : year;
-  const formattedLastDay = `${lastDate} ${lastMonth} ${lastYear}`;
+  const formattedLastDay = `${lastDay.getDate()} ${lastDay.toLocaleString(
+    "default",
+    { month: "short" }
+  )} ${lastDay.getFullYear()}`;
   /* Date Variable End*/
 
-  useEffect(() => {
-    setContributedHours(totalContrHours);
-  }, [totalContrHours]);
+  const handleNavigateToPointsPolicy = () => {
+    const level = "level" + calculateLevel(contributedHours);
+    // console.log(level);
+    navigation.navigate("PointsPolicy", { level });
+  };
 
   if (isLoading) {
     return (
@@ -104,28 +120,26 @@ const Account = ({
     );
   }
 
-  const handleNavigateToPointsPolicy = () => {
-    const level = "level" + calculateLevel(contributedHours);
-    // console.log(level);
-    navigation.navigate("PointsPolicy", { level });
-  };
-
   return (
     <ScrollView
       contentContainerStyle={styles.scrollViewContent}
       scrollEventThrottle={16}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
     >
       <View style={styles.container}>
         {/* Level Section */}
         <SectionContainer>
           <View style={styles.levelContainer}>
-            <Text style={styles.levelText1}>
-              Level {calculateLevel(contributedHours)}
-            </Text>
+            <Text style={styles.levelText1}>Level {currentLevel}</Text>
             <ProgressBar progressPercentage={progressPercentage} />
             <Text style={styles.levelText2}>
-              Contribute {hoursLeftToNextLevel} more hours by {formattedLastDay}{" "}
-              to reach Level {calculateLevel(contributedHours) + 1}
+              {currentLevel < 4
+                ? `Contribute ${hoursLeftToNextLevel} more hours by ${formattedLastDay} to reach Level ${
+                    currentLevel + 1
+                  }`
+                : `🎉 You've reached the max level! Keep contributing to make an impact!`}
             </Text>
             <View style={styles.policyButtonContainer}>
               <TouchableOpacity

@@ -41,8 +41,9 @@ const Profile = ({
   const contributionData = useAppSelector(
     (state: RootState) => state.user.contributionData
   );
-  const selectedYear = "2023";
-  const selectedMonth = "Dec";
+  const currentDate = new Date();
+  const selectedYear = currentDate.getFullYear();
+  const selectedMonth = currentDate.toLocaleString("en-US", { month: "short" });
   const totalContrHours =
     contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours || 0;
   const [contributedHours, setContributedHours] =
@@ -88,69 +89,71 @@ const Profile = ({
 
   // 选择图片
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
     if (permissionResult.granted === false) {
       Alert.alert("Permission to access camera roll is required!");
       return;
     }
-  
+
     let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
     });
-  
+
     if (!result.canceled && result.assets && result.assets[0].uri) {
       setImage(result.assets[0].uri); // Update user-selected image
     } else {
-      console.log('Image selection cancelled or no image selected.');
+      console.log("Image selection cancelled or no image selected.");
     }
   };
 
   const savePicture = async () => {
     if (!image) {
-      Alert.alert('No Image Selected', 'Please select an image before saving.');
+      Alert.alert("No Image Selected", "Please select an image before saving.");
       return;
     }
 
-    Alert.alert(
-      'Save picture',
-      'Confirm?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'OK',
-          onPress: async () => {
-            try {
-              const uploadedImageUrl = await uploadImage(image); // Upload image
-              setLogo(uploadedImageUrl); // Update logo state
+    Alert.alert("Save picture", "Confirm?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "OK",
+        onPress: async () => {
+          try {
+            const uploadedImageUrl = await uploadImage(image); // Upload image
+            setLogo(uploadedImageUrl); // Update logo state
 
-              const usersRef = firestore().collection("Users");
-              const currentUserEmail = auth().currentUser?.email;
+            const usersRef = firestore().collection("Users");
+            const currentUserEmail = auth().currentUser?.email;
 
-              if (currentUserEmail) {
-                const querySnapshot = await usersRef.where("emailAddress", "==", currentUserEmail).get();
-                if (!querySnapshot.empty) {
-                  querySnapshot.forEach(async (doc) => {
-                    await usersRef.doc(doc.id).update({
-                      logo: uploadedImageUrl,
-                      // 其他用户数据更新
-                    });
+            if (currentUserEmail) {
+              const querySnapshot = await usersRef
+                .where("emailAddress", "==", currentUserEmail)
+                .get();
+              if (!querySnapshot.empty) {
+                querySnapshot.forEach(async (doc) => {
+                  await usersRef.doc(doc.id).update({
+                    logo: uploadedImageUrl,
+                    // 其他用户数据更新
                   });
-                  Alert.alert("Success", "User logo updated successfully!");
-                  setImage(null); // 將 image 設置為 null，讓按鈕消失
-                }
+                });
+                Alert.alert("Success", "User logo updated successfully!");
+                setImage(null); // 將 image 設置為 null，讓按鈕消失
               }
-            } catch (error) {
-              console.error("Error uploading image or updating user data:", error);
-              Alert.alert("Error", "Failed to upload image. Please try again.");
             }
-          },
+          } catch (error) {
+            console.error(
+              "Error uploading image or updating user data:",
+              error
+            );
+            Alert.alert("Error", "Failed to upload image. Please try again.");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const calculateLevel = (hours: number) => {
@@ -159,7 +162,7 @@ const Profile = ({
     if (hours <= 30) return 3;
     return 4;
   };
-  
+
   const currentLevel = calculateLevel(contributedHours);
 
   const handleLogout = async () => {
@@ -205,17 +208,17 @@ const Profile = ({
       screen: "Account",
     },
     { title: "Admin Panel", subtitle: "", screen: "AdminControl" },
-    { title: "Settings", subtitle: "", screen: "Setting",
-      subButtom: [
-        { title: "Notification"},
-      ],
+    {
+      title: "Settings",
+      subtitle: "",
+      screen: "Setting",
+      subButtom: [{ title: "Notification" }],
       subItems: [
         {
           title: "Edit Profile",
           onNavigate: () => navigation.navigate("NewProfile"),
         },
       ],
-      
     },
     {
       title: "About Us",
@@ -239,22 +242,23 @@ const Profile = ({
       <View style={styles.profileHeader}>
         <TouchableOpacity onPress={pickImage}>
           <Image
-            source={logo ? { uri: logo } : require("../assets/profile-picture.png")} // Show profile picture
+            source={
+              logo ? { uri: logo } : require("../assets/profile-picture.png")
+            } // Show profile picture
             style={styles.profileImage}
           />
         </TouchableOpacity>
 
-        
         <View style={styles.profileDetails}>
           <Field label="Name" value={name} />
           <Field label="Email Address" value={emailAddress} />
         </View>
       </View>
       {image && (
-          <TouchableOpacity onPress={savePicture} style={styles.saveButton}>
-            <Text style={styles.saveButtonText}>Save Picture</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={savePicture} style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>Save Picture</Text>
+        </TouchableOpacity>
+      )}
       <FlatList
         data={navigationItems}
         keyExtractor={(item) => item.title}
@@ -334,7 +338,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   logoutButton: {
-    
     alignItems: "center",
     marginVertical: 20,
   },
