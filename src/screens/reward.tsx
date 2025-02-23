@@ -11,7 +11,6 @@ import {
 import TextButton from "../components/TextButton";
 import ContentContainer from "../components/ContentContainer";
 import { fetchRewardData } from "../features/rewardSlice";
-import { updateIsFeedbackFilled } from "../features/userSlice"; // 新增
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
@@ -19,8 +18,6 @@ import React, { useState, useEffect } from "react";
 import { DateTime } from "luxon";
 import firestore from "@react-native-firebase/firestore";
 import { fetchUserData } from "../features/userSlice";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { RootState } from "../store";
 
 export default function Reward({
   navigation,
@@ -29,7 +26,7 @@ export default function Reward({
   const rewardData = useAppSelector((state) => state.reward.data);
   const dispatch = useAppDispatch();
   const email = useAppSelector((state) => state.user.data?.emailAddress);
-  const point = useAppSelector((state) => state.user.data?.points);
+  let point = useAppSelector((state) => state.user.data?.points);
   const { item } = route.params; // 获取传来的 item 参数
   const validityStartDate = rewardData?.validityStartDate;
   const validityEndDate = rewardData?.validityEndDate;
@@ -44,8 +41,8 @@ export default function Reward({
     }
 
     try {
-      setIsLoading(true);
-      setError(null); // 清除之前的错误信息
+      setIsLoading(true); // 開始加載
+      setError(null); // 清除之前的錯誤信息
 
       const userSnapshot = await firestore()
         .collection("Users")
@@ -55,19 +52,19 @@ export default function Reward({
       if (!userSnapshot.empty) {
         const userDoc = userSnapshot.docs[0].ref;
         await userDoc.update({
-          points: Number(newPoint),
+          points: Number(point),
         });
-        console.log("newPoint", newPoint);
 
-        // 更新 Redux 中的积分
-        await dispatch(fetchUserData(email)).unwrap();
+        console.log("User data updated successfully", point);
 
-        console.log("User data updated successfully");
+        // 更新 Redux 中的用戶資料
+        const userData = await dispatch(fetchUserData(email)).unwrap();
       } else {
         setError("User not found");
       }
     } catch (error: any) {
       setError(error.message);
+      console.error("Error:", error.message);
     } finally {
       setIsLoading(false);
     }
@@ -167,26 +164,30 @@ export default function Reward({
     }
   }, [rewardData]);
 
+  const showAlert2 = () => {
+    Alert.alert(
+      "Redeemed Successfully!",
+      `You have used ${rewardData?.price} points. Remaining Balance: ${point} points.`
+    );
+  };
   const showTip = async () => {
     try {
       // 更新积分
-      let count = point;
-      count -= rewardData?.price;
+      point -= rewardData?.price;
 
-      await setNewPoint(count); // 更新状态
+      await setNewPoint(point); // 更新状态
 
       // 更新 Firebase
       await storePointsUsedDataToFirebase();
+
       // 调用更新用户积分的函数
       await updateUserPoints();
+
       // 更新 Redux 中的积分
       await dispatch(fetchUserData(email)); // 重新加载用户数据
 
       // 显示成功提示
-      Alert.alert(
-        "Redeemed Successfully!",
-        `You have used ${rewardData?.price} points. Remaining Balance: ${count} points.`
-      );
+      showAlert2();
     } catch (error) {
       Alert.alert(
         "Error",
@@ -332,11 +333,6 @@ export default function Reward({
       </ContentContainer>
 
       <View style={styles.redeemContainer}>
-        <Text style={styles.infoText}>
-          {isFormSubmitted
-            ? "You have successfully submitted the form. Ready to redeem!"
-            : "You need to complete the form to redeem your reward."}
-        </Text>
         <TextButton
           style={{
             position: "absolute",
@@ -436,10 +432,5 @@ const styles = StyleSheet.create({
     height: "100%",
     width: StyleSheet.hairlineWidth,
     backgroundColor: "#909090",
-  },
-  infoText: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
   },
 });
