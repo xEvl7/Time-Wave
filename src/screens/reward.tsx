@@ -2,7 +2,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   Image,
   Dimensions,
@@ -13,7 +12,7 @@ import { fetchRewardData } from "../features/rewardSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useLayoutEffect } from "react";
 import { DateTime } from "luxon";
 import {
   fetchUserData,
@@ -22,11 +21,33 @@ import {
 } from "../features/userSlice";
 import { shareReward } from "../utils/shareUtils";
 import CustomAlert from "../components/CustomAlert";
+import HeaderText from "../components/text_components/HeaderText";
+import ParagraphText from "../components/text_components/ParagraphText";
+import SecondaryText from "../components/text_components/SecondaryText";
 
 export default function Reward({
   navigation,
   route,
 }: NativeStackScreenProps<RootStackParamList, "Reward">) {
+  const { item } = route.params;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: "Reward Details", // 设置页面标题
+      headerRight: () => (
+        <TouchableOpacity
+          // style={{ marginRight: 10 }} // 右侧间距
+          onPress={() => shareReward(item.RID ?? "")}
+        >
+          <Image
+            style={styles.shareIcon}
+            source={require("../assets/share.png")}
+          />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, item]);
+
   const defaultImg =
     "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/sewing%20machine.png?alt=media&token=f42e4f7e-ed65-441a-b05b-66f743a70554";
 
@@ -59,8 +80,6 @@ export default function Reward({
 
   const [isLoading, setIsLoading] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
-
-  const { item } = route.params;
 
   const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -107,22 +126,23 @@ export default function Reward({
 
   const checkIsFeedbackFilled = () => {
     console.log("Checking isFeedbackFilled... :", isFeedbackFilled);
+
+    if (isFeedbackFilled) {
+      console.log("Proceeding with reward redemption...");
+      proceedRedemption(); // 直接进行兑换，不显示弹窗
+      return;
+    }
+
+    // 如果 isFeedbackFilled 为 false，则弹出提示框
     showCustomAlert(
       "Redeem Reward",
-      isFeedbackFilled
-        ? "Congratulations! \nYou can now redeem your reward."
-        : "Please fill out the form to redeem this reward.",
+      "Please fill out the form to redeem this reward.",
       [
         { text: "Cancel", style: "cancel" },
         {
-          text: isFeedbackFilled ? "Proceed" : "Go to Form",
+          text: "Go to Form",
           onPress: () => {
-            if (isFeedbackFilled) {
-              console.log("Proceeding with reward redemption...");
-              proceedRedemption();
-            } else {
-              navigation.navigate("GoogleFormScreen");
-            }
+            navigation.navigate("GoogleFormScreen");
           },
         },
       ]
@@ -135,7 +155,7 @@ export default function Reward({
       if (points >= price) {
         showCustomAlert(
           "Get This Reward!",
-          `Redeem with ${price} points? \n\n Your current points: ${points}`,
+          `Redeem with ${price} points?\n\nYour current points: ${points}`,
           [
             { text: "Cancel", style: "cancel" },
             {
@@ -200,27 +220,27 @@ export default function Reward({
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.box}>
-        <TouchableOpacity
+      <View style={styles.headerContainer}>
+        {/* <TouchableOpacity
+          style={styles.shareButton}
           onPress={() =>
             shareReward(
               "Check out this amazing reward!",
               rewardData?.image ?? ""
             )
           }
-          style={styles.shareButton}
         >
           <Image
-            style={{ height: 30, width: 30 }}
+            style={styles.shareIcon}
             source={require("../assets/share.png")}
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <Image
+          style={styles.rewardImage}
           source={{
             uri: rewardData?.image ?? defaultImg,
           }}
-          style={styles.rewardImage}
         />
 
         <Image
@@ -233,65 +253,73 @@ export default function Reward({
 
       <ContentContainer>
         <View style={styles.titleContainer}>
-          <Text style={styles.boldtext}>{rewardData?.name}</Text>
+          <HeaderText>{String(rewardData?.name ?? "")}</HeaderText>
         </View>
 
         <View style={styles.alternativesContainer}>
-          <View style={styles.pointContainer}>
-            <Text style={styles.boldtext}>Prices</Text>
-            <Text style={{ fontSize: 20 }}>{rewardData?.price} points</Text>
+          <View style={styles.pointsContainer}>
+            <HeaderText>Points</HeaderText>
+            <SecondaryText>{String(rewardData?.price)} points</SecondaryText>
           </View>
           <View style={styles.verticleLine} />
           <View style={styles.validityContainer}>
-            <Text style={styles.boldtext}>Validity</Text>
-            <Text style={{ fontSize: 20 }}>
-              {startluxonDateTime?.toFormat("d MMM yyyy")} to
-            </Text>
-            <Text style={{ fontSize: 20 }}>
-              {endluxonDateTime?.toFormat("d MMM yyyy")}
-            </Text>
+            <HeaderText>Validity</HeaderText>
+            <SecondaryText>
+              {typeof startluxonDateTime?.toFormat === "function"
+                ? startluxonDateTime.toFormat("d MMM yyyy")
+                : "Unknown"}{" "}
+              to{" "}
+              {typeof endluxonDateTime?.toFormat === "function"
+                ? endluxonDateTime.toFormat("d MMM yyyy")
+                : "Unknown"}
+            </SecondaryText>
           </View>
         </View>
 
-        <View style={styles.scrollViewContainer}>
-          <ScrollView contentContainerStyle={styles.scrollcontainer}>
-            <View style={styles.boxs}>
-              <Text style={styles.boldtext}>Highlight</Text>
-              <Text style={{ marginTop: 5, marginBottom: 10 }}>
-                {rewardData?.highlight}
-              </Text>
+        <View style={styles.horizontalLine} />
+
+        <View style={styles.scrollContainer}>
+          <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+            <View style={styles.sectionContainer}>
+              <HeaderText>Highlight</HeaderText>
+              <ParagraphText>
+                {String(rewardData?.highlight ?? "")}
+              </ParagraphText>
             </View>
-            <View style={styles.boxs}>
-              <Text style={styles.boldtext}>Terms & Conditions</Text>
-              <Text style={{ marginTop: 5, marginBottom: 10 }}>
-                {rewardData?.termsConditions}
-              </Text>
+            <View style={styles.sectionContainer}>
+              <HeaderText>Terms & Conditions</HeaderText>
+              <ParagraphText>
+                {String(rewardData?.termsConditions ?? "")}
+              </ParagraphText>
             </View>
-            <View style={styles.boxs}>
-              <Text style={styles.boldtext}>Contact Info</Text>
-              <Text style={{ marginTop: 5, marginBottom: 10 }}>
-                {rewardData?.contactInfo}
-              </Text>
+            <View style={styles.sectionContainer}>
+              <HeaderText>Contact Info</HeaderText>
+              <ParagraphText>
+                {String(rewardData?.contactInfo ?? "")}
+              </ParagraphText>
             </View>
           </ScrollView>
         </View>
       </ContentContainer>
 
       <View style={styles.redeemContainer}>
-        <TextButton
-          onPress={
-            isInvalid
-              ? () =>
-                  showCustomAlert(
-                    "Reward Invalid!",
-                    "This reward is invalid or expired.",
-                    [{ text: "OK" }]
-                  )
-              : () => checkIsFeedbackFilled()
-          }
-        >
-          Redeem
-        </TextButton>
+        <View style={styles.horizontalLine} />
+        <View style={styles.redeemButton}>
+          <TextButton
+            onPress={
+              isInvalid
+                ? () =>
+                    showCustomAlert(
+                      "Reward Invalid!",
+                      "This reward is invalid or expired.",
+                      [{ text: "OK" }]
+                    )
+                : () => checkIsFeedbackFilled()
+            }
+          >
+            Redeem
+          </TextButton>
+        </View>
 
         <CustomAlert
           visible={alertVisible}
@@ -308,72 +336,31 @@ export default function Reward({
 const screenWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
-  scrollcontainer: {
-    padding: 5,
-  },
-  scrollViewContainer: {
-    position: "absolute",
-    top: 145,
-    bottom: 100,
-    left: 5,
-    right: 5,
-  },
-  boxs: {
-    width: "90%",
-    marginVertical: 10,
-    justifyContent: "space-evenly",
-    alignItems: "flex-start",
-  },
-  titleContainer: {
-    marginLeft: 10,
-  },
-  boldtext: { fontWeight: "bold", fontSize: 25 },
-  alternativesContainer: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-evenly",
-    marginTop: 10,
-  },
-  pointContainer: {
-    justifyContent: "space-evenly",
-    width: "35%",
-    marginBottom: 10,
-  },
-  validityContainer: {
-    justifyContent: "space-evenly",
-    width: "50%",
-    marginBottom: 10,
-    marginLeft: 20,
-  },
-  redeemContainer: {
-    minWidth: "78%",
-    height: "10%",
-    position: "absolute",
-    bottom: 20,
-    right: 0,
-    left: 0,
-    marginHorizontal: "5%",
-  },
-  box: {
-    flexDirection: "row",
-    height: "22%",
-    width: "100%",
+  headerContainer: {
+    // flexDirection: "row",
+    // height: "22%",
+    // width: "100%",
     backgroundColor: "#FF8D13",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative", // 使得子元素能够绝对定位
+    // alignItems: "center",
+    // justifyContent: "center",
+    // position: "relative", // 使得子元素能够绝对定位
   },
   shareButton: {
     position: "absolute", // 绝对定位
     top: 10, // 距离顶部的距离
     right: 10, // 距离右边的距离
+    // backgroundColor: "rgba(0, 0, 0, 0.5)", // 半透明黑色背景，避免白色图标看不清
+    // padding: 8, // 让点击区域更大
+    // borderRadius: 20, // 圆形背景
+    zIndex: 10, // 确保在 Image 之上 (iOS)
+    elevation: 5, // 确保在 Image 之上 (Android)
   },
   rewardImage: {
     width: screenWidth, // 让图片宽度等于屏幕宽度
     aspectRatio: 16 / 7, // 例如 16:5 的长宽比，按你的图片调整
     resizeMode: "contain",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    // borderTopLeftRadius: 20,
+    // borderTopRightRadius: 20,
   },
   supplierLogo: {
     width: 50,
@@ -382,12 +369,75 @@ const styles = StyleSheet.create({
     bottom: 10, // 距离底部的距离
     left: 10, // 距离左边的距离
   },
-  mainButtonText: {
-    color: "#06090C",
+  shareIcon: { height: 24, width: 24 },
+  titleContainer: {
+    padding: 5,
+    alignItems: "center",
+  },
+  alternativesContainer: {
+    flexDirection: "row",
+    // width: "100%",
+    // justifyContent: "space-evenly",
+    // justifyContent: "space-between",
+    // alignItems: "center", // 让子元素垂直居中
+    marginTop: 10,
+  },
+  pointsContainer: {
+    // justifyContent: "space-evenly",
+    // width: "35%",
+    // justifyContent: "center",
+    // alignItems: "center",
+    marginHorizontal: 5, // 调整间距
+    // flex: 1, // 让它占据相同的空间
+    // marginBottom: 10,
   },
   verticleLine: {
-    height: "100%",
+    // height: "100%",
     width: StyleSheet.hairlineWidth,
     backgroundColor: "#909090",
+    marginHorizontal: 30, // 调整间距
+  },
+  validityContainer: {
+    // justifyContent: "center",
+    // alignItems: "center",
+    // flex: 1, // 让它占据相同的空间
+    // justifyContent: "space-evenly",
+    // width: "50%",
+    // marginBottom: 10,
+    // marginLeft: 20,
+  },
+  scrollContainer: {
+    position: "absolute",
+    top: 125,
+    bottom: 100,
+    left: 5,
+    right: 5,
+  },
+  scrollViewContainer: {
+    // paddingHorizontal: 5,
+  },
+  horizontalLine: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "#909090",
+    marginVertical: 10,
+    // marginHorizontal: "5%",
+  },
+  sectionContainer: {
+    // width: "90%",
+    marginVertical: 10,
+    // justifyContent: "space-evenly",
+    // alignItems: "flex-start",
+  },
+  redeemContainer: {
+    // minWidth: "78%",
+    // height: "10%",
+    position: "absolute",
+    bottom: 20,
+    right: 0,
+    left: 0,
+    // marginHorizontal: "10%",
+  },
+  redeemButton: {
+    marginHorizontal: "10%",
   },
 });

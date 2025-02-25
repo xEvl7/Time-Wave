@@ -1,9 +1,9 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import { Text } from "react-native";
 import { StyleSheet } from "react-native";
 
 type SecondaryTextProp = {
-  children: string;
+  children: ReactNode;
 };
 
 const SecondaryText = ({ children }: SecondaryTextProp) => {

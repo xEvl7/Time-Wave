@@ -12,6 +12,7 @@ import auth from "@react-native-firebase/auth";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch } from "../hooks";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { updateUserData } from "../features/userSlice";
 
 type InputFieldsProps = {
@@ -164,9 +165,13 @@ const SignUp = ({
           points: 0,
           logo: null,
           feedbackStatus: false,
+          isFeedbackFilled: false,
         };
 
         dispatch(updateUserData(userData));
+
+        // 保存到 AsyncStorage
+        await AsyncStorage.setItem("hasSeenAppInfo", "false");
       } catch (error) {
         console.error(error);
         return;

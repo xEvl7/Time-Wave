@@ -7,11 +7,19 @@ import ContentContainer from "../components/ContentContainer";
 import ParagraphText from "../components/text_components/ParagraphText";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AppInfo = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "AppInfo">) => {
-  const handlePressBack = () => {
+
+  const handlePressContinue = async () => {
+    const hasSeenAppInfo = await AsyncStorage.getItem("hasSeenAppInfo");
+    await AsyncStorage.setItem("hasSeenAppInfo", "true");
+    console.log("hasSeenAppInfo before: ", hasSeenAppInfo);
+    const hasSeenAppInfo2 = await AsyncStorage.getItem("hasSeenAppInfo");
+    console.log("hasSeenAppInfo after: ", hasSeenAppInfo2);
+
     navigation.navigate("HomeTabs");
   };
 
@@ -39,7 +47,7 @@ const AppInfo = ({
           available. Time Wave is a relatively new and simple concept that can
           have an amazing and lasting impact on your life and community.
         </ParagraphText>
-        <TextButton onPress={handlePressBack}>Back</TextButton>
+        <TextButton onPress={handlePressContinue}>Continue</TextButton>
       </ContentContainer>
     </>
   );

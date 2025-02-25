@@ -224,7 +224,7 @@ const Profile = ({
       title: "About Us",
       subtitle: "",
       subItems: [
-        { title: "App Info", onNavigate: () => navigation.navigate("AppInfo") },
+        { title: "App Info", onNavigate: () => navigation.navigate("AppInfo2") },
         {
           title: "Benefits",
           onNavigate: () => navigation.navigate("Benefits"),
