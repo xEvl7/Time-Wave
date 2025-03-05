@@ -11,7 +11,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AppInfo = ({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "AppInfo">) => {
+}: NativeStackScreenProps<RootStackParamList, "AppInfo" | "AppInfo2">) => {
 
   const handlePressContinue = async () => {
     const hasSeenAppInfo = await AsyncStorage.getItem("hasSeenAppInfo");

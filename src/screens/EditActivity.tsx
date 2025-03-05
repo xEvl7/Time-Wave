@@ -17,9 +17,9 @@ import { ImagePickerResult } from "expo-image-picker";
 import storage from "@react-native-firebase/storage";
 import firestore from "@react-native-firebase/firestore";
 
-const CreateActivity = ({
+const EditActivity = ({
   navigation,route,
-}: NativeStackScreenProps<RootStackParamList, "CreateActivity">) => {
+}: NativeStackScreenProps<RootStackParamList, "EditActivity">) => {
   type ActivityProps = {
     id: string;
     logo?: string;
@@ -183,7 +183,7 @@ const CreateActivity = ({
   );
 };
 
-export default CreateActivity;
+export default EditActivity;
 
 const styles = StyleSheet.create({
   textArea: {

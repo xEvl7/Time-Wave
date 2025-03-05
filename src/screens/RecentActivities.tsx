@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../Screen.types";
+import { BottomTabParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import {
   fetchPointsReceivedData,
@@ -21,7 +21,7 @@ import HeaderText from "../components/text_components/HeaderText";
 
 const RecentActivities = ({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "RecentActivities">) => {
+}: NativeStackScreenProps<BottomTabParamList, "Activity">) => {
   const dispatch = useAppDispatch();
   const email = useAppSelector(
     (state: RootState) => state.user.data?.emailAddress

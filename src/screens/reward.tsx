@@ -33,7 +33,7 @@ export default function Reward({
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: "Reward Details", // 设置页面标题
+      // title: "Reward Details", // 设置页面标题
       headerRight: () => (
         <TouchableOpacity
           // style={{ marginRight: 10 }} // 右侧间距
@@ -221,6 +221,10 @@ export default function Reward({
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.headerContainer}>
+        {/* 遮罩层 */}
+        {/* {alertVisible &&  */}
+        {/* <View style={styles.overlay} /> */}
+        {/* } */}
         {/* <TouchableOpacity
           style={styles.shareButton}
           onPress={() =>
@@ -343,8 +347,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF8D13",
     // alignItems: "center",
     // justifyContent: "center",
-    // position: "relative", // 使得子元素能够绝对定位
+    position: "relative", // 使得子元素能够绝对定位
   },
+  // overlay: {
+  //   ...StyleSheet.absoluteFillObject, // 让它填满整个 `headerContainer`
+  //   backgroundColor: "rgba(0, 0, 0, 0.5)", // 半透明黑色遮罩
+  // },
   shareButton: {
     position: "absolute", // 绝对定位
     top: 10, // 距离顶部的距离
@@ -361,6 +369,7 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     // borderTopLeftRadius: 20,
     // borderTopRightRadius: 20,
+    zIndex: 2, // 确保图片在 overlay 上面
   },
   supplierLogo: {
     width: 50,
@@ -432,10 +441,10 @@ const styles = StyleSheet.create({
     // minWidth: "78%",
     // height: "10%",
     position: "absolute",
-    bottom: 20,
+    bottom: 10,
     right: 0,
     left: 0,
-    // marginHorizontal: "10%",
+    marginHorizontal: "6%",
   },
   redeemButton: {
     marginHorizontal: "10%",

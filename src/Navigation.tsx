@@ -86,7 +86,7 @@ const TabNavigator = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+          let iconName: string = ""; // Ensure iconName is always a string
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Activity") {
@@ -213,7 +213,7 @@ const renderSignedInScreens = () => (
       name="Reward"
       component={Reward}
       options={{
-        title: "Reward",
+        title: "Reward Details",
       }}
     />
     <Stack.Screen

@@ -9,11 +9,12 @@ import {
   TextInput,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { FirebaseFirestoreTypes, firebase } from "@react-native-firebase/firestore";
+import { firebase } from "@react-native-firebase/firestore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../Screen.types";
-import { NavigationProp } from "@react-navigation/native";
+import { BottomTabParamList, RootStackParamList } from "../Screen.types";
+import { CompositeScreenProps, NavigationProp } from "@react-navigation/native";
 import ButtonText from "../components/text_components/ButtonText";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
 type RewardType = {
   RID: string;
@@ -28,7 +29,10 @@ let points = 120;
 
 export default function TimeBankRewardsPage({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "TimeBankRewardsPage">) {
+}: CompositeScreenProps<
+  BottomTabScreenProps<BottomTabParamList, "Rewards">,
+  NativeStackScreenProps<RootStackParamList>
+>) {
   const [searchQuery, setSearchQuery] = useState<string>(""); // 搜索输入内容
   const [submittedQuery, setSubmittedQuery] = useState<string>(""); // 提交搜索时的内容
   const [RewardsData, setRewardsData] = useState<RewardType[]>([]); // 奖励数据
@@ -73,7 +77,10 @@ export default function TimeBankRewardsPage({
           onPress={() => navigation.navigate("RewardsPage")}
         >
           {/* <Image source={require("../assets/my-rewards-diamond.png")}></Image> */}
-          <Text style={{ marginLeft: 5, fontSize: 19 }}> My Rewards Details </Text>
+          <Text style={{ marginLeft: 5, fontSize: 19 }}>
+            {" "}
+            My Rewards Details{" "}
+          </Text>
         </Pressable>
       </View>
 
@@ -128,7 +135,11 @@ type ListSectionProps = {
 };
 
 // 显示奖励项列表的部分
-const RewardsListSection = ({ title, navigation, rewards }: ListSectionProps) => {
+const RewardsListSection = ({
+  title,
+  navigation,
+  rewards,
+}: ListSectionProps) => {
   const handleSeeAllPress = () => {
     navigation.navigate("TimeBankRewardsPage");
   };
@@ -150,7 +161,14 @@ const RewardsListSection = ({ title, navigation, rewards }: ListSectionProps) =>
         renderItem={({ item }) => renderRewardsItem({ item, navigation })}
         contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
         ListEmptyComponent={() => (
-          <Text style={{ color: "red", textAlign: "center", marginBottom: 20, marginLeft: 20 }}>
+          <Text
+            style={{
+              color: "red",
+              textAlign: "center",
+              marginBottom: 20,
+              marginLeft: 20,
+            }}
+          >
             No data available
           </Text>
         )}
@@ -159,7 +177,13 @@ const RewardsListSection = ({ title, navigation, rewards }: ListSectionProps) =>
   );
 };
 
-const renderRewardsItem = ({ item, navigation }: { item: RewardType; navigation: any }) => (
+const renderRewardsItem = ({
+  item,
+  navigation,
+}: {
+  item: RewardType;
+  navigation: any;
+}) => (
   <Pressable onPress={() => navigation.navigate("Reward", { item })}>
     <View style={styles.gridItem}>
       <View style={styles.imageBox}>

@@ -1,3 +1,4 @@
+import { NavigatorScreenParams } from "@react-navigation/native";
 import { CommunityProps } from "./features/communitySlice";
 
 export type RootStackParamList = {
@@ -8,9 +9,11 @@ export type RootStackParamList = {
 
   Welcome: undefined;
   AppInfo: undefined;
+  AppInfo2: undefined;
   Benefits: undefined;
 
-  HomeTabs: undefined; // This is the nested tab navigator
+  // HomeTabs: undefined; // This is the nested tab navigator
+  HomeTabs: NavigatorScreenParams<BottomTabParamList>; // 👈 Include tabs inside the stack
 
   ScanPage: undefined;
   QrCodePage: undefined;
@@ -66,8 +69,8 @@ export type RootStackParamList = {
 };
 
 export type BottomTabParamList = {
-  HomePage: undefined;
-  PointsHistory: undefined;
-  TimeBankRewardsPage: undefined;
+  Home: undefined;
+  Activity: undefined;
+  Rewards: undefined;
   Profile: undefined;
 };

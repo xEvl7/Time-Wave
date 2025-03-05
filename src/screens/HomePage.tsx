@@ -19,7 +19,7 @@ import {
   NativeStackNavigationProp,
   NativeStackScreenProps,
 } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../Screen.types";
+import { BottomTabParamList, RootStackParamList } from "../Screen.types";
 import { useAppSelector } from "../hooks";
 import { selectUserName } from "../features/userSlice";
 import { NavigationProp } from "@react-navigation/native";
@@ -34,7 +34,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 const HomePage = ({
   navigation,
   route,
-}: NativeStackScreenProps<RootStackParamList, "HomePage">) => {
+}: NativeStackScreenProps<BottomTabParamList, "Home">) => {
   const [activePage, setActivePage] = useState("HomePage"); // initialize the navigation
   const name = useAppSelector(selectUserName);
 

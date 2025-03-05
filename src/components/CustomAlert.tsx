@@ -23,7 +23,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
   onClose,
 }) => {
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible} transparent={true} animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.alertBox}>
           <Text style={styles.title}>{title}</Text>
@@ -33,13 +33,22 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
             {buttons.map((button, index) => (
               <TouchableOpacity
                 key={index}
-                style={[styles.button, button.style === "destructive" && styles.destructiveButton, button.style === "cancel" && styles.cancelButton]}
+                style={[
+                  styles.button,
+                  button.style === "destructive" && styles.destructiveButton,
+                  button.style === "cancel" && styles.cancelButton,
+                ]}
                 onPress={() => {
                   button.onPress?.();
                   onClose();
                 }}
               >
-                <Text style={[styles.buttonText, button.style === "cancel" && styles.cancelButtonText]}>
+                <Text
+                  style={[
+                    styles.buttonText,
+                    button.style === "cancel" && styles.cancelButtonText,
+                  ]}
+                >
                   {button.text}
                 </Text>
               </TouchableOpacity>
