@@ -32,7 +32,7 @@ import ActivitySeeAll from "./screens/ActivitySeeAll";
 import CreateActivity from "./screens/CreateActivity";
 import EditActivity from "./screens/EditActivity";
 import OngoingActivities from "./screens/OngoingActivities";
-import CommunityProfile from "./screens/CommunityProfile";
+// import CommunityProfile from "./screens/CommunityInfo";
 import MemberSeeAll from "./screens/MemberSeeAll";
 import AddAdmin from "./screens/AddAdmin";
 import NewProfile from "./screens/NewProfile";
@@ -231,7 +231,7 @@ const Navigation = () => {
             <Stack.Screen name="EditProfile" component={EditProfile} />
             <Stack.Screen name="Communities" component={Communities} />
             <Stack.Screen name="ActivitySeeAll" component={ActivitySeeAll} />
-            <Stack.Screen name="CommunityProfile" component={CommunityProfile} />
+            {/* <Stack.Screen name="CommunityProfile" component={CommunityProfile} /> */}
             <Stack.Screen name="MemberSeeAll" component={MemberSeeAll} />
             <Stack.Screen name="AddAdmin" component={AddAdmin} />
             <Stack.Screen name="ActivityInfo" component={ActivityInfo} />

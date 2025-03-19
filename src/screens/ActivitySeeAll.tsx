@@ -33,10 +33,9 @@ import CreateActivity from "./CreateActivity";
     route,
   }: NativeStackScreenProps<RootStackParamList, "ActivitySeeAll">) => {
     // const name = useAppSelector(selectUserName);
-    const {item} = route.params;
+    // const {item} = route.params;    
+    const item = route.params;
     console.log("activityseeall item:",item);
-
-
     return (
       <>
         <ContentContainer>
@@ -44,11 +43,12 @@ import CreateActivity from "./CreateActivity";
             <ScrollView>
               <ActivityListSection
                 title={''}
-                navigation={navigation}  
-                item={item}
+                navigation={navigation} 
+                route={route} 
+                //item={item}
               />
             </ScrollView>
-            <TextButton onPress={()=>navigation.navigate("CreateActivity", {item: item.id} )}> New Activity</TextButton>
+            <TextButton onPress={()=>navigation.navigate("CreateActivity", {item} )}> New Activity</TextButton>
           </View>
         </ContentContainer>
       </>
@@ -58,25 +58,26 @@ import CreateActivity from "./CreateActivity";
   type ListSectionProps = {
     title: string;
     navigation: NavigationProp<RootStackParamList>;
-    item:any,
+    route:any;
   };
   
-  type ActivityType = {
-    Name: string;
-    Description: string;
-    logo: string;
-    //test: string;
-  };
+  // type ActivityType = {
+  //   Name: string;
+  //   Description: string;
+  //   logo: string;
+  //   //test: string;
+  // };
   
-  // Display communities item that fetch from firebase
+  // Display activities from firebase
   const renderActivtiesItem = ({
     item, 
     navigation,
   }: {
-    item: ActivityType;
+    item: any;
+    // route:any;
     navigation: any;
   }) => (
-    <Pressable  onPress={() => navigation.navigate("ActivityInfo", { item })}>
+    <Pressable  onPress={() => navigation.navigate("ActivityInfo", { item, id: item.id })}>
       <View style={styles.gridItem}>
           <View style={styles.imageBox}>
             <Image
@@ -88,8 +89,8 @@ import CreateActivity from "./CreateActivity";
           </View>
         {/* </View> */}
         <View style={styles.text}>
-          <Text style={styles.description}>{item.Name}</Text>
-          <Text style={styles.subDescription}>{item.Description}</Text>
+          <Text style={styles.description}>{item.name}</Text>
+          <Text style={styles.subDescription}>{item.description}</Text>
           <View style={styles.pointContainer}>
             {/* <Text style={styles.point}>{item.test}</Text> */}
             {/* <Text style={styles.pointDesc}> points</Text> */}
@@ -99,22 +100,23 @@ import CreateActivity from "./CreateActivity";
     </Pressable>
   );
   
-  const ActivityListSection = ({ title, navigation, item }: ListSectionProps) => {
+  const ActivityListSection = ({ title, navigation,route }: ListSectionProps) => {
     const [activitiesData, setActivitiesData] = useState<
       FirebaseFirestoreTypes.DocumentData[]
     >([]);
   
+    const item = route.params;
+
     useEffect(() => {
       // get communities data from firebase (query part - can be declared what data to show)
       //"coming data" path should be updated to fetch and filter from activity's collection
       const fetchActivityData = async () => {
         try {
-          console.log("seeall id", item.id);
+          console.log("seeall id", route.params.id);
           const response = await firebase
             .firestore()
-            .collection("Communities")
-            .doc(item.id)
-            .collection("Coming Activities")
+            .collection("Activities")
+            .where("communityId", "==", item.item.id)
             .get();
 
           const fetchedActivityData = response.docs.map((doc) => doc.data());

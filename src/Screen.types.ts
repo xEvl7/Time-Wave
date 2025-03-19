@@ -26,10 +26,10 @@ export type RootStackParamList = {
   CommunityInfo: CommunityProps;
   ProfileInfo: { item: any };
   Communities: undefined;
-  CommunityProfile: { item: any };
+  // CommunityProfile: { item: any };
   ActivityInfo: ActivityProps;
   OngoingActivities: undefined;
-  ActivitySeeAll: { item: any };
+  ActivitySeeAll: {activities:any,item: any};
   MemberSeeAll: { item: any, member:any };
   AddAdmin: { item:any, member:any };
   

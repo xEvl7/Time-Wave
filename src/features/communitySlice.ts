@@ -10,6 +10,7 @@ export type CommunityProps = {
   name: string;
   description: string;
   admins: string[];
+  volunteers: string[];
 };
 
 interface CommunityState {

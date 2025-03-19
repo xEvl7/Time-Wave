@@ -13,7 +13,7 @@ export type ActivityProps = {
   logo?: string;
   name: string;
   description: string;
-  tac: string;
+  // tac: string;
   location:string;
   createdBy?: string;
   communityId: string; 

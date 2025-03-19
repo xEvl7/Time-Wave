@@ -179,7 +179,7 @@ const renderCommunitiesItem = ({
 }) => (
   
   <Pressable
-    onPress={() => navigation.navigate("CommunityProfile", { item })}
+    onPress={() => navigation.navigate("CommunityInfo",  item )}
   >
 
     <View style={styles.gridItem}>
