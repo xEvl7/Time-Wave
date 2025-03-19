@@ -1,31 +1,21 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  ScrollView,
-  FlatList,
-  TextInput,
-} from "react-native";
+import { Pressable, StyleSheet, View, Image, ScrollView } from "react-native";
 import React, { useEffect, useState } from "react";
-import { firebase } from "@react-native-firebase/firestore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { BottomTabParamList, RootStackParamList } from "../Screen.types";
-import { CompositeScreenProps, NavigationProp } from "@react-navigation/native";
+import { CompositeScreenProps } from "@react-navigation/native";
 import ButtonText from "../components/text_components/ButtonText";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-
-type RewardType = {
-  RID: string;
-  image: string;
-  name: string;
-  supplierName: string;
-  price: number;
-};
-
-let level = 3;
-let points = 120;
+import HeaderText from "../components/text_components/HeaderText";
+import SecondaryText from "../components/text_components/SecondaryText";
+import { useAppSelector } from "../hooks";
+import { RootState } from "../store";
+import ListSection from "../components/HorizontalFlatList";
+import RewardItem from "../components/RewardItem";
+import SearchBar from "../components/SearchBar";
+import { calculateLevel } from "../utils/levelUtils";
+import { fetchRewardsData } from "../utils/firebaseUtils";
+import { RewardType } from "../types";
+import { getTotalContributedHours } from "../utils/contributionUtils";
 
 export default function TimeBankRewardsPage({
   navigation,
@@ -33,296 +23,215 @@ export default function TimeBankRewardsPage({
   BottomTabScreenProps<BottomTabParamList, "Rewards">,
   NativeStackScreenProps<RootStackParamList>
 >) {
-  const [searchQuery, setSearchQuery] = useState<string>(""); // 搜索输入内容
-  const [submittedQuery, setSubmittedQuery] = useState<string>(""); // 提交搜索时的内容
-  const [RewardsData, setRewardsData] = useState<RewardType[]>([]); // 奖励数据
+  // user & contribution data from redux store
+  const userData = useAppSelector((state: RootState) => state.user.data);
+  const contributionData = useAppSelector(
+    (state: RootState) => state.user.contributionData
+  );
 
+  // contribution hours & level
+  const [contributedHours, setContributedHours] = useState<number>(
+    getTotalContributedHours(contributionData)
+  );
   useEffect(() => {
-    const fetchRewardsData = async () => {
-      try {
-        const response = await firebase.firestore().collection("Rewards").get();
-        const fetchedRewardsData = response.docs.map((doc) => doc.data());
-        setRewardsData(fetchedRewardsData as RewardType[]);
-      } catch (error) {
-        console.error("Error fetching rewards data:", error);
-      }
-    };
+    setContributedHours(getTotalContributedHours(contributionData));
+  }, [contributionData]);
+  const currentLevel = calculateLevel(contributedHours);
 
-    fetchRewardsData();
+  // rewards data
+  const [RewardsData, setRewardsData] = useState<RewardType[]>([]);
+  useEffect(() => {
+    fetchRewardsData().then(setRewardsData);
   }, []);
 
+  // search function
+  const [searchQuery, setSearchQuery] = useState<string>(""); // 搜索输入内容
+  const [submittedQuery, setSubmittedQuery] = useState<string>(""); // 提交搜索时的内容
   // 仅在用户点击“搜索”按钮后过滤奖励数据
   const filteredRewards = RewardsData.filter((item) =>
     item.name.toLowerCase().includes(submittedQuery.toLowerCase())
   );
 
   return (
-    <View>
-      <View style={styles.BackgroundStyle}>
+    <>
+      {/* Header */}
+      <View style={styles.headerContainer}>
         <View>
-          <Text style={styles.levelText}>Level {level} </Text>
-          <Text style={styles.pointsText}>{points} Points</Text>
+          <HeaderText
+            style={styles.levelText}
+          >{`Level ${currentLevel}`}</HeaderText>
+          <HeaderText
+            style={styles.pointsText}
+          >{`${userData?.points} Points`}</HeaderText>
+
           <Pressable
-            style={{ position: "absolute", top: 16, right: 0 }}
+            style={styles.ticketContainer}
             onPress={() => navigation.navigate("ActiveRewardsPage")}
           >
-            {/* <Image source={require("../assets/my-rewards.png")}></Image> */}
+            <Image
+              source={require("../assets/ticket-icon.png")}
+              style={styles.tIcon}
+            />
+            <ButtonText>My Rewards</ButtonText>
           </Pressable>
         </View>
       </View>
 
-      <View style={styles.PressBackground}>
-        <Pressable
-          style={{ flexDirection: "row", alignItems: "center" }}
-          onPress={() => navigation.navigate("RewardsPage")}
-        >
-          {/* <Image source={require("../assets/my-rewards-diamond.png")}></Image> */}
-          <Text style={{ marginLeft: 5, fontSize: 19 }}>
-            {" "}
-            My Rewards Details{" "}
-          </Text>
-        </Pressable>
-      </View>
+      {/* My Reward Details Button */}
+      <View style={styles.contentContainer}>
+        <View style={styles.rewardContainer}>
+          <Pressable
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+            onPress={() => navigation.navigate("Account")}
+          >
+            {/* 左边的 Image + 文本 组成一个小容器 */}
+            <View
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+            >
+              <Image
+                source={require("../assets/diamond.png")}
+                style={styles.rIcon}
+              />
+              <SecondaryText>My Rewards Details</SecondaryText>
+            </View>
+            <Image
+              source={require("../assets/next_icon_orange.png")}
+              style={styles.nIcon}
+            />
+          </Pressable>
+        </View>
+        <View style={styles.line}></View>
 
-      {/* 搜索框 */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+        {/* 搜索框 */}
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={() => setSubmittedQuery(searchQuery)}
         />
-        <Pressable
-          style={styles.searchButton}
-          onPress={() => setSubmittedQuery(searchQuery)} // 点击按钮时设置提交的查询
-        >
-          <Text style={styles.searchButtonText}>Search</Text>
-        </Pressable>
-      </View>
 
-      <ScrollView>
-        {/* 根据搜索情况显示不同的 RewardsListSection */}
-        {submittedQuery ? (
-          // 当有搜索关键词时，显示匹配的奖励
-          <RewardsListSection
-            title="Search Results"
-            navigation={navigation}
-            rewards={filteredRewards} // 传递过滤后的奖励数据
-          />
-        ) : (
-          <>
-            <RewardsListSection
-              title="Communities"
-              navigation={navigation}
-              rewards={RewardsData} // 默认显示全部奖励
-            />
-            <RewardsListSection
-              title="Individual"
-              navigation={navigation}
-              rewards={RewardsData} // 默认显示全部奖励
-            />
-          </>
-        )}
-      </ScrollView>
-    </View>
+        {/* Content Lists  */}
+        <View style={styles.listContainer}>
+          <ScrollView>
+            {/* 根据搜索情况显示不同的 ListSection */}
+            {submittedQuery ? (
+              // 当有搜索关键词时，显示匹配的奖励
+              <ListSection
+                title="Search Results"
+                navigation={navigation}
+                data={filteredRewards} // 传递过滤后的奖励数据
+                renderItem={({ item }) => (
+                  <RewardItem item={item} navigation={navigation} />
+                )}
+                seeAllPage="RewardList"
+              />
+            ) : (
+              <>
+                <ListSection
+                  title="Communities"
+                  navigation={navigation}
+                  data={RewardsData}
+                  renderItem={({ item }) => (
+                    <RewardItem item={item} navigation={navigation} />
+                  )}
+                  seeAllPage="RewardList"
+                />
+
+                <ListSection
+                  title="Individual"
+                  navigation={navigation}
+                  data={RewardsData}
+                  renderItem={({ item }) => (
+                    <RewardItem item={item} navigation={navigation} />
+                  )}
+                  seeAllPage="RewardList"
+                />
+              </>
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    </>
   );
 }
 
-type ListSectionProps = {
-  title: string;
-  navigation: NavigationProp<RootStackParamList>;
-  rewards: RewardType[];
-};
-
-// 显示奖励项列表的部分
-const RewardsListSection = ({
-  title,
-  navigation,
-  rewards,
-}: ListSectionProps) => {
-  const handleSeeAllPress = () => {
-    navigation.navigate("TimeBankRewardsPage");
-  };
-
-  return (
-    <View>
-      <View style={styles.listHeader}>
-        <Text>{title}</Text>
-        <Pressable onPress={handleSeeAllPress}>
-          <ButtonText>See all</ButtonText>
-        </Pressable>
-      </View>
-
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={rewards} // 使用奖励数据
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => renderRewardsItem({ item, navigation })}
-        contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
-        ListEmptyComponent={() => (
-          <Text
-            style={{
-              color: "red",
-              textAlign: "center",
-              marginBottom: 20,
-              marginLeft: 20,
-            }}
-          >
-            No data available
-          </Text>
-        )}
-      />
-    </View>
-  );
-};
-
-const renderRewardsItem = ({
-  item,
-  navigation,
-}: {
-  item: RewardType;
-  navigation: any;
-}) => (
-  <Pressable onPress={() => navigation.navigate("Reward", { item })}>
-    <View style={styles.gridItem}>
-      <View style={styles.imageBox}>
-        <Image source={{ uri: item.image }} style={styles.image} />
-      </View>
-      <View style={styles.text}>
-        <Text style={styles.description}>{item.name}</Text>
-        <Text style={styles.description}>{item.RID}</Text>
-        <Text style={styles.subDescription}>{item.supplierName}</Text>
-        <View style={styles.pointContainer}>
-          <Text style={styles.point}>{item.price}</Text>
-          <Text style={styles.pointDesc}> points</Text>
-        </View>
-      </View>
-    </View>
-  </Pressable>
-);
-
 const styles = StyleSheet.create({
-  BackgroundStyle: {
-    height: 150,
-    width: "100%",
-    padding: 30,
-    paddingTop: 40,
+  headerContainer: {
+    // flex: 0.1,
+    // height: 150,
+    // width: "100%",
+    paddingHorizontal: 20,
+    paddingBottom: 25,
+    // padding: 20,
+    // paddingTop: 80,
     backgroundColor: "#FF8D13",
   },
-  PressBackground: {
+  levelText: {
+    fontSize: 28,
+    color: "#FFFFFF",
+  },
+  pointsText: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    // marginBottom: 1,
+  },
+  ticketContainer: {
     position: "absolute",
-    top: 120,
-    left: 0,
-    right: 0,
-    height: 40,
+    top: 25,
+    right: -5,
+    backgroundColor: "white",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    elevation: 3, // 适用于 Android
+  },
+  tIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
+  },
+  contentContainer: {
     backgroundColor: "#FFFFFF",
-    justifyContent: "space-around",
+    flex: 1,
+  },
+  rewardContainer: {
+    flex: 0.1,
+    width: "100%",
+    // position: "absolute",
+    top: -12,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    // marginVertical: 10,
+    // left: 0,
+    // right: 0,
+    // height: 40,
+    // justifyContent: "space-around",
+    backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
-  levelText: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textShadowColor: "black",
-    textShadowRadius: 1,
+  rIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
   },
-  pointsText: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textShadowColor: "black",
-    textShadowRadius: 1,
-    marginBottom: 1,
+  nIcon: {
+    width: 20,
+    height: 20,
   },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    margin: 10,
+  line: {
+    height: 1,
+    width: "100%",
+    backgroundColor: "#ccc",
+    // marginVertical: 3,
+    marginVertical: 10,
   },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-  },
-  searchButton: {
-    marginLeft: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: "#FF8D13",
-    borderRadius: 8,
-  },
-  searchButtonText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-  },
-  gridItem: {
-    marginLeft: 25,
-    width: 250,
-    height: 250,
-    marginBottom: 10,
-    backgroundColor: "#F1CFA3",
-    borderRadius: 20,
-    borderColor: "#BDBDBD",
-    borderWidth: 1,
-  },
-  imageBox: {
-    alignSelf: "center",
-    resizeMode: "cover",
-    height: "60%",
-  },
-  image: {
-    alignSelf: "center",
-    resizeMode: "cover",
-    marginTop: 10,
-  },
-  text: {
-    backgroundColor: "#FFFFFF",
-    height: "40%",
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  description: {
-    fontSize: 16,
-    textAlign: "left",
-    marginLeft: 10,
-    marginRight: 10,
-    marginTop: 1,
-    fontWeight: "bold",
-    color: "black",
-  },
-  subDescription: {
-    fontSize: 14,
-    textAlign: "left",
-    marginLeft: 10,
-    marginRight: 10,
-    marginTop: 1,
-    fontWeight: "bold",
-    color: "gray",
-  },
-  pointContainer: {
-    flexDirection: "row",
-    marginLeft: 10,
-    marginTop: 5,
-  },
-  point: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "black",
-  },
-  pointDesc: {
-    fontSize: 16,
-    color: "#FBC02D",
-    marginTop: 3,
-  },
-  listHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
+
+  listContainer: {
+    flex: 4,
   },
 });

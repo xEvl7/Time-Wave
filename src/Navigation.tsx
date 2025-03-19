@@ -49,6 +49,7 @@ import ActivityHistory from "./screens/ActivityHistory";
 import GoogleFormScreen from "./screens/GoogleFormScreen";
 import { loadUserDataFromStore } from "./features/userSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ActiveRewardsPage from "./screens/ActiveRewardsPage";
 
 // Lazy load screens
 const HomePage = React.lazy(() => import("./screens/HomePage"));
@@ -146,7 +147,11 @@ const TabNavigator = () => {
       <Tab.Screen
         name="Rewards"
         component={TimeBankRewardsPage}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: true, // 确保 Header 显示
+          headerTitle: "", // 隐藏标题
+          headerStyle: { backgroundColor: "#FF8D13" }, // 设置橙色背景
+        }}
       />
       <Tab.Screen
         name="Profile"
@@ -281,6 +286,7 @@ const renderSignedInScreens = () => (
         title: "Time Bank Rewards Page",
       }}
     />
+    <Stack.Screen name="ActiveRewardsPage" component={ActiveRewardsPage} />
   </>
 );
 

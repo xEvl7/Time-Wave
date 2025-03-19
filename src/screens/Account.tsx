@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import {
@@ -19,8 +19,13 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import { RootState } from "../store";
 import ProgressBar from "../components/ProgressBar";
 import SectionContainer from "../components/SectionContainer";
-import ListItem from "../components/ListItem";
+import VerticalItemList from "../components/VerticalItemList";
 import { useFocusEffect } from "@react-navigation/native";
+import { getTotalContributedHours } from "../utils/contributionUtils";
+import { calculateLevel } from "../utils/levelUtils";
+import { getLastDayOfMonth } from "../utils/dateUtils";
+import { RewardType } from "../types";
+import { fetchRewardsData } from "../utils/firebaseUtils";
 
 const Account = ({
   navigation,
@@ -29,31 +34,37 @@ const Account = ({
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // user & contribution data from redux store
   const userData = useAppSelector((state: RootState) => state.user.data);
   const contributionData = useAppSelector(
     (state: RootState) => state.user.contributionData
   );
+  const email = useAppSelector((state) => state.user.data?.emailAddress);
 
-  const email = useAppSelector((state) => state.user.data?.emailAddress) as
-    | string
-    | undefined;
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!email) return;
     setIsLoading(true);
     try {
-      await dispatch(fetchUserData(email));
-      await dispatch(fetchUserContributionData(email));
+      await Promise.all([
+        dispatch(fetchUserData(email)),
+        dispatch(fetchUserContributionData(email)),
+      ]);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
     setIsLoading(false);
-  };
+  }, [email, dispatch]);
+
+  // rewards data
+  const [RewardsData, setRewardsData] = useState<RewardType[]>([]);
+  useEffect(() => {
+    fetchRewardsData().then(setRewardsData);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [email])
+    }, [fetchData])
   );
 
   const onRefresh = async () => {
@@ -62,53 +73,28 @@ const Account = ({
     setRefreshing(false);
   };
 
-  const currentDate = new Date();
-  const selectedYear = currentDate.getFullYear();
-  const selectedMonth = currentDate.toLocaleString("en-US", { month: "short" });
-
-  const totalContrHours =
-    contributionData?.[selectedYear]?.[selectedMonth]?.totalContrHours || 0;
-
-  const [contributedHours, setContributedHours] =
-    useState<number>(totalContrHours);
-
-  useEffect(() => {
-    setContributedHours(totalContrHours);
-  }, [totalContrHours]);
-
-  const calculateLevel = (hours: number) => {
-    if (hours <= 10) return 1;
-    if (hours <= 20) return 2;
-    if (hours <= 30) return 3;
-    return 4;
-  };
-
-  const currentLevel = calculateLevel(contributedHours);
-  const currentLevelMaxHours = currentLevel * 10;
-  const hoursLeftToNextLevel = currentLevelMaxHours + 10 - contributedHours;
-
-  // 计算进度条百分比，并确保它在 0-1 之间
-  const progressPercentage = Math.min(
-    Math.max((contributedHours - (currentLevelMaxHours - 10)) / 10, 0),
-    1
+  // contribution hours & level
+  const contributedHours = useMemo(
+    () => getTotalContributedHours(contributionData),
+    [contributionData]
   );
+  const currentLevel = calculateLevel(contributedHours);
 
-  /* Date Variable */
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const nextMonthFirstDay = new Date(year, month + 1, 1);
-  const lastDay = new Date(nextMonthFirstDay.getTime() - 1);
-  const formattedLastDay = `${lastDay.getDate()} ${lastDay.toLocaleString(
-    "default",
-    { month: "short" }
-  )} ${lastDay.getFullYear()}`;
-  /* Date Variable End*/
+  // level progress bar
+  const { hoursLeftToNextLevel, progressPercentage } = useMemo(() => {
+    const maxHours = currentLevel * 10;
+    return {
+      hoursLeftToNextLevel: maxHours + 10 - contributedHours,
+      progressPercentage: Math.min(
+        Math.max((contributedHours - (maxHours - 10)) / 10, 0),
+        1
+      ),
+    };
+  }, [currentLevel, contributedHours]);
 
-  const handleNavigateToPointsPolicy = () => {
-    const level = "level" + calculateLevel(contributedHours);
-    // console.log(level);
-    navigation.navigate("PointsPolicy", { level });
-  };
+  const formattedLastDay = useMemo(() => getLastDayOfMonth(), []);
+
+  const maxItems = 5;
 
   if (isLoading) {
     return (
@@ -144,7 +130,11 @@ const Account = ({
             <View style={styles.policyButtonContainer}>
               <TouchableOpacity
                 style={styles.policyButton}
-                onPress={() => handleNavigateToPointsPolicy()}
+                onPress={() =>
+                  navigation.navigate("PointsPolicy", {
+                    level: "level" + currentLevel,
+                  })
+                }
               >
                 <Text style={styles.policyButtonText}>View Points Policy</Text>
                 <Image
@@ -205,13 +195,19 @@ const Account = ({
         {/* Latest Rewards */}
         <SectionContainer>
           <Text style={styles.lrText1}>Latest Rewards</Text>
-          <ListItem
-            imageSource={require("../assets/sewing_machine.png")}
-            title="Singer Sewing Machine"
-            subtitle="Official Mavcap"
-            points="100"
-            onPress={() => {}}
-          />
+          {RewardsData.length > 0 &&
+            RewardsData.slice(0, maxItems).map((reward, index) => (
+              <VerticalItemList
+                key={index}
+                imageSource={reward.image}
+                title={reward.name}
+                subtitle={reward.supplierName}
+                points={reward.price}
+                onPress={() => {
+                  navigation.navigate("Reward", { reward });
+                }}
+              />
+            ))}
           <View style={styles.line}></View>
           <TouchableOpacity style={styles.rButton} onPress={() => {}}>
             <Text style={styles.rButtonText}>View All Rewards</Text>

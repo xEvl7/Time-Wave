@@ -16,7 +16,7 @@ const ListItem = ({
 }) => (
   <TouchableOpacity onPress={onPress}>
     <View style={styles.container}>
-      <Image source={imageSource} style={styles.image} />
+      <Image source={{ uri: imageSource }} style={styles.image} />
       <View>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
@@ -44,6 +44,9 @@ const styles = StyleSheet.create({
     width: 150,
     height: 100,
     marginRight: 12,
+    resizeMode: "stretch",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   title: {
     fontSize: 15,

@@ -1,13 +1,14 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { StyleProp, StyleSheet, TextStyle } from "react-native";
 import { Text } from "react-native-paper";
 
 type ButtonTextProp = {
+  style?: StyleProp<TextStyle>;
   children: string;
 };
 
-const ButtonText = ({ children }: ButtonTextProp) => {
-  return <Text style={styles.button}>{children}</Text>;
+const ButtonText = ({ style, children }: ButtonTextProp) => {
+  return <Text style={[styles.button, style]}>{children}</Text>;
 };
 
 const styles = StyleSheet.create({

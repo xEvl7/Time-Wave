@@ -1,8 +1,8 @@
-import { StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, TextStyle } from "react-native";
 import { Text } from "react-native-paper";
 
 type HeaderTextProps = {
-  style?: StyleProp<ViewStyle>;
+  style?: StyleProp<TextStyle>;
   children: string;
 };
 

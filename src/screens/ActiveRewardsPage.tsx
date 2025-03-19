@@ -236,7 +236,7 @@ export default function ActiveRewardsPage({
                         
                           <View style={styles.imageBox}>
                             <Image
-                              source={require("../assets/test3.png")}
+                              source={require("../assets/laptop.png")}
                               style={styles.image}
                             />
                           </View>
@@ -246,7 +246,7 @@ export default function ActiveRewardsPage({
                             <View style={styles.pointContainer}>
                               <Text style={styles.pointDesc}> Expires on {expireDate}</Text>
                             <Image
-                                source={require("../assets/use-now.png")}
+                                source={require("../assets/laptop.png")}
                                 style={{marginLeft:'48%',marginTop:10}}
                               />
                             </View>  
@@ -271,7 +271,7 @@ export default function ActiveRewardsPage({
                       <View style={styles.gridItem}>                        
                           <View style={styles.usedImageBox}>
                             <Image
-                              source={require("../assets/test3.png")}
+                              source={require("../assets/laptop.png")}
                               style={styles.image}
                             />
                           </View>
