@@ -60,6 +60,27 @@ import CreateActivity from "./CreateActivity";
     navigation: NavigationProp<RootStackParamList>;
     route:any;
   };
+
+    // Helper to safely format the date value
+    const formatTimestamp = (timestamp: any) => {
+      const options = {
+        // weekday: "long",
+        day: "numeric",
+        year: "numeric",
+        month: "long",
+        
+        // hour: "numeric",
+        // minute: "numeric",
+        hour12: true,
+      };
+      if (!timestamp) return "N/A";
+      // If timestamp is a Firebase Timestamp, it has a toDate method
+      if (typeof timestamp.toDate === "function") {
+        return timestamp.toDate().toLocaleString("en-US", options);
+      }
+      // Otherwise, try parsing it as a regular date
+      return new Date(timestamp).toLocaleString("en-US", options);
+    };
   
   // type ActivityType = {
   //   Name: string;
@@ -92,6 +113,7 @@ import CreateActivity from "./CreateActivity";
           <Text style={styles.description}>{item.name}</Text>
           <Text style={styles.subDescription}>{item.description}</Text>
           <View style={styles.pointContainer}>
+            <Text style={styles.point}>{ formatTimestamp(item.endDate)}</Text>
             {/* <Text style={styles.point}>{item.test}</Text> */}
             {/* <Text style={styles.pointDesc}> points</Text> */}
           </View>
@@ -177,42 +199,57 @@ import CreateActivity from "./CreateActivity";
     },
   
     gridItem: {
-      marginTop:17,
-      // marginLeft: "4%",
-      width:"100%",
-      height: 200,
-      flexDirection:"column",
-      flex:1,
-      marginBottom: 2,
-      backgroundColor: "black",
-      borderRadius: 20,
-      borderColor: "#BDBDBD",
-      borderWidth: 1.6,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#FFF3E0",
+      padding: 15,
+      borderRadius: 10,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: "#ddd",
+      // flexDirection: "row",
+      //   alignItems: "center",
+      //   backgroundColor: "#FFF3E0",
+      //   padding: 10,
+      //   borderRadius: 10,
+      //   marginBottom: 10,
     },
     imageBox: {
-      // alignSelf: "center",
-      height: "60%",
-      borderRadius: 20,
-      // borderColor: "#BDBDBD",
+      flex:1,
+      width: "100%",
+      height:"60%",
+      backgroundColor: "#F5DEB3",
+      borderRadius: 10,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 15,
+      padding: 1,
     },
     image: {
+      // width: 50,
+      // height: 50,
+      marginRight: 1,
       width: "100%",
       height: "140%",
       resizeMode: "stretch",
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
+      borderRadius: 5,
+      // borderTopRightRadius: 5,
+
     },
-    text: {
-      backgroundColor: "#fff0ff",
-      height: "40%",
-      borderBottomLeftRadius: 20,
-      borderBottomRightRadius: 20,
+    text: { 
+      flex: 1,      
+      // backgroundColor: "#fff0ff",
+      height: "90%",
+      // borderBottomLeftRadius: 20,
+      // borderBottomRightRadius: 20,
     },
     description: {
-      fontSize: 19,
+      // fontSize: 19,
       textAlign: "left",
-      marginTop: 1,
+      // marginTop: 1,
       marginLeft: 10,
+      // fontWeight: "bold",
+      fontSize: 16,
       fontWeight: "bold",
     },
     subDescription: {
@@ -221,18 +258,17 @@ import CreateActivity from "./CreateActivity";
       marginLeft: 10,
     },
     point: {
+      fontSize: 14,
+      color: "#FF6F00",
+      textAlign: "right",
       fontWeight: "bold",
-      fontSize: 15,
-      textAlign: "left",
-      marginLeft: 10,
-      color: "#FF8D13",
     },
     pointDesc: {
       fontSize: 15,
       textAlign: "left",
     },
     pointContainer: {
-      flexDirection: "row",
+      // flexDirection: "row",
       marginTop: 10,
     },
   
@@ -240,6 +276,7 @@ import CreateActivity from "./CreateActivity";
       // paddingHorizontal: 16,
       paddingBottom: 16,
     },
+    
   });
   
   

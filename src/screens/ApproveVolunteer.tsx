@@ -14,7 +14,7 @@ import firestore from "@react-native-firebase/firestore";import {
   } from "@react-native-firebase/firestore";
   import "@react-native-firebase/firestore";
 
-const ApproveVolunteersPage = () => {
+const ApproveVolunteer = () => {
   const [communities, setCommunities] = useState([]);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [volunteers, setVolunteers] = useState([]);
@@ -51,7 +51,7 @@ const ApproveVolunteersPage = () => {
             .firestore()
             .collection("Communities")
             .doc(selectedCommunity.id)
-            .collection("approveVolunteer")
+            .collection("volunteerRequest")
             .get();
 
           const fetchedVolunteers = response.docs.map((doc) => ({
@@ -81,7 +81,7 @@ const ApproveVolunteersPage = () => {
         .firestore()
         .collection("Communities")
         .doc(selectedCommunity.id)
-        .collection("volunteer")
+        .collection("volunteers")
         .doc(volunteer.id)
         .set(volunteer);
 
@@ -90,7 +90,7 @@ const ApproveVolunteersPage = () => {
         .firestore()
         .collection("Communities")
         .doc(selectedCommunity.id)
-        .collection("approveVolunteer")
+        .collection("volunteerRequest")
         .doc(volunteer.id)
         .delete();
 
@@ -109,6 +109,7 @@ const ApproveVolunteersPage = () => {
   };
 
   return (
+    <>
     <View style={styles.container}>
       {loading && <ActivityIndicator size="large" color="#3498db" />}
 
@@ -163,10 +164,11 @@ const ApproveVolunteersPage = () => {
         </>
       )}
     </View>
+    </>
   );
 };
 
-export default ApproveVolunteersPage;
+export default ApproveVolunteer;
 
 const styles = StyleSheet.create({
   container: {
