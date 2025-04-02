@@ -1,13 +1,20 @@
-import { Pressable, StyleSheet, View, Image, ScrollView } from "react-native";
-import React, { useEffect, useState } from "react";
+import {
+  StyleSheet,
+  View,
+  Image,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { BottomTabParamList, RootStackParamList } from "../Screen.types";
-import { CompositeScreenProps } from "@react-navigation/native";
+import { CompositeScreenProps, useFocusEffect } from "@react-navigation/native";
 import ButtonText from "../components/text_components/ButtonText";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import HeaderText from "../components/text_components/HeaderText";
 import SecondaryText from "../components/text_components/SecondaryText";
-import { useAppSelector } from "../hooks";
+import { useAppDispatch, useAppSelector } from "../hooks";
 import { RootState } from "../store";
 import ListSection from "../components/HorizontalFlatList";
 import RewardItem from "../components/RewardItem";
@@ -16,33 +23,68 @@ import { calculateLevel } from "../utils/levelUtils";
 import { fetchRewardsData } from "../utils/firebaseUtils";
 import { RewardType } from "../types";
 import { getTotalContributedHours } from "../utils/contributionUtils";
+import {
+  fetchUserData,
+  fetchUserContributionData,
+  selectEmail,
+  selectUserContributionData,
+  selectUserData,
+} from "../features/userSlice";
 
-export default function TimeBankRewardsPage({
+const TimeBankRewardsPage = ({
   navigation,
 }: CompositeScreenProps<
   BottomTabScreenProps<BottomTabParamList, "Rewards">,
   NativeStackScreenProps<RootStackParamList>
->) {
+>) => {
+  const dispatch = useAppDispatch();
+  const [refreshing, setRefreshing] = useState(false);
+
   // user & contribution data from redux store
-  const userData = useAppSelector((state: RootState) => state.user.data);
-  const contributionData = useAppSelector(
-    (state: RootState) => state.user.contributionData
-  );
+  const email = useAppSelector(selectEmail);
+  const userData = useAppSelector(selectUserData);
+  const userContributionData = useAppSelector(selectUserContributionData);
 
   // contribution hours & level
   const [contributedHours, setContributedHours] = useState<number>(
-    getTotalContributedHours(contributionData)
+    getTotalContributedHours(userContributionData)
   );
   useEffect(() => {
-    setContributedHours(getTotalContributedHours(contributionData));
-  }, [contributionData]);
+    setContributedHours(getTotalContributedHours(userContributionData));
+  }, [userContributionData]);
   const currentLevel = calculateLevel(contributedHours);
 
   // rewards data
   const [RewardsData, setRewardsData] = useState<RewardType[]>([]);
-  useEffect(() => {
-    fetchRewardsData().then(setRewardsData);
-  }, []);
+  // useEffect(() => {
+  //   fetchRewardsData().then(setRewardsData);
+  // }, []);
+
+  // fetch user & reward data again from firebase into redux store
+  const refreshData = useCallback(async () => {
+    if (!email) return;
+    try {
+      await Promise.all([
+        dispatch(fetchUserData(email)),
+        dispatch(fetchUserContributionData(email)),
+        fetchRewardsData().then(setRewardsData),
+      ]);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }, [email, dispatch]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshData();
+    setRefreshing(false);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshData();
+    }, [refreshData])
+  );
 
   // search function
   const [searchQuery, setSearchQuery] = useState<string>(""); // 搜索输入内容
@@ -64,7 +106,8 @@ export default function TimeBankRewardsPage({
             style={styles.pointsText}
           >{`${userData?.points} Points`}</HeaderText>
 
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.6} // 触摸时降低透明度
             style={styles.ticketContainer}
             onPress={() => navigation.navigate("ActiveRewardsPage")}
           >
@@ -73,14 +116,14 @@ export default function TimeBankRewardsPage({
               style={styles.tIcon}
             />
             <ButtonText>My Rewards</ButtonText>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* My Reward Details Button */}
       <View style={styles.contentContainer}>
         <View style={styles.rewardContainer}>
-          <Pressable
+          <TouchableOpacity
             style={{
               flexDirection: "row",
               alignItems: "center",
@@ -101,7 +144,7 @@ export default function TimeBankRewardsPage({
               source={require("../assets/next_icon_orange.png")}
               style={styles.nIcon}
             />
-          </Pressable>
+          </TouchableOpacity>
         </View>
         <View style={styles.line}></View>
 
@@ -114,7 +157,17 @@ export default function TimeBankRewardsPage({
 
         {/* Content Lists  */}
         <View style={styles.listContainer}>
-          <ScrollView>
+          <ScrollView
+            scrollEventThrottle={16}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#FF8D13"]} // 仅适用于 Android
+                tintColor="#FF8D13" // 仅适用于 iOS
+              />
+            }
+          >
             {/* 根据搜索情况显示不同的 ListSection */}
             {submittedQuery ? (
               // 当有搜索关键词时，显示匹配的奖励
@@ -155,7 +208,7 @@ export default function TimeBankRewardsPage({
       </View>
     </>
   );
-}
+};
 
 const styles = StyleSheet.create({
   headerContainer: {
@@ -235,3 +288,5 @@ const styles = StyleSheet.create({
     flex: 4,
   },
 });
+
+export default TimeBankRewardsPage;

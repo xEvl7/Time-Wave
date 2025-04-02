@@ -1,5 +1,5 @@
 export type RewardType = {
-  id: string;
+  // id: string;
   RID: string;
   image: string;
   name: string;
@@ -8,8 +8,21 @@ export type RewardType = {
 };
 
 export type CommunityType = {
-  id: string;
+  // id: string;
   logo: string;
   name: string;
   description: string;
+};
+
+export type RewardObtainedType = {
+  rewardInfo: {
+    image: string;
+    supplierName: string;
+    name: string;
+  };
+  expiredDate: any;
+  redeemedDate: any;
+  status: string;
+  usedDate: any;
+  reference: any;
 };

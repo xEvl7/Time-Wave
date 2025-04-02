@@ -1,6 +1,14 @@
-import { Pressable, View, Text, Image, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  Animated,
+  TouchableWithoutFeedback,
+  GestureResponderEvent,
+} from "react-native";
 import { CommunityType } from "../types";
 import styles from "../styles";
+import { useRef } from "react";
 
 export default function CommunityItem({
   item,
@@ -9,17 +17,54 @@ export default function CommunityItem({
   item: CommunityType;
   navigation: any;
 }) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const startTouch = useRef({ x: 0, y: 0 }).current;
+
+  const handlePressIn = (event: GestureResponderEvent) => {
+    startTouch.x = event.nativeEvent.pageX;
+    startTouch.y = event.nativeEvent.pageY;
+
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = (event: GestureResponderEvent) => {
+    const endX = event.nativeEvent.pageX;
+    const endY = event.nativeEvent.pageY;
+
+    const distance = Math.sqrt(
+      Math.pow(endX - startTouch.x, 2) + Math.pow(endY - startTouch.y, 2)
+    );
+
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 5,
+      tension: 100,
+      useNativeDriver: true,
+    }).start();
+
+    if (distance < 5) {
+      // 只有当手指几乎没有移动时才跳转
+      navigation.navigate("CommunityProfile", { item });
+    }
+  };
+
   return (
-    <Pressable
-      onPress={() => navigation.navigate("CommunityProfile", { item })}
+    <TouchableWithoutFeedback
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
     >
-      <View style={styles.gridItem}>
+      <Animated.View
+        style={[styles.gridItem, { transform: [{ scale: scaleAnim }] }]}
+      >
         <Image source={{ uri: item.logo }} style={styles.image} />
         <View style={styles.text}>
           <Text style={styles.description}>{item.name}</Text>
           <Text style={styles.subDescription}>{item.description}</Text>
         </View>
-      </View>
-    </Pressable>
+      </Animated.View>
+    </TouchableWithoutFeedback>
   );
 }

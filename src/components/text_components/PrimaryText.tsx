@@ -1,13 +1,14 @@
 import React from "react";
-import { Text } from "react-native";
+import { StyleProp, Text, TextStyle } from "react-native";
 import { StyleSheet } from "react-native";
 
 type PrimaryTextProp = {
+  style?: StyleProp<TextStyle>;
   children: string;
 };
 
-const PrimaryText = ({ children }: PrimaryTextProp) => {
-  return <Text style={styles.primary}>{children}</Text>;
+const PrimaryText = ({ style, children }: PrimaryTextProp) => {
+  return <Text style={[styles.primary, style]}>{children}</Text>;
 };
 
 const styles = StyleSheet.create({

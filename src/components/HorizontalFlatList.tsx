@@ -1,4 +1,10 @@
-import { StyleSheet, Pressable, View, FlatList, Text } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  FlatList,
+  Text,
+} from "react-native";
 import ButtonText from "./text_components/ButtonText";
 import PrimaryText from "./text_components/PrimaryText";
 
@@ -24,9 +30,9 @@ export default function ListSection<T>({
       <View style={styles.listHeader}>
         <PrimaryText>{title}</PrimaryText>
         {seeAllPage && (
-          <Pressable onPress={() => navigation?.navigate(seeAllPage)}>
+          <TouchableOpacity onPress={() => navigation?.navigate(seeAllPage)}>
             <ButtonText>See all</ButtonText>
-          </Pressable>
+          </TouchableOpacity>
         )}
       </View>
       <FlatList
@@ -38,7 +44,9 @@ export default function ListSection<T>({
         renderItem={renderItem}
         contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No data available</Text>
+          <View style={styles.listHeader}>
+            <Text style={styles.emptyText}>No data available</Text>
+          </View>
         }
       />
     </View>

@@ -64,12 +64,39 @@ type UserActivitiesData = {
   type: string;
 };
 
+type RewardsObtainedData = {
+  reference: any;
+  redeemedDate: any;
+  expiredDate: any;
+  status: string;
+  usedDate: any;
+  rewardInfo: any;
+};
+type RewardsActiveData = {
+  reference: any;
+  redeemedDate: any;
+  expiredDate: any;
+  status: string;
+  usedDate: any;
+  rewardInfo: any;
+};
+type RewardsPastData = {
+  reference: any;
+  redeemedDate: any;
+  expiredDate: any;
+  status: string;
+  usedDate: any;
+  rewardInfo: any;
+};
+
 type UserState = {
   data?: UserData;
   contributionData?: { [year: string]: UserContributionData };
   pointsReceivedData?: PointsReceivedData[];
   pointsUsedData?: PointsUsedData[];
   activitiesData?: UserActivitiesData[];
+  rewardsActiveData?: RewardsActiveData[];
+  rewardsPastData?: RewardsPastData[];
 };
 
 export const updateUserData = createAsyncThunk(
@@ -188,33 +215,39 @@ export const fetchUserContributionData = createAsyncThunk(
       const year = doc.id;
       const monthData = doc.data() as UserContributionData;
 
-      // Convert Date to string
+      // Convert Date to string and handle undefined updatedDate
       Object.keys(monthData).forEach((month) => {
-        monthData[month].updatedDate = monthData[month].updatedDate.toString();
+        if (monthData[month].updatedDate) {
+          monthData[month].updatedDate =
+            monthData[month].updatedDate.toString();
+        }
       });
 
       contributionData[year] = monthData;
     });
 
     const currentDate = new Date();
-    const selectedYear = currentDate.getFullYear();
+    const selectedYear = currentDate.getFullYear().toString(); // 确保与 contributionData 的 key 匹配
     const selectedMonth = currentDate.toLocaleString("en-US", {
       month: "short",
     });
 
+    // 处理 totalContrHours 可能为 undefined 的情况
     if (
       contributionData[selectedYear] &&
       contributionData[selectedYear][selectedMonth]
     ) {
       const totalContrHours =
-        contributionData[selectedYear][selectedMonth].totalContrHours;
+        contributionData[selectedYear][selectedMonth].totalContrHours ?? 0; // 使用 ?? 0 处理 undefined
 
-      if (totalContrHours !== undefined) {
-        return contributionData;
-      }
+      // 更新数据，确保 totalContrHours 不是 undefined
+      contributionData[selectedYear][selectedMonth].totalContrHours =
+        totalContrHours;
+
+      return contributionData;
     }
 
-    throw new Error("Data not available or in the expected format.");
+    return contributionData; // 直接返回数据，不抛出错误
   }
 );
 
@@ -257,7 +290,7 @@ export const fetchUserContributionData2 = createAsyncThunk(
       });
     });
 
-    console.log("groupedData", groupedData);
+    // console.log("groupedData", groupedData);
 
     return groupedData;
   }
@@ -419,6 +452,106 @@ export const fetchUserActivitiesData = createAsyncThunk(
     });
 
     return activities;
+  }
+);
+
+export const fetchRewardsObtainedData = createAsyncThunk(
+  "user/fetchRewardsObtainedData",
+  async (params: {
+    email: string;
+    type?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }) => {
+    const { email, type, startDate, endDate } = params;
+
+    const querySnapshot = await firestore()
+      .collection("Users")
+      .where("emailAddress", "==", email)
+      .get();
+
+    if (querySnapshot.size !== 1) {
+      throw new Error(`${email} Either has no data or more than 1 data.`);
+    }
+
+    const userDocument = querySnapshot.docs[0];
+    let query: FirebaseFirestoreTypes.Query<FirebaseFirestoreTypes.DocumentData> =
+      userDocument.ref.collection("RewardsObtained");
+
+    if (type === "active") {
+      query = query.where("status", "==", "active");
+    } else if (type === "past") {
+      query = query.where("status", "in", ["used", "expired"]);
+    } else {
+      return null;
+    }
+
+    // Convert Date to Firestore Timestamp
+    if (startDate) {
+      query = query.where(
+        "redeemedDate",
+        ">=",
+        firestore.Timestamp.fromDate(startDate)
+      );
+    }
+
+    if (endDate) {
+      query = query.where(
+        "redeemedDate",
+        "<=",
+        firestore.Timestamp.fromDate(endDate)
+      );
+    }
+
+    const rewardObtainedSnapshot = await query.get();
+    const rewardObtainedData: RewardsObtainedData[] = [];
+
+    // 遍历每个 RewardsObtained 数据，并动态查询对应的 Rewards 数据
+    for (const doc of rewardObtainedSnapshot.docs) {
+      const rewardObtained = doc.data();
+      const rewardId = rewardObtained.reference;
+
+      // console.log("rewardId",rewardId);
+      // 动态查询对应的 Rewards 数据
+      const rewardDocSnapshot = await firestore()
+        .collection("Rewards")
+        .where("RID", "==", rewardId)
+        .get();
+
+      let rewardInfo = null;
+      if (!rewardDocSnapshot.empty) {
+        // 如果有结果，获取文档数据
+        rewardInfo = rewardDocSnapshot.docs[0].data();
+
+        // 处理 Firestore Timestamp，转换为字符串
+        if (rewardInfo.validityEndDate) {
+          rewardInfo.validityEndDate = rewardInfo.validityEndDate
+            .toDate()
+            .toISOString();
+        }
+        if (rewardInfo.validityStartDate) {
+          rewardInfo.validityStartDate = rewardInfo.validityStartDate
+            .toDate()
+            .toISOString();
+        }
+      }
+
+      // 构造 rewardObtainedData 对象并将奖励信息合并
+      const data: RewardsObtainedData = {
+        reference: rewardObtained.reference || "N/A",
+        expiredDate:
+          rewardObtained.expiredDate?.toDate()?.toLocaleString() || "N/A",
+        redeemedDate:
+          rewardObtained.redeemedDate?.toDate()?.toLocaleString() || "N/A",
+        usedDate: rewardObtained.usedDate?.toDate()?.toLocaleString() || "N/A",
+        status: rewardObtained.status || "N/A",
+        rewardInfo: rewardInfo || null, // 将奖励信息添加到数据中
+      };
+
+      rewardObtainedData.push(data);
+    }
+
+    return rewardObtainedData;
   }
 );
 
@@ -664,6 +797,32 @@ const userSlice = createSlice({
         console.error(action.error);
       })
       .addCase(
+        fetchRewardsObtainedData.fulfilled,
+        (
+          state,
+          action: ReturnType<typeof fetchRewardsObtainedData.fulfilled>
+        ) => {
+          // state.rewardsObtainedData = action.payload; // Update the general rewards data
+          console.log("Successfully fetched User Rewards Obtained's data");
+
+          // Dynamically assign rewards based on status passed in action.meta.arg
+          const type = action.meta.arg.type;
+
+          if (type === "past") {
+            // console.log(action.payload);
+            state.rewardsPastData = action.payload ?? []; // 确保不是 null
+          } else if (type === "active") {
+            state.rewardsActiveData = action.payload ?? [];
+          } else {
+            console.warn("Invalid type:", type);
+          }
+        }
+      )
+
+      .addCase(fetchRewardsObtainedData.rejected, (_, action) => {
+        console.error(action.error);
+      })
+      .addCase(
         loadUserDataFromStore.fulfilled,
         (state, action: PayloadAction<UserData | null>) => {
           if (action.payload) {
@@ -711,7 +870,7 @@ const userSlice = createSlice({
         fetchPointsReceivedData.fulfilled,
         (state, action: PayloadAction<PointsReceivedData[]>) => {
           state.pointsReceivedData = action.payload;
-          console.log(action.payload);
+          // console.log(action.payload);
           console.log(`Successfully fetched User Points Received's data`);
         }
       )
@@ -722,7 +881,7 @@ const userSlice = createSlice({
         fetchPointsUsedData.fulfilled,
         (state, action: PayloadAction<PointsUsedData[]>) => {
           state.pointsUsedData = action.payload;
-          console.log(action.payload);
+          // console.log(action.payload);
           console.log(`Successfully fetched User Points Used's data`);
         }
       )
@@ -733,7 +892,7 @@ const userSlice = createSlice({
         fetchUserActivitiesData.fulfilled,
         (state, action: PayloadAction<UserActivitiesData[]>) => {
           state.activitiesData = action.payload;
-          console.log(action.payload);
+          // console.log(action.payload);
           console.log(`Successfully fetched User Activities's data`);
         }
       )
@@ -780,6 +939,32 @@ const selectUserName = (state: RootState) => {
   return "";
 };
 
-export { selectUserName };
+const selectEmail = (state: RootState) => {
+  if (state.user.data) return state.user.data.emailAddress;
+
+  console.warn("User's data is null or undefined.");
+  return "";
+};
+
+const selectUserData = (state: RootState) => {
+  if (state.user.data) return state.user.data;
+
+  console.warn("User's data is null or undefined.");
+  return null;
+};
+
+const selectUserContributionData = (state: RootState) => {
+  if (state.user.contributionData) return state.user.contributionData;
+
+  // console.warn("User Contribution's data is null or undefined.");
+  return null;
+};
+
+export {
+  selectUserName,
+  selectEmail,
+  selectUserData,
+  selectUserContributionData,
+};
 
 export default userSlice.reducer;

@@ -1,5 +1,5 @@
-import { View, TextInput, StyleSheet } from "react-native";
-import TextButton from "./TextButton";
+import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
 
 type SearchBarProps = {
   searchQuery: string;
@@ -14,45 +14,54 @@ export default function SearchBar({
 }: SearchBarProps) {
   return (
     <View style={styles.searchContainer}>
+      {/* 点击搜索图标触发 onSearch */}
+      <TouchableOpacity onPress={onSearch} style={styles.searchIcon}>
+        <Icon name="search" size={20} color="#888" />
+      </TouchableOpacity>
+
       <TextInput
         style={styles.searchInput}
-        placeholder="Search text..."
+        placeholder="Search..."
+        placeholderTextColor="#888"
         value={searchQuery}
         onChangeText={setSearchQuery}
+        onSubmitEditing={onSearch} // 用户按 "Enter" 也能触发搜索
       />
-      <TextButton style={styles.searchButton} onPress={onSearch}>
-        Search
-      </TextButton>
+
+      {/* 只有在输入框有内容时才显示清除按钮 */}
+      {searchQuery.length > 0 && (
+        <TouchableOpacity onPress={() => setSearchQuery("")} style={styles.clearButton}>
+          <Icon name="close-circle" size={20} color="#888" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   searchContainer: {
-    flex: 0.3,
     flexDirection: "row",
     alignItems: "center",
+    // backgroundColor: "#F5F5F5",
+    borderRadius: 25,
+    top: 5,
     paddingHorizontal: 10,
-    marginVertical: 10,
-    // margin: 10,
-    // top: 10,
+    marginHorizontal: 10,
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  searchIcon: {
+    marginRight: 8,
+    padding: 5, // 增加点击区域
   },
   searchInput: {
     flex: 1,
-    height: 45,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
+    fontSize: 16,
+    color: "#333",
   },
-  searchButton: {
-    marginLeft: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    // backgroundColor: "#FF8D13",
-    // borderRadius: 8,
+  clearButton: {
+    marginLeft: 8,
+    padding: 5, // 增加点击区域
   },
-  // searchButtonText: {
-  //   color: "#FFFFFF",
-  // },
 });

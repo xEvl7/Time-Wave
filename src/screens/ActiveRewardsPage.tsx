@@ -1,425 +1,142 @@
-import { 
-  Pressable, 
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  Pressable,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  FlatList,  
-  Text, 
-  View, 
-  Image ,
-  ScrollView} from "react-native";
-import auth from "@react-native-firebase/auth";
-import React, { useState, useEffect } from "react";
-import TextButton from "../components/TextButton";
-import HeaderText from "../components/text_components/HeaderText";
-import BackgroundImageBox from "../components/BackgroundImageBox";
-import ContentContainer from "../components/ContentContainer";
-import ValidatedTextInput from "../components/ValidatedTextInput";
-import { useForm } from "react-hook-form";
-import { fetchUserData } from "../features/userSlice";
+  FlatList,
+  Text,
+  View,
+  Image,
+  RefreshControl,
+} from "react-native";
+import { fetchRewardsObtainedData } from "../features/userSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
-
-// type FormData = {
-//   emailAddress: string;
-//   password: string;
-// };
-let expireDate ='19 AUG 2024';
+import { RootState } from "../store";
+import { RewardObtainedType } from "../types";
 
 export default function ActiveRewardsPage({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "ActiveRewardsPage">) {
-  
-  const firebaseConfig = {
-    apiKey: "AIzaSyD7u8fTERnA_Co1MnpVeJ6t8ZumV0T59-Y",
-    authDomain: "time-wave-88653.firebaseapp.com",
-    projectId: "time-wave-88653",
-    storageBucket: "time-wave-88653.appspot.com",
-    messagingSenderId: "666062417383",
-    appId: "1:666062417383:web:8d8a8c4d4c0a3d55052142",
-    measurementId: "G-L7TTXFZ6DM",
-  };
-
-  // // Initialize Firebase
-  // const app = initializeApp(firebaseConfig);
-
-  // // Initialize Cloud Firestore and get a reference to the service
-  // const db = getFirestore(app);
-
-  const handleData = async (data: FormData) => {
-    // const querySnapshot = await getDocs(collection(db, "users"));
-    // querySnapshot.forEach((doc) => {
-    //   console.log(`${doc.id} => ${doc.data()}`);
-    // });
-  };
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"received" | "used">("received");
-  
-  const [receivedPointsData, setReceivedPointsData] = useState([
-    {
-      date: "Tue, 1 Aug 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 50,
-    },
-    {
-      date: "Sat, 1 Jul 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 75,
-    },
-    {
-      date: "Tue, 1 Aug 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 50,
-    },
-    {
-      date: "Sat, 1 Jul 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 75,
-    },
-    {
-      date: "Tue, 1 Aug 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 50,
-    },
-    {
-      date: "Sat, 1 Jul 2023",
-      time: "12:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 75,
-    },
-  ]);
-  const [usedPointsData, setUsedPointsData] = useState([
-    {
-      date: "Sun, 6 Aug 2023",
-      time: "11:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 30,
-    },
-    {
-      date: "Tue, 27 Jun 2023",
-      time: "08:00 PM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 55,
-    },
-    {
-      date: "Sun, 6 Aug 2023",
-      time: "11:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 30,
-    },
-    {
-      date: "Tue, 27 Jun 2023",
-      time: "08:00 PM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 55,
-    },
-    {
-      date: "Sun, 6 Aug 2023",
-      time: "11:00 AM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 30,
-    },
-    {
-      date: "Tue, 27 Jun 2023",
-      time: "08:00 PM",
-      category: "Time Points Rewards",
-      name: "TimeBank Rewards Points",
-      points: 55,
-    },
-  ]);
+  const dispatch = useAppDispatch();
+  const email = useAppSelector(
+    (state: RootState) => state.user.data?.emailAddress
+  ) as string;
+  const rewardsActiveData = useAppSelector(
+    (state: RootState) => state.user.rewardsActiveData
+  );
+  const rewardsPastData = useAppSelector(
+    (state: RootState) => state.user.rewardsPastData
+  );
+  const [activeTab, setActiveTab] = useState<"active" | "past">("active");
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => {
-      if (activeTab === "received") {
-        setReceivedPointsData;
-      } else {
-        setUsedPointsData;
-      }
-      setIsLoading(false);
-    }, 500);
-  }, [activeTab]);
+    if (email) {
+      fetchData();
+    }
+  }, [email]);
 
-  const handleTabChange = (tab: "received" | "used") => {
-    setActiveTab(tab);
-    setIsLoading(true);
+  const fetchData = async () => {
+    setRefreshing(true);
+    await dispatch(fetchRewardsObtainedData({ email, type: "active" }));
+    await dispatch(fetchRewardsObtainedData({ email, type: "past" }));
+    setRefreshing(false);
   };
-  
-  return (
-    <View>
-     {/* <View style={{alignContent:'center'}}>      
-        <View style={styles.TabStyle}> 
-          <View>
-            <Pressable onPress={() => navigation.navigate("ActiveRewardsPage")}>
-              <Text style={styles.TabNavigateTextMajor}>Active Rewards           
-              </Text>                     
-            </Pressable>
-            <View style={styles.TabPressMajor}></View>            
+
+  const handleTabChange = (tab: "active" | "past") => {
+    if (activeTab !== tab) {
+      setActiveTab(tab);
+      dispatch(fetchRewardsObtainedData({ email, type: tab }));
+    }
+  };
+
+  const renderRewardItem = useCallback(
+    ({ item }: { item: RewardObtainedType }) => (
+      <Pressable
+        onPress={() =>
+          navigation.navigate(
+            activeTab === "active"
+              ? "ActiveRewardsDetailsPage"
+              : "PastRewardsDetailsPage"
+          )
+        }
+      >
+        <View style={styles.gridItem}>
+          <View
+            style={[
+              styles.imageBox,
+              activeTab === "past" && styles.usedImageBox,
+            ]}
+          >
+            <Image
+              source={{ uri: item.rewardInfo.image }}
+              style={styles.image}
+            />
           </View>
-          <View>
-            <Pressable onPress={() => navigation.navigate("PastRewardsPage")}>
-              <Text style={styles.TabNavigateTextMinor}>Past Rewards           
-              </Text>            
-            </Pressable>          
+          <View style={styles.text}>
+            <Text style={styles.supplierName}>
+              {item.rewardInfo.supplierName}
+            </Text>
+            <Text style={styles.rewardTitle}>{item.rewardInfo.name}</Text>
+            <Text style={styles.expiryDate}>Expires on {item.expiredDate}</Text>
+            {activeTab === "past" && <Text style={styles.usedBadge}>Used</Text>}
           </View>
         </View>
-      </View> */}
+      </Pressable>
+    ),
+    [navigation, activeTab]
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Tab 按钮 */}
       <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "received" && styles.activeTab,
-          ]}
-          onPress={() => handleTabChange("received")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "received" && styles.activeTabText,
-            ]}
+        {["active", "past"].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tabButton, activeTab === tab && styles.activeTab]}
+            onPress={() => handleTabChange(tab as "active" | "past")}
           >
-            Active Rewards 
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === "used" && styles.activeTab]}
-          onPress={() => handleTabChange("used")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "used" && styles.activeTabText,
-            ]}
-          >
-            Past Rewards
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
+            >
+              {tab === "active" ? "Active Rewards" : "Past Rewards"}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {isLoading ? (
+      {/* 数据加载 & FlatList */}
+      {!rewardsActiveData || !rewardsPastData ? (
         <ActivityIndicator
           size="large"
           color="#FF8D13"
           style={styles.loadingIndicator}
         />
       ) : (
-        <View>
-          {activeTab === "received" ? (
-            // Render Points Received Fragment
-            <View>
-              {/* Content for Points Received */}
-              <FlatList
-                contentContainerStyle={{ paddingBottom: 100 }}
-                data={receivedPointsData}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
-                  <View>
-                    <Pressable onPress={() => navigation.navigate("ActiveRewardsDetailsPage")}>
-                      <View style={styles.gridItem}>
-                        
-                          <View style={styles.imageBox}>
-                            <Image
-                              source={require("../assets/laptop.png")}
-                              style={styles.image}
-                            />
-                          </View>
-                          <View style={styles.text}>                  
-                            <Text style={styles.subDescription}>Official Mavcap</Text>
-                            <Text style={styles.description}>Medical Checkup</Text>
-                            <View style={styles.pointContainer}>
-                              <Text style={styles.pointDesc}> Expires on {expireDate}</Text>
-                            <Image
-                                source={require("../assets/laptop.png")}
-                                style={{marginLeft:'48%',marginTop:10}}
-                              />
-                            </View>  
-                          </View>                  
-                      </View>
-                    </Pressable>                        
-                  </View>
-                )}
-              />
-            </View>
-          ) : (
-            // Render Points Used Fragment
-            <View>
-              {/* Content for Points Used */}
-              <FlatList
-                contentContainerStyle={{ paddingBottom: 100 }}
-                data={usedPointsData}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
-                  <View>
-                    <Pressable onPress={() => navigation.navigate("PastRewardsDetailsPage")}>
-                      <View style={styles.gridItem}>                        
-                          <View style={styles.usedImageBox}>
-                            <Image
-                              source={require("../assets/laptop.png")}
-                              style={styles.image}
-                            />
-                          </View>
-                          <View style={styles.text}>                  
-                            <Text style={styles.subDescription}>Official Mavcap</Text>
-                            <Text style={styles.description}>Medical Checkup</Text>
-                            <View style={styles.pointContainer}>
-                              <Text style={styles.pointDesc}> Expires on {expireDate}</Text>
-                              <Text style={styles.Used}>Used</Text>
-                            </View>  
-                          </View>                  
-                      </View>
-                    </Pressable>        
-                  </View>
-                )}
-              />
-            </View>
-          )}
-        </View>
+        <FlatList
+          contentContainerStyle={styles.listContent}
+          data={activeTab === "active" ? rewardsActiveData : rewardsPastData}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderRewardItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={fetchData} />
+          }
+        />
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  alternativesContainer: {
-    alignItems: "center",
-    marginTop: 10,
-  },
-  thirdPartyAuthContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  registerContainer: {
-    flexDirection: "row",
-    minWidth: "78%",
-    justifyContent: "space-evenly",
-    marginTop: 40,
-  },
-  MyRewardsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  HeadingContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-  },
-  TabStyle:{
-    marginTop: 10,
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  TabPressMajor:{
-    backgroundColor:"#FF8D13",
-    height:'5%',
-    width:"100%",
-    marginTop:8,
-  },
-  TabNavigateTextMajor:{
-    fontWeight:'bold',
-    fontSize:22,
-    color:'#FF8D13',
-  },
-  TabNavigateTextMinor:{
-    fontWeight:'bold',
-    fontSize:22,
-    color:'#BABABA',
-  },
-  gridItem: {
-    //marginLeft:25,
-    width: '100%', // 两个格子并排，留出一些间隙
-    height: 170,
-    marginBottom: 10,
-    backgroundColor:"#FFFFFF",
-    //borderRadius: 20, 
-    flexDirection:"row",
-    borderColor:'#BDBDBD',
-    borderWidth: 1,
-  },
-  imageBox: {
-    marginLeft: 10,
-    alignSelf : "center" ,
-    height:'68%',
-    width:"35%",
-    backgroundColor:'#F1CFA3',
-    borderRadius:10,
-  },
-  usedImageBox: {
-    marginLeft: 10,
-    alignSelf : "center" ,
-    height:'68%',
-    width:"35%",
-    backgroundColor:'#9E815B',
-    borderRadius:10,
-  },
-  image: {
-    alignSelf : "center" ,
-    resizeMode: 'cover',
-    marginTop:10,
-  },
-  text: {
-    backgroundColor:"#FFFFFF",
-    height:'60%',
-    borderBottomLeftRadius: 20, 
-    borderBottomRightRadius: 20,    
-  },
-  description: {
-    fontSize: 22,
-    textAlign: 'left',
-    marginTop: 1,
-    marginLeft: 10,
-    fontWeight:'bold',
-  },
-  subDescription: {
-    fontSize: 13,
-    textAlign: 'left',
-    marginLeft: 10,
-    marginTop:25,
-  },
-  pointDesc: {
-    marginLeft:8,
-    marginTop:20,
-    fontSize: 15,
-    textAlign: 'left',
-  },
-  pointContainer:{
-    //flexDirection:'row',
-    //marginTop:10,
-  },
-  Used:{
-    textAlign:'center',
-    marginTop:3,
-    marginLeft:'61%',
-    fontWeight:'900',
-    fontSize:15,
-    color:'grey',
-    backgroundColor:'lightgrey',
-    width:'20%',
-    borderRadius:3,
-    padding:5
-  },
-  container: {
-    flex: 1,
-    // padding: 8,
-  },
+  container: { flex: 1, backgroundColor: "#F8F8F8" },
+
   tabContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -428,11 +145,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingVertical: 12,
-    borderBottomWidth: 2,
-    borderColor: "white",
     backgroundColor: "white",
   },
   activeTab: {
+    borderBottomWidth: 2,
     borderColor: "#FF8D13",
   },
   activeTabText: {
@@ -445,42 +161,81 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#BABABA",
   },
-  loadingIndicator: {
-    flex: 1,
-    justifyContent: "center",
+
+  loadingIndicator: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  listContent: { paddingBottom: 100 },
+
+  gridItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 10,
+    marginTop: 12,
+    // marginBottom: 12,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  imageBox: {
+    marginLeft: 10,
+    alignSelf: "center",
+    // height: "80%", // 增大高度
+    width: "40%", // 让图片区域更宽
+    backgroundColor: "#F1CFA3",
+    borderRadius: 15,
+    justifyContent: "center", // 让图片居中
     alignItems: "center",
   },
-  listContainer1: {
-    backgroundColor: "transparent",
-    paddingHorizontal: 20,
-    paddingVertical: 7,
+
+  usedImageBox: { backgroundColor: "#9E815B" },
+
+  image: {
+    alignSelf: "center",
+    resizeMode: "cover",
+    width: 180, // 增大宽度
+    height: 140, // 增大高度
+    borderRadius: 15, // 让图片边角更圆润
   },
-  listContainer2: {
-    backgroundColor: "white",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+
+  text: {
+    flex: 1,
+    marginLeft: 15,
   },
-  listDateText: {
-    fontSize: 16,
-    fontWeight: "300",
+
+  supplierName: {
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 2,
   },
-  listTimeText: {
+
+  rewardTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 5,
+  },
+
+  expiryDate: {
     fontSize: 14,
-    fontWeight: "300",
-    paddingBottom: 3,
+    color: "#666",
   },
-  listCategoryText: {
-    fontSize: 16,
+
+  usedBadge: {
+    position: "absolute",
+    right: 10,
+    bottom: -20,
+    backgroundColor: "#D3D3D3",
+    color: "#555",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 5,
+    fontSize: 12,
     fontWeight: "bold",
-    paddingBottom: 3,
-  },
-  listNameText: {
-    fontSize: 15,
-    fontWeight: "400",
-  },
-  listPointsText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#FF8D13",
   },
 });

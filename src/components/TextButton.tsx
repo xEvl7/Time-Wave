@@ -44,7 +44,7 @@ export default function TextButton({
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View>
       <Pressable
         style={({ pressed }) => [
           styles.button,

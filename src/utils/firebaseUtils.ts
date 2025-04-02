@@ -5,6 +5,7 @@ import { CommunityType, RewardType } from "../types";
 export const fetchRewardsData = async (): Promise<RewardType[]> => {
   try {
     const response = await firebase.firestore().collection("Rewards").get();
+    console.log("Successfully fetched reward's data");
     return response.docs.map((doc) => doc.data() as RewardType);
   } catch (error) {
     console.error("Error fetching rewards data:", error);
@@ -16,6 +17,7 @@ export const fetchRewardsData = async (): Promise<RewardType[]> => {
 export const fetchCommunitiesData = async (): Promise<CommunityType[]> => {
   try {
     const response = await firebase.firestore().collection("Communities").get();
+    console.log("Successfully fetched communities's data");
     return response.docs.map((doc) => doc.data() as CommunityType);
   } catch (error) {
     console.error("Error fetching communities data:", error);

@@ -1,9 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+} from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { useAppSelector } from "../hooks";
-import { selectUserName } from "../features/userSlice";
-import { NavigationProp } from "@react-navigation/native";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import {
+  fetchUserData,
+  selectEmail,
+  selectUserName,
+} from "../features/userSlice";
+import { NavigationProp, useFocusEffect } from "@react-navigation/native";
 import { fetchCommunitiesData, fetchRewardsData } from "../utils/firebaseUtils";
 import ListSection from "../components/HorizontalFlatList";
 import RewardItem from "../components/RewardItem";
@@ -11,20 +23,50 @@ import { CommunityType, RewardType } from "../types";
 import CommunityItem from "../components/CommunityItem";
 
 const HomePage = ({ navigation }: { navigation: NavigationProp<any> }) => {
-  // username
+  const dispatch = useAppDispatch();
+  const [refreshing, setRefreshing] = useState(false);
+
+  // username & email
   const name = useAppSelector(selectUserName);
+  const email = useAppSelector(selectEmail);
 
   // communities data
   const [CommunitiesData, setCommunitiesData] = useState<CommunityType[]>([]);
-  useEffect(() => {
-    fetchCommunitiesData().then(setCommunitiesData);
-  }, []);
+  // useEffect(() => {
+  //   fetchCommunitiesData().then(setCommunitiesData);
+  // }, []);
 
   // rewards data
   const [RewardsData, setRewardsData] = useState<RewardType[]>([]);
-  useEffect(() => {
-    fetchRewardsData().then(setRewardsData);
-  }, []);
+  // useEffect(() => {
+  //   fetchRewardsData().then(setRewardsData);
+  // }, []);
+
+  // fetch user & contribution data again from firebase into redux store
+  const refreshData = useCallback(async () => {
+    if (!email) return;
+    try {
+      await Promise.all([
+        dispatch(fetchUserData(email)),
+        fetchCommunitiesData().then(setCommunitiesData),
+        fetchRewardsData().then(setRewardsData),
+      ]);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }, [email, dispatch]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshData();
+    setRefreshing(false);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshData();
+    }, [refreshData])
+  );
 
   return (
     <>
@@ -32,17 +74,27 @@ const HomePage = ({ navigation }: { navigation: NavigationProp<any> }) => {
       <View style={styles.headerContainer}>
         <View style={styles.headerInfo}>
           <Text style={styles.headerWelcomeText}>Hello, {name}</Text>
-          <Pressable
+          <TouchableOpacity
             onPress={() => navigation.navigate("ScanPage")}
             style={styles.iconButton}
           >
             <Ionicons name="scan-outline" size={28} color="#FFF" />
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </View>
       {/* Content lists */}
       <View style={styles.listContainer}>
-        <ScrollView>
+        <ScrollView
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#FF8D13"]} // 仅适用于 Android
+              tintColor="#FF8D13" // 仅适用于 iOS
+            />
+          }
+        >
           <ListSection
             title="Communities Around You"
             data={CommunitiesData}
@@ -93,6 +145,7 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
     backgroundColor: "white",
+    paddingTop: 10,
   },
 });
 
