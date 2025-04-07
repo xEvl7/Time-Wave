@@ -9,6 +9,7 @@ import { DateTime } from "luxon";
   /* @todo Auto add creator to admin list */
 }
 export type ActivityProps = {
+  item:any;
   id: string;
   logo?: string;
   name: string;
