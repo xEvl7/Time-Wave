@@ -1,46 +1,52 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import firestore from "@react-native-firebase/firestore";
+import * as SecureStore from "expo-secure-store";
+import { USER_DATA } from "../constants";
+import { RootState } from "../store";
+import { DateTime } from "luxon";
 
 {
   /* @todo Auto add creator to admin list */
 }
 export type ActivityProps = {
+  item:any;
   id: string;
   logo?: string;
   name: string;
   description: string;
-  //tac: string;
-  //location:string;
-  //generated_time:;
-  //end_time:;
-  //admins: string[];
+  // tac: string;
+  location:string;
+  createdBy?: string;
+  communityId: string;
+  endDate?: string | null; // User-chosen end date (ISO string)
+  postedDate: string; // Automatically set at creation (ISO string)
 };
 
 interface ActivityState {
-  communities: ActivityProps[];
+  activities: ActivityProps[];
   loading: boolean;
   error: string | null;
   selectedActivityId: string | null;
 }
 
 const initialState: ActivityState = {
-  communities: [],
+  activities: [],
   loading: false,
   error: null,
   selectedActivityId: null, // Initialize with null
 };
 
 export const createActivity = createAsyncThunk(
-  "community/createCommunity",
+  "activity/createActivity",
   async (activityInfo: ActivityProps) => {
     await firestore().collection("Activities").add(activityInfo);
     return activityInfo;
   }
 );
 
-// Fetch all communities
+// Fetch all activities
 export const fetchActivities = createAsyncThunk(
-  "community/fetchActivities",
+  "activity/fetchActivities",
   async () => {
     const snapshot = await firestore().collection("Activities").get();
     const activities = snapshot.docs.map((doc) => ({
@@ -51,7 +57,9 @@ export const fetchActivities = createAsyncThunk(
   }
 );
 
-// Check if user is an admin of any community
+
+
+// Check if activity is an activity of any community
 // export const checkUserAdmin = createAsyncThunk(
 //   "community/checkUserAdmin",
 //   async (uid: string) => {
@@ -85,7 +93,7 @@ const activitySlice = createSlice({
         (state, action: PayloadAction<ActivityProps>) => {
           console.log(`Successfully created ${action.payload.name} activity.`);
 
-          state.communities.push(action.payload);
+          state.activities.push(action.payload);
         }
       )
       .addCase(createActivity.rejected, (_, action) => {
@@ -98,7 +106,7 @@ const activitySlice = createSlice({
       .addCase(
         fetchActivities.fulfilled,
         (state, action: PayloadAction<ActivityProps[]>) => {
-          state.communities = action.payload;
+          state.activities = action.payload;
           state.loading = false;
         }
       )

@@ -1,5 +1,6 @@
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { CommunityProps } from "./features/communitySlice";
+import { ActivityProps } from "./features/activitySlice";
 
 export type RootStackParamList = {
   SignUp: undefined;
@@ -28,13 +29,18 @@ export type RootStackParamList = {
       uid: string;
     }>;
   };
+  CreateActivity: { item: any };
   SelectAdmin: undefined;
   CommunityInfo: CommunityProps;
   ProfileInfo: { item: any };
   Communities: undefined;
-  CommunityProfile: { item: any };
-  ActivityInfo: undefined;
+  // CommunityProfile: { item: any };
+  ActivityInfo: ActivityProps;
   OngoingActivities: undefined;
+  ActivitySeeAll: {activities:any,item: any};
+  MemberSeeAll: { item: any, member:any };
+  AddAdmin: { item:any, member:any };
+
   ActivitySeeAll: { item: any };
   MemberSeeAll: { item: any; member: any };
   AddAdmin: { item: any; member: any };

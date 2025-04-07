@@ -1,143 +1,148 @@
-import { Platform, StyleSheet, Text, View, Image } from "react-native";
+import { Platform, StyleSheet, Text, View, Image, TouchableOpacity, Alert } from "react-native";
 import React, { useEffect, useState } from "react";
 import ContentContainer from "../components/ContentContainer";
 import PrimaryText from "../components/text_components/PrimaryText";
 import ValidatedTextInput from "../components/ValidatedTextInput";
 import TextButton from "../components/TextButton";
-
 import { useForm } from "react-hook-form";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
-
+import { RouteProp } from "@react-navigation/native";
+import Icon from 'react-native-vector-icons/MaterialIcons'
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as ImagePicker from "expo-image-picker";
-import { ImagePickerResult } from "expo-image-picker";
-
 import storage from "@react-native-firebase/storage";
-import firestore from "@react-native-firebase/firestore";
+import firestore, { firebase } from "@react-native-firebase/firestore";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+
+type CreateActivityRouteProp = RouteProp<RootStackParamList, "CreateActivity">;
 
 const CreateActivity = ({
   navigation,
+  route,
 }: NativeStackScreenProps<RootStackParamList, "CreateActivity">) => {
-  type ActivityProps = {
-    id: string;
-    logo?: string;
-    name: string;
-    description: string;
-  };
-
-  const { control, handleSubmit } = useForm<ActivityProps>();
-  const dispatch = useAppDispatch();
+  const { item } = route.params;
+  console.log("item: ",item);
+  const { control, handleSubmit, formState: { errors } } = useForm<ActivityProps>();
   const ownUserId = useAppSelector((state) => state.user.data?.uid);
-
+  const [commID,setcommID] = useState<string | null>(item.item.id);
+  
   const [image, setImage] = useState<string | null>(null);
-  const [availableAdmins, setAvailableAdmins] = useState<any[]>([]);
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const generalLogo = "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/activitylogo.png?alt=media&token=16563524-d8c6-4b62-8521-40b938684856";
 
-  //handle create
   const handleCreateActivity = async (data: ActivityProps) => {
     if (!ownUserId) {
-      console.error("Current user ID is required.");
+      Alert.alert("Error", "User authentication required");
       return;
     }
-
-    if (image) {
-      try {
-        const uploadedImageUrl = await uploadImage(image);
-        data = { ...data, logo: uploadedImageUrl };
-      } catch (error) {
-        console.error("Error uploading image:", error);
+  
+    try {
+      // Sanitize data before sending to Firestore
+      const sanitizedData = Object.entries(data).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+  
+      let activityData = { 
+        ...sanitizedData,
+        logo: generalLogo,
+        communityId:  commID || 'default-community-id', // Ensure required field
+        createdBy: ownUserId,
+        postedDate: firebase.firestore.Timestamp.now(),
+        endDate: endDate || firebase.firestore.Timestamp.now().toISOString() // Fallback date
+      };
+  
+      if (image) {
+        try {
+          const uploadedImageUrl = await uploadImage(image);
+          activityData.logo = uploadedImageUrl;
+        } catch (error) {
+          console.error("Image upload failed, using default logo");
+        }
       }
+  
+      const activityRef = firestore().collection("Activities").doc();
+      
+      // Final validation before write
+      const finalData = {
+        ...activityData,
+        id: activityRef.id,
+        // Convert undefined values to null for Firestore
+        tac: activityData.tac || null,
+        location: activityData.location || 'Unspecified location'
+      };
+  
+      
+
+      type ActivityProps ={       
+          item:any;
+          id: string;
+          logo?: string;
+          name: string;
+          description: string;
+          // tac: string;
+          location:string;
+          createdBy?: string;
+          communityId: string; 
+          endDate?: string | null; // User-chosen end date (ISO string)
+          postedDate: string; // Automatically set at creation (ISO string)
+      };
+
+     await activityRef.set(finalData);
+      navigation.navigate("ActivityInfo", { item: finalData } as ActivityProps);
+      Alert.alert("Success", "Activity created successfully!");
+  
+    } catch (error) {
+      console.error("Activity creation error:", error);
+      Alert.alert("Error", "Failed to create activity");
     }
-
-    const activityRef = firestore().collection("Activities").doc();
-    data = { ...data };
-
-    await activityRef.set(data);
-
-    //no need to choose admin?
-    const usersSnapshot = await firestore().collection("Users").get();
-    const batch = firestore().batch();
-
-    const ownUserDoc = usersSnapshot.docs.find(
-      (doc) => doc.data().uid === ownUserId
-    );
-    if (ownUserDoc) {
-      batch.update(ownUserDoc.ref, {
-        adminOf: firestore.FieldValue.arrayUnion(activityRef.id),
-      });
-    }
-
-    await batch.commit();
-
-    navigation.goBack;
-    //  .navigate("ActivityInfo", { ...data, id: activityRef.id });
   };
+  
 
   const uploadImage = async (uri: string) => {
     const filename = uri.substring(uri.lastIndexOf("/") + 1);
     const reference = storage().ref(`activityLogo/${filename}`);
-    const task = reference.putFile(uri);
+    await reference.putFile(uri);
+    return await reference.getDownloadURL();
+  };
 
+  const handleDateConfirm = (date: Date) => {
+    setShowDatePicker(false);
+    setEndDate(date.toISOString());
+  };
+
+  const pickImage = async () => {
     try {
-      await task;
-      const url = await reference.getDownloadURL();
-      return url;
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets?.[0]?.uri) {
+        setImage(result.assets[0].uri);
+      }
     } catch (error) {
-      console.error("Image upload failed:", error);
-      throw error;
+      Alert.alert("Error", "Failed to select image");
     }
   };
 
   useEffect(() => {
     (async () => {
       if (Platform.OS !== "web") {
-        const { status } =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
-          alert("Sorry, we need camera roll permissions to make this work!");
+          Alert.alert("Permission required", "Need camera roll access");
         }
       }
-
-      const usersSnapshot = await firestore().collection("Users").get();
-      const currentUserDoc = usersSnapshot.docs.find(
-        (doc) => doc.data().uid === ownUserId
-      );
-      const currentUserAdminOf = currentUserDoc
-        ? currentUserDoc.data().adminOf || []
-        : [];
-
-      const eligibleAdmins = usersSnapshot.docs
-        .filter((doc) => {
-          const userData = doc.data();
-          return (
-            userData.uid !== ownUserId &&
-            !userData.adminOf?.some((id: string) =>
-              currentUserAdminOf.includes(id)
-            )
-          );
-        })
-        .map((doc) => ({
-          uid: doc.data().uid,
-          name: doc.data().name,
-        }));
-
-      setAvailableAdmins(eligibleAdmins);
     })();
-  }, [ownUserId]);
-
-  const pickImage = async () => {
-    let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets && result.assets[0].uri) {
-      setImage(result.assets[0].uri);
-    }
-  };
+  }, []);
 
   return (
     <KeyboardAwareScrollView
@@ -147,63 +152,128 @@ const CreateActivity = ({
     >
       <ContentContainer style={{ paddingTop: 10 }}>
         <View style={styles.logoContainer}>
-          {image && (
-            <Image
-              source={{ uri: image }}
-              style={{ width: 300, height: 200 }}
-            />
+          {image ? (
+            <Image source={{ uri: image }} style={styles.image} />
+          ) : (
+            <TouchableOpacity onPress={pickImage} style={styles.uploadButton}>
+              <Icon name="add-a-photo" size={40} color="#FF8D13" />
+              <Text style={styles.uploadText}>Add Cover Photo</Text>
+            </TouchableOpacity>
           )}
-          <Text style={{ color: "#BCB9B9", fontSize: 18 }} onPress={pickImage}>
-            + Add a cover photo
-          </Text>
         </View>
-        
-        <View style={{ paddingTop: 10 }}>
+
+        <View style={styles.inputGroup}>
           <PrimaryText>Activity Name</PrimaryText>
           <ValidatedTextInput
-            name={"name"}
+            name="name"
             control={control}
             placeholder="Name"
-            rules={{ required: "Activity name is required." }}
+            rules={{ required: "Required field" }}
           />
+          {errors.name && <Text style={styles.error}>{errors.name.message}</Text>}
         </View>
-        
-        <View style={{ flex: 1, paddingTop: 10, paddingBottom: 10 }}>
-          <PrimaryText>Activity Description</PrimaryText>
+
+        <View style={styles.inputGroup}>
+          <PrimaryText>Location</PrimaryText>
           <ValidatedTextInput
-            name={"description"}
+            name="location"
             control={control}
-            style={styles.textArea}
-            placeholder="Description"
-            rules={{ required: "Activity description is required." }}
-            maxLength={300}
-            multiline={true}
+            placeholder="Location"
+            rules={{ required: "Required field" }}
           />
+          {errors.location && <Text style={styles.error}>{errors.location.message}</Text>}
         </View>
-        <TextButton onPress={handleSubmit(handleCreateActivity)}>
-          Create
+
+        <View style={styles.inputGroup}>
+          <PrimaryText>Description</PrimaryText>
+          <ValidatedTextInput
+            name="description"
+            control={control}
+            placeholder="Description"
+            rules={{ required: "Required field" }}
+            multiline
+            style={styles.textArea}
+          />
+          {errors.description && <Text style={styles.error}>{errors.description.message}</Text>}
+        </View>
+
+        <View style={styles.inputGroup}>
+          <PrimaryText>End Date</PrimaryText>
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            style={styles.dateButton}
+          >
+            <Text style={styles.dateText}>
+              {endDate ? new Date(endDate).toLocaleDateString() : "Select date"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <DateTimePickerModal
+          isVisible={showDatePicker}
+          mode="date"
+          onConfirm={handleDateConfirm}
+          onCancel={() => setShowDatePicker(false)}
+        />
+
+        <TextButton style={styles.submitButton} onPress={handleSubmit(handleCreateActivity)}>
+          Create Activity
         </TextButton>
       </ContentContainer>
     </KeyboardAwareScrollView>
   );
 };
 
-export default CreateActivity;
-
 const styles = StyleSheet.create({
-  textArea: {
-    minHeight: 120,
-    textAlignVertical: "top",
-    paddingVertical: 10,
-    flex: 1,
-  },
   logoContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#FAF8F8",
-    flex: 1,
-    borderColor: "#E3E0E0",
-    borderWidth: 1,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FAFAFA',
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
     borderRadius: 10,
   },
+  uploadButton: {
+    alignItems: 'center',
+    gap: 10,
+  },
+  uploadText: {
+    color: '#FF8D13',
+    fontSize: 16,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  dateButton: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    padding: 15,
+  },
+  dateText: {
+    color: '#333',
+    fontSize: 16,
+  },
+  error: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 5,
+  },
+  submitButton: {
+    marginTop: 30,
+    backgroundColor: '#FF8D13',
+    paddingVertical: 15,
+    borderRadius: 8,
+  },
 });
+
+export default CreateActivity;

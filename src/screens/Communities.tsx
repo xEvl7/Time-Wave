@@ -25,129 +25,68 @@ import { selectUserName } from "../features/userSlice";
 import { NavigationProp } from "@react-navigation/native";
 import ButtonText from "../components/text_components/ButtonText";
 
+
 const Communities = ({
-  navigation,
-  route,
+  navigation, route
 }: NativeStackScreenProps<RootStackParamList, "Communities">) => {
-  const name = useAppSelector(selectUserName);
-
-  return (
-    <>
-      {/* @todo Show community's picture*/}
-     <View style={styles.listContainer}>
-        <ScrollView>
-          <CommunitiesListSection
-           title={""}
-            navigation={navigation}
-          />
-        </ScrollView>
-      </View>
-    </>
-  );
-};
-
-type ListSectionProps = {
-  title: string;
-  navigation: NavigationProp<RootStackParamList>;
-};
-
-type CommunityType = {
-  name: string;
-  description: string;
-  logo: string;
-  //test: string;
-};
-
-// Display communities item that fetch from firebase
-const renderCommunitiesItem = ({
-  item, 
-  navigation,
-}: {
-  item: CommunityType;
-  navigation: any;
-}) => (
-  <Pressable
-    onPress={() => navigation.navigate("CommunityProfile", { item })}
-  >
-    <View style={styles.gridItem}>
-      {/* <View style={styles.imageBox}> */}
-        <View style={styles.imageBox}>
-          <Image
-            source={{
-              uri: item.logo,
-            }}
-            style={styles.image}
-          />
-        </View>
-      {/* </View> */}
-      <View style={styles.text}>
-        <Text style={styles.description}>{item.name}</Text>
-        <Text style={styles.subDescription}>{item.description}</Text>
-        <View style={styles.pointContainer}>
-          {/* <Text style={styles.point}>{item.test}</Text> */}
-          {/* <Text style={styles.pointDesc}> points</Text> */}
-        </View>
-      </View>
-    </View>
-  </Pressable>
-);
-
-const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
   const [communitiesData, setCommunitiesData] = useState<
     FirebaseFirestoreTypes.DocumentData[]
   >([]);
+  const [loading, setLoading] = useState(true);
+  const item = route.params;
 
   useEffect(() => {
-    // get communities data from firebase (query part - can be declared what data to show)
     const fetchCommunitiesData = async () => {
       try {
-        const response = await firebase
-          .firestore()
-          .collection("Communities")
-          .get();
-        const fetchedCommunitiesData = response.docs.map(doc =>( {id:doc.id, ...doc.data()}));
+        const response = await firebase.firestore().collection("Communities").get();
+        const fetchedCommunitiesData = response.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setCommunitiesData(fetchedCommunitiesData);
       } catch (error) {
         console.error("Error fetching communities data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchCommunitiesData();
   }, []);
 
-  // to limit how many communities data to show in home page
-  // const limit = 5;
-  // const limitedCommunitiesData = communitiesData.slice(0, limit);
-
-  // see all button
-  // const handleSeeAllPress = () => {
-  //   // to see all available communities
-  //   navigation.navigate("Community");
-  // };
+  const renderCommunityItem = ({ item }: { item: any }) => (
+    <Pressable
+      style={styles.gridItem}
+      onPress={() => navigation.navigate("CommunityInfo", { item })}
+    >
+      <View style={styles.imageBox}>
+        <Image
+          source={{ uri: item.logo }}
+          style={styles.image}
+        />
+      </View>
+      <View style={styles.text}>
+        <Text style={styles.description}>{item.name}</Text>
+        <Text style={styles.subDescription}>{item.description}</Text>
+      </View>
+    </Pressable>
+  );
 
   return (
-    <View>
-      <FlatList
-        //horizontal
-        //showsHorizontalScrollIndicator={false}
-        // data={communities}
-        data={communitiesData} // data from firebase
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => renderCommunitiesItem({ item, navigation })}
-        contentContainerStyle={{ paddingTop: 5, paddingRight: 9, paddingLeft:9 }}
-        ListEmptyComponent={() => (
-          <Text
-            style={{
-              color: "red",
-              textAlign: "center",
-              marginBottom: 20,
-              marginLeft: 20,
-            }}
-          >
-            No data available
-          </Text>
-        )}
-      />
+    <View style={styles.container}>
+      {loading ? (
+        <Text style={styles.loadingText}>Loading...</Text>
+      ) : (
+        <FlatList
+          data={communitiesData}
+          keyExtractor={(item) => item.id}
+          renderItem={renderCommunityItem}
+          contentContainerStyle={{ padding: 10 }}
+          ListEmptyComponent={() => (
+            <Text style={styles.emptyMessage}>No communities available</Text>
+          )}
+        />
+      )}
     </View>
   );
 };
@@ -155,86 +94,53 @@ const CommunitiesListSection = ({ title, navigation }: ListSectionProps) => {
 export default Communities;
 
 const styles = StyleSheet.create({
-  communityNameContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  listContainer: {
+  container: {
     flex: 1,
     backgroundColor: "white",
+    paddingHorizontal: 10,
   },
-  listHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 10,
-    marginLeft: 5,
-  },
-
   gridItem: {
-    marginTop:17,
-    // marginLeft: "4%",
-    width:"100%",
-    height: 200,
-    flexDirection:"column",
-    flex:1,
-    marginBottom: 2,
-    backgroundColor: "black",
-    borderRadius: 20,
-    borderColor: "#BDBDBD",
-    borderWidth: 1.6,
+    marginVertical: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
   imageBox: {
-    // alignSelf: "center",
-    height: "60%",
-    borderRadius: 20,
-    // borderColor: "#BDBDBD",
+    height: 150,
+    backgroundColor: "#eaeaea",
   },
   image: {
     width: "100%",
-    height: "140%",
-    resizeMode: "stretch",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    height: "100%",
+    resizeMode: "cover",
   },
   text: {
-    backgroundColor: "#fff0ff",
-    height: "40%",
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    padding: 10,
+    backgroundColor: "#fff",
   },
   description: {
-    fontSize: 19,
-    textAlign: "left",
-    marginTop: 1,
-    marginLeft: 10,
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#333",
+    marginBottom: 5,
   },
   subDescription: {
     fontSize: 14,
-    textAlign: "left",
-    marginLeft: 10,
+    color: "#666",
   },
-  point: {
-    fontWeight: "bold",
-    fontSize: 15,
-    textAlign: "left",
-    marginLeft: 10,
-    color: "#FF8D13",
+  loadingText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "#888",
   },
-  pointDesc: {
-    fontSize: 15,
-    textAlign: "left",
-  },
-  pointContainer: {
-    flexDirection: "row",
-    marginTop: 10,
-  },
-
-  scrollViewContent: {
-    // paddingHorizontal: 16,
-    paddingBottom: 16,
+  emptyMessage: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "red",
   },
 });
 

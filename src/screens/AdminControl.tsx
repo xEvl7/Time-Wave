@@ -23,7 +23,7 @@ const AdminControl = ({
   const navigationItems = [
     {
       title: "Your Community",
-      onNavigate: () => navigation.navigate("CommunityProfile"),
+      onNavigate: () => navigation.navigate("CommunityInfo"),
     },
     {
       title: "Approve Volunteer",

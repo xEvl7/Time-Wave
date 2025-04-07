@@ -31,7 +31,6 @@ import ActivitySeeAll from "./screens/ActivitySeeAll";
 import CreateActivity from "./screens/CreateActivity";
 import EditActivity from "./screens/EditActivity";
 import OngoingActivities from "./screens/OngoingActivities";
-import CommunityProfile from "./screens/CommunityProfile";
 import MemberSeeAll from "./screens/MemberSeeAll";
 import AddAdmin from "./screens/AddAdmin";
 import NewProfile from "./screens/NewProfile";
@@ -48,7 +47,6 @@ import AdminControl from "./screens/AdminControl";
 import ActivityHistory from "./screens/ActivityHistory";
 import GoogleFormScreen from "./screens/GoogleFormScreen";
 import { loadUserDataFromStore } from "./features/userSlice";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import ActiveRewardsPage from "./screens/ActiveRewardsPage";
 
 // Lazy load screens
@@ -234,7 +232,7 @@ const renderSignedInScreens = () => (
     <Stack.Screen name="EditProfile" component={EditProfile} />
     <Stack.Screen name="Communities" component={Communities} />
     <Stack.Screen name="ActivitySeeAll" component={ActivitySeeAll} />
-    <Stack.Screen name="CommunityProfile" component={CommunityProfile} />
+    {/* <Stack.Screen name="CommunityProfile" component={CommunityProfile} /> */}
     <Stack.Screen name="MemberSeeAll" component={MemberSeeAll} />
     <Stack.Screen name="AddAdmin" component={AddAdmin} />
     <Stack.Screen name="ActivityInfo" component={ActivityInfo} />
