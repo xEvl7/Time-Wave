@@ -48,6 +48,8 @@ import ActivityHistory from "./screens/ActivityHistory";
 import GoogleFormScreen from "./screens/GoogleFormScreen";
 import { loadUserDataFromStore } from "./features/userSlice";
 import ActiveRewardsPage from "./screens/ActiveRewardsPage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import ActiveRewardsDetailsPage from "./screens/ActiveRewardsDetailsPage";
 
 // Lazy load screens
 const HomePage = React.lazy(() => import("./screens/HomePage"));
@@ -285,6 +287,7 @@ const renderSignedInScreens = () => (
       }}
     />
     <Stack.Screen name="ActiveRewardsPage" component={ActiveRewardsPage} />
+    <Stack.Screen name="ActiveRewardsDetailsPage" component={ActiveRewardsDetailsPage} />
   </>
 );
 

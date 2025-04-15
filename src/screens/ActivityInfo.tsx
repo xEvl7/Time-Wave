@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 
-import ContentContainer from "../components/ContentContainer";
+// import ContentContainer from "../components/ContentContainer";
 import HeaderText from "../components/text_components/HeaderText";
 import TextButton from "../components/TextButton";
 import PrimaryText from "../components/text_components/PrimaryText";
