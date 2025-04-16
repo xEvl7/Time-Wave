@@ -43,6 +43,7 @@ import Account from "./screens/Account";
 import PointsHistory from "./screens/PointsHistory";
 import PointsPolicy from "./screens/PointsPolicy";
 import ContributionsHistory from "./screens/ContributionsHistory";
+import RewardSeeAll from "./screens/Reward/RewardSeeAll";
 import AdminControl from "./screens/AdminControl";
 import ActivityHistory from "./screens/ActivityHistory";
 import GoogleFormScreen from "./screens/GoogleFormScreen";
@@ -271,6 +272,7 @@ const renderSignedInScreens = () => (
         title: "Time Bank Rewards",
       }}
     />
+    <Stack.Screen name="RewardSeeAll" component={RewardSeeAll} />
     <Stack.Screen
       name="RewardDetails"
       component={RewardDetails}

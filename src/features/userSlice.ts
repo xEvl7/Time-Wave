@@ -16,6 +16,8 @@ type UserData = {
   points: number;
   logo: string | null;
   isFeedbackFilled: Boolean;
+  adminOf: string[];
+  volunteerOf: string[];
 };
 
 type UserContributionData = {

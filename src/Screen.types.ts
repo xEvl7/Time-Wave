@@ -30,23 +30,21 @@ export type RootStackParamList = {
       uid: string;
     }>;
   };
-  CreateActivity: { item: any };
-  SelectAdmin: undefined;
+  Communities: undefined;
   CommunityInfo: CommunityProps;
   ProfileInfo: { item: any };
-  Communities: undefined;
   // CommunityProfile: { item: any };
-  ActivityInfo: ActivityProps;
-  OngoingActivities: undefined;
-  ActivitySeeAll: { activities: any; item: any };
+  
   MemberSeeAll: { item: any; member: any };
+  SelectAdmin: undefined;
   AddAdmin: { item: any; member: any };
 
-  ActivitySeeAll: { item: any };
-  MemberSeeAll: { item: any; member: any };
-  AddAdmin: { item: any; member: any };
   CreateActivity: { item: any };
   EditActivity: { item: any };
+  OngoingActivities: undefined;
+  ActivityInfo: ActivityProps;
+  ActivitySeeAll: { activities: any; item: any };
+  // ActivitySeeAll: { item: any };
 
   Profile: undefined;
   Account: undefined;
@@ -63,6 +61,7 @@ export type RootStackParamList = {
 
   // reward section
   TimeBankRewards: undefined;
+  RewardSeeAll: {  data: RewardType[] };
   // RewardDetails: { item: { RID: string } };
   RewardDetails: {
     item: { RID: string };

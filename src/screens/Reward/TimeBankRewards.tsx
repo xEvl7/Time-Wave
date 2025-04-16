@@ -178,7 +178,7 @@ const TimeBankRewards = ({
                 renderItem={({ item }) => (
                   <RewardItem item={item} navigation={navigation} />
                 )}
-                seeAllPage="RewardList"
+                seeAllPage="RewardSeeAll"
               />
             ) : (
               <>
@@ -189,7 +189,7 @@ const TimeBankRewards = ({
                   renderItem={({ item }) => (
                     <RewardItem item={item} navigation={navigation} />
                   )}
-                  seeAllPage="RewardList"
+                  seeAllPage="RewardSeeAll"
                 />
 
                 <HorizontalFlatList
@@ -199,7 +199,7 @@ const TimeBankRewards = ({
                   renderItem={({ item }) => (
                     <RewardItem item={item} navigation={navigation} />
                   )}
-                  seeAllPage="RewardList"
+                  seeAllPage="RewardSeeAll"
                 />
               </>
             )}

@@ -111,7 +111,7 @@ const HomePage = ({ navigation }: { navigation: NavigationProp<any> }) => {
             renderItem={({ item }) => (
               <RewardItem item={item} navigation={navigation} />
             )}
-            seeAllPage="TimeBankRewardsPage"
+            seeAllPage="Rewards"
           />
         </ScrollView>
       </View>

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import TextButton from "../../components/TextButton";
 import ContentContainer from "../../components/ContentContainer";
-import { fetchRewardData } from "../../features/rewardSlice";
+import { fetchRewardData,updateRewardStock } from "../../features/rewardSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../Screen.types";
 import { useAppDispatch, useAppSelector } from "../../hooks";
@@ -148,8 +148,45 @@ export default function RewardDetails({
     );
   };
 
+  const userVolunteerOf = useAppSelector((state) => state.user.data?.volunteerOf) || [];
+  const userAdminOf = useAppSelector((state) => state.user.data?.adminOf) || [];
+  const forCommunities = rewardData?.forcommunities || "all"; // 允许的社区
+  
   const proceedRedemption = () => {
     const price = rewardData?.price;
+    const qtyAvailable = rewardData?.qtyAvailable; // 获取库存数量
+    
+    
+
+    
+    
+      // 如果 reward 是 "all"，所有人都可以兑换
+    if (forCommunities !== "all") {
+        // 用户所属的社区
+      const userCommunities = [ ...userAdminOf, ...userVolunteerOf];
+    
+        // 检查用户是否至少属于其中一个符合的社区
+      const isEligible = userCommunities.some((community) => forCommunities.includes(community));
+    
+      if (!isEligible) {
+        showCustomAlert(
+          "Not Eligible",
+          "You are not a member of the required community to redeem this reward.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+    }
+    
+    if (qtyAvailable === 0) {
+      showCustomAlert(
+        "Out of Stock",
+        "This reward is no longer available.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    
     if (price !== undefined && points !== undefined) {
       if (points >= price) {
         showCustomAlert(
@@ -183,8 +220,15 @@ export default function RewardDetails({
       if (
         emailAddress != undefined &&
         rewardData?.price != undefined &&
-        points != undefined
+        points != undefined &&
+        rewardData?.qtyAvailable != undefined
       ) {
+        const newQtyAvailable = rewardData.qtyAvailable - 1;
+
+        if (newQtyAvailable < 0) {
+          showCustomAlert("Error", "Stock is already 0!", [{ text: "OK" }]);
+          return;
+        }
         const currentTime = new Date().toISOString();
         const pointsUsedData = {
           date: currentTime,
@@ -194,9 +238,11 @@ export default function RewardDetails({
         await Promise.all([
           dispatch(storePointsUsedDataToFirebase(pointsUsedData)).unwrap(),
           dispatch(updateUserPoints({ emailAddress, points })).unwrap(),
+          dispatch(updateRewardStock({ rewardId: item.RID, qtyAvailable: newQtyAvailable })).unwrap(), // 更新库存
         ]);
 
         await dispatch(fetchUserData(emailAddress)).unwrap();
+        await dispatch(fetchRewardData(item.RID)).unwrap(); // 重新获取奖励数据，确保库存更新
 
         const redeemedCode = await redeemRandomVoucherCode(
           item.RID,
@@ -408,10 +454,10 @@ const styles = StyleSheet.create({
   },
   redeemContainer: {
     position: "absolute",
-    bottom: 10,
+    bottom: 20,
     right: 0,
     left: 0,
-    marginHorizontal: "6%",
+    // marginHorizontal: "10%",
   },
   redeemButton: {
     marginHorizontal: "10%",

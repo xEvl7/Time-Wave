@@ -47,7 +47,7 @@ export default function CommunityItem({
 
     if (distance < 5) {
       // 只有当手指几乎没有移动时才跳转
-      navigation.navigate("CommunityProfile", { item });
+      navigation.navigate("CommunityInfo", { item });
     }
   };
 
