@@ -37,7 +37,7 @@ import NewProfile from "./screens/NewProfile";
 import Setting from "./screens/Setting";
 import ChangeYourPassword from "./screens/ChangeYourPassword";
 import EditProfile from "./screens/EditProfile";
-import Reward from "./screens/Reward";
+import reward from "./screens/reward";
 import Account from "./screens/Account";
 import PointsHistory from "./screens/PointsHistory";
 import PointsPolicy from "./screens/PointsPolicy";
