@@ -1,6 +1,7 @@
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { CommunityProps } from "./features/communitySlice";
 import { ActivityProps } from "./features/activitySlice";
+import { RewardType } from "./types";
 
 export type RootStackParamList = {
   SignUp: undefined;
@@ -14,7 +15,7 @@ export type RootStackParamList = {
   Benefits: undefined;
 
   // HomeTabs: undefined; // This is the nested tab navigator
-  HomeTabs: NavigatorScreenParams<BottomTabParamList>; // 👈 Include tabs inside the stack
+  HomeTabs: NavigatorScreenParams<BottomTabParamList>; // Include tabs inside the stack
 
   ScanPage: undefined;
   QrCodePage: undefined;
@@ -37,9 +38,9 @@ export type RootStackParamList = {
   // CommunityProfile: { item: any };
   ActivityInfo: ActivityProps;
   OngoingActivities: undefined;
-  ActivitySeeAll: {activities:any,item: any};
-  MemberSeeAll: { item: any, member:any };
-  AddAdmin: { item:any, member:any };
+  ActivitySeeAll: { activities: any; item: any };
+  MemberSeeAll: { item: any; member: any };
+  AddAdmin: { item: any; member: any };
 
   ActivitySeeAll: { item: any };
   MemberSeeAll: { item: any; member: any };
@@ -48,30 +49,27 @@ export type RootStackParamList = {
   EditActivity: { item: any };
 
   Profile: undefined;
-
   Account: undefined;
   PointsHistory: undefined;
   PointsPolicy: { level: any };
   ContributionsHistory: undefined;
   ActivityHistory: undefined;
   RecentActivities: undefined;
-
-  ActiveRewardsDetailsUseNowPage: undefined;
-  ActiveRewardsDetailsPage: undefined;
-  ActiveRewardsPage: undefined;
-  MedicalServicesPage: undefined;
-  MyRewardsDetailsPage: undefined;
-  MyRewardsPage: undefined;
-  PastRewardsDetailsPage: undefined;
-  PastRewardsPage: undefined;
-  RewardsDetailsPage: undefined;
-  TimeBankRewardsPage: undefined;
-  Reward: { item: { RID: string } };
   GoogleFormScreen: undefined;
   Setting: undefined;
   ChangeYourPassword: undefined;
   EditProfile: undefined;
   NewProfile: undefined;
+
+  // reward section
+  TimeBankRewards: undefined;
+  // RewardDetails: { item: { RID: string } };
+  RewardDetails: {
+    item: { RID: string };
+    type?: "unredeemed" | "redeemed";
+    redeemedCode?: string;
+  };
+  MyRewards: undefined;
 };
 
 export type BottomTabParamList = {

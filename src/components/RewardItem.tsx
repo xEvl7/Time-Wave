@@ -47,7 +47,7 @@ export default function RewardItem({
 
     if (distance < 5) {
       // 只有当手指几乎没有移动时才跳转
-      navigation.navigate("Reward", { item });
+      navigation.navigate("RewardDetails", { item });
     }
   };
 

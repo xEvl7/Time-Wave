@@ -17,7 +17,7 @@ import {
 } from "../features/userSlice";
 import { NavigationProp, useFocusEffect } from "@react-navigation/native";
 import { fetchCommunitiesData, fetchRewardsData } from "../utils/firebaseUtils";
-import ListSection from "../components/HorizontalFlatList";
+import HorizontalFlatList from "../components/HorizontalFlatList";
 import RewardItem from "../components/RewardItem";
 import { CommunityType, RewardType } from "../types";
 import CommunityItem from "../components/CommunityItem";
@@ -95,7 +95,7 @@ const HomePage = ({ navigation }: { navigation: NavigationProp<any> }) => {
             />
           }
         >
-          <ListSection
+          <HorizontalFlatList
             title="Communities Around You"
             data={CommunitiesData}
             navigation={navigation}
@@ -104,7 +104,7 @@ const HomePage = ({ navigation }: { navigation: NavigationProp<any> }) => {
             )}
             seeAllPage="Communities"
           />
-          <ListSection
+          <HorizontalFlatList
             title="Time Bank Rewards"
             data={RewardsData}
             navigation={navigation}

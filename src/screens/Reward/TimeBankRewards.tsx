@@ -8,30 +8,30 @@ import {
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { BottomTabParamList, RootStackParamList } from "../Screen.types";
+import { BottomTabParamList, RootStackParamList } from "../../Screen.types";
 import { CompositeScreenProps, useFocusEffect } from "@react-navigation/native";
-import ButtonText from "../components/text_components/ButtonText";
+import ButtonText from "../../components/text_components/ButtonText";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import HeaderText from "../components/text_components/HeaderText";
-import SecondaryText from "../components/text_components/SecondaryText";
-import { useAppDispatch, useAppSelector } from "../hooks";
-import { RootState } from "../store";
-import ListSection from "../components/HorizontalFlatList";
-import RewardItem from "../components/RewardItem";
-import SearchBar from "../components/SearchBar";
-import { calculateLevel } from "../utils/levelUtils";
-import { fetchRewardsData } from "../utils/firebaseUtils";
-import { RewardType } from "../types";
-import { getTotalContributedHours } from "../utils/contributionUtils";
+import HeaderText from "../../components/text_components/HeaderText";
+import SecondaryText from "../../components/text_components/SecondaryText";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { RootState } from "../../store";
+import HorizontalFlatList from "../../components/HorizontalFlatList";
+import RewardItem from "../../components/RewardItem";
+import SearchBar from "../../components/SearchBar";
+import { calculateLevel } from "../../utils/levelUtils";
+import { fetchRewardsData } from "../../utils/firebaseUtils";
+import { RewardType } from "../../types";
+import { getTotalContributedHours } from "../../utils/contributionUtils";
 import {
   fetchUserData,
   fetchUserContributionData,
   selectEmail,
   selectUserContributionData,
   selectUserData,
-} from "../features/userSlice";
+} from "../../features/userSlice";
 
-const TimeBankRewardsPage = ({
+const TimeBankRewards = ({
   navigation,
 }: CompositeScreenProps<
   BottomTabScreenProps<BottomTabParamList, "Rewards">,
@@ -109,10 +109,10 @@ const TimeBankRewardsPage = ({
           <TouchableOpacity
             activeOpacity={0.6} // 触摸时降低透明度
             style={styles.ticketContainer}
-            onPress={() => navigation.navigate("ActiveRewardsPage")}
+            onPress={() => navigation.navigate("MyRewards")}
           >
             <Image
-              source={require("../assets/ticket-icon.png")}
+              source={require("../../assets/ticket-icon.png")}
               style={styles.tIcon}
             />
             <ButtonText>My Rewards</ButtonText>
@@ -135,13 +135,13 @@ const TimeBankRewardsPage = ({
               style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
             >
               <Image
-                source={require("../assets/diamond.png")}
+                source={require("../../assets/diamond.png")}
                 style={styles.rIcon}
               />
               <SecondaryText>My Rewards Details</SecondaryText>
             </View>
             <Image
-              source={require("../assets/next_icon_orange.png")}
+              source={require("../../assets/next_icon_orange.png")}
               style={styles.nIcon}
             />
           </TouchableOpacity>
@@ -171,7 +171,7 @@ const TimeBankRewardsPage = ({
             {/* 根据搜索情况显示不同的 ListSection */}
             {submittedQuery ? (
               // 当有搜索关键词时，显示匹配的奖励
-              <ListSection
+              <HorizontalFlatList
                 title="Search Results"
                 navigation={navigation}
                 data={filteredRewards} // 传递过滤后的奖励数据
@@ -182,7 +182,7 @@ const TimeBankRewardsPage = ({
               />
             ) : (
               <>
-                <ListSection
+                <HorizontalFlatList
                   title="Communities"
                   navigation={navigation}
                   data={RewardsData}
@@ -192,7 +192,7 @@ const TimeBankRewardsPage = ({
                   seeAllPage="RewardList"
                 />
 
-                <ListSection
+                <HorizontalFlatList
                   title="Individual"
                   navigation={navigation}
                   data={RewardsData}
@@ -289,4 +289,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TimeBankRewardsPage;
+export default TimeBankRewards;

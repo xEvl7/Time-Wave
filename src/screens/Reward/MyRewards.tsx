@@ -10,16 +10,16 @@ import {
   Image,
   RefreshControl,
 } from "react-native";
-import { fetchRewardsObtainedData } from "../features/userSlice";
+import { fetchRewardsObtainedData } from "../../features/userSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../Screen.types";
-import { useAppDispatch, useAppSelector } from "../hooks";
-import { RootState } from "../store";
-import { RewardObtainedType } from "../types";
+import { RootStackParamList } from "../../Screen.types";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { RootState } from "../../store";
+import { RewardObtainedType } from "../../types";
 
-export default function ActiveRewardsPage({
+export default function MyRewards({
   navigation,
-}: NativeStackScreenProps<RootStackParamList, "ActiveRewardsPage">) {
+}: NativeStackScreenProps<RootStackParamList, "MyRewards">) {
   const dispatch = useAppDispatch();
   const email = useAppSelector(
     (state: RootState) => state.user.data?.emailAddress
@@ -57,11 +57,11 @@ export default function ActiveRewardsPage({
     ({ item }: { item: RewardObtainedType }) => (
       <Pressable
         onPress={() =>
-          navigation.navigate(
-            activeTab === "active"
-              ? "ActiveRewardsDetailsPage"
-              : "PastRewardsDetailsPage"
-          )
+          navigation.navigate("RewardDetails", {
+            item: { RID: item.reference },
+            type: "redeemed",
+            redeemedCode: "X7B4N9P2",
+          })
         }
       >
         <View style={styles.gridItem}>

@@ -199,13 +199,13 @@ const Account = ({
               title={item.name}
               subtitle={item.supplierName}
               points={item.price}
-              onPress={() => navigation.navigate("Reward", { item })}
+              onPress={() => navigation.navigate("RewardDetails", { item })}
             />
           ))}
           <View style={styles.line}></View>
           <TouchableOpacity
             style={styles.rButton}
-            onPress={() => navigation?.navigate("TimeBankRewardsPage")}
+            onPress={() => navigation?.navigate("Rewards")}
           >
             <Text style={styles.rButtonText}>View All Rewards</Text>
           </TouchableOpacity>

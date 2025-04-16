@@ -14,16 +14,18 @@ type ListSectionProps<T> = {
   navigation?: any;
   renderItem: ({ item }: { item: T }) => JSX.Element;
   seeAllPage?: string;
+  keyExtractor?: (item: T, index: number) => string; // Add this
 };
 
 const DATA_LIMIT = 5; // 限制显示的数据数量
 
-export default function ListSection<T>({
+export default function HorizontalFlatList<T>({
   title,
   data,
   navigation,
   renderItem,
   seeAllPage,
+  keyExtractor,
 }: ListSectionProps<T>) {
   return (
     <View>
@@ -40,7 +42,8 @@ export default function ListSection<T>({
         showsHorizontalScrollIndicator={false}
         data={data}
         // data={data.slice(0, DATA_LIMIT)}
-        keyExtractor={(item) => (item as any).id} // 适配泛型数据
+        // keyExtractor={(item) => (item as any).id} // 适配泛型数据
+        keyExtractor={keyExtractor ?? ((item, index) => `item-${index}`)} // Use provided keyExtractor or index
         renderItem={renderItem}
         contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={

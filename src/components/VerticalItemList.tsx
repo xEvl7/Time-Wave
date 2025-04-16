@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 
-const ListItem = ({
+const VerticalItemList = ({
   imageSource,
   title,
   subtitle,
@@ -76,4 +76,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ListItem;
+export default VerticalItemList;

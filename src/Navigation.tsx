@@ -11,6 +11,8 @@ import { StatusBar } from "expo-status-bar";
 import { useAppDispatch, useAppSelector } from "./hooks";
 import { RootStackParamList, BottomTabParamList } from "./Screen.types";
 import firestore from "@react-native-firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { loadUserDataFromStore } from "./features/userSlice";
 
 import Welcome from "./screens/Welcome";
 import Login from "./screens/Login";
@@ -37,25 +39,22 @@ import NewProfile from "./screens/NewProfile";
 import Setting from "./screens/Setting";
 import ChangeYourPassword from "./screens/ChangeYourPassword";
 import EditProfile from "./screens/EditProfile";
-import Reward from "./screens/Reward";
 import Account from "./screens/Account";
 import PointsHistory from "./screens/PointsHistory";
 import PointsPolicy from "./screens/PointsPolicy";
 import ContributionsHistory from "./screens/ContributionsHistory";
-import RewardsDetailsPage from "./screens/RewardsDetailsPage";
 import AdminControl from "./screens/AdminControl";
 import ActivityHistory from "./screens/ActivityHistory";
 import GoogleFormScreen from "./screens/GoogleFormScreen";
-import { loadUserDataFromStore } from "./features/userSlice";
-import ActiveRewardsPage from "./screens/ActiveRewardsPage";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import ActiveRewardsDetailsPage from "./screens/ActiveRewardsDetailsPage";
+import RewardDetails from "./screens/Reward/RewardDetails";
+import MyRewards from "./screens/Reward/MyRewards";
+import TimeBankRewards from "./screens/Reward/TimeBankRewards";
 
 // Lazy load screens
 const HomePage = React.lazy(() => import("./screens/HomePage"));
 const RecentActivities = React.lazy(() => import("./screens/RecentActivities"));
 const TimeBankRewardsPage = React.lazy(
-  () => import("./screens/TimeBankRewardsPage")
+  () => import("./screens/Reward/TimeBankRewards")
 );
 const Profile = React.lazy(() => import("./screens/Profile"));
 
@@ -146,7 +145,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="Rewards"
-        component={TimeBankRewardsPage}
+        component={TimeBankRewards}
         options={{
           headerShown: true, // 确保 Header 显示
           headerTitle: "", // 隐藏标题
@@ -215,13 +214,6 @@ const renderSignedInScreens = () => (
     <Stack.Screen name="Profile" component={Profile} />
     <Stack.Screen name="CommunityInfo" component={CommunityInfo} />
     <Stack.Screen
-      name="Reward"
-      component={Reward}
-      options={{
-        title: "Reward Details",
-      }}
-    />
-    <Stack.Screen
       name="GoogleFormScreen"
       component={GoogleFormScreen}
       options={{
@@ -270,24 +262,29 @@ const renderSignedInScreens = () => (
         title: "Contributions History",
       }}
     />
-    <Stack.Screen
-      name="RewardsDetailsPage"
-      component={RewardsDetailsPage}
-      options={{
-        title: "Rewards Details Page",
-      }}
-    />
     <Stack.Screen name="RecentActivities" component={RecentActivities} />
     <Stack.Screen name="ActivityHistory" component={ActivityHistory} />
     <Stack.Screen
-      name="TimeBankRewardsPage"
-      component={TimeBankRewardsPage}
+      name="TimeBankRewards"
+      component={TimeBankRewards}
       options={{
-        title: "Time Bank Rewards Page",
+        title: "Time Bank Rewards",
       }}
     />
-    <Stack.Screen name="ActiveRewardsPage" component={ActiveRewardsPage} />
-    <Stack.Screen name="ActiveRewardsDetailsPage" component={ActiveRewardsDetailsPage} />
+    <Stack.Screen
+      name="RewardDetails"
+      component={RewardDetails}
+      options={{
+        title: "Reward Details",
+      }}
+    />
+    <Stack.Screen
+      name="MyRewards"
+      component={MyRewards}
+      options={{
+        title: "My Rewards",
+      }}
+    />
   </>
 );
 

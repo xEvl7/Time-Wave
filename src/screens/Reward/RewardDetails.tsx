@@ -5,43 +5,46 @@ import {
   View,
   Image,
   Dimensions,
+  Clipboard,
 } from "react-native";
-import TextButton from "../components/TextButton";
-import ContentContainer from "../components/ContentContainer";
-import { fetchRewardData } from "../features/rewardSlice";
+import TextButton from "../../components/TextButton";
+import ContentContainer from "../../components/ContentContainer";
+import { fetchRewardData } from "../../features/rewardSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../Screen.types";
-import { useAppDispatch, useAppSelector } from "../hooks";
+import { RootStackParamList } from "../../Screen.types";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 import React, { useState, useEffect, useMemo, useLayoutEffect } from "react";
 import { DateTime } from "luxon";
 import {
   fetchUserData,
   storePointsUsedDataToFirebase,
   updateUserPoints,
-} from "../features/userSlice";
-import { shareReward } from "../utils/shareUtils";
-import CustomAlert from "../components/CustomAlert";
-import HeaderText from "../components/text_components/HeaderText";
-import ParagraphText from "../components/text_components/ParagraphText";
-import SecondaryText from "../components/text_components/SecondaryText";
+} from "../../features/userSlice";
+import { shareReward } from "../../utils/shareUtils";
+import CustomAlert from "../../components/CustomAlert";
+import HeaderText from "../../components/text_components/HeaderText";
+import ParagraphText from "../../components/text_components/ParagraphText";
+import SecondaryText from "../../components/text_components/SecondaryText";
+import {
+  fetchRewardCodesDataByRID,
+  redeemRandomVoucherCode,
+} from "../../utils/firebaseUtils";
 
-export default function Reward({
+export default function RewardDetails({
   navigation,
   route,
-}: NativeStackScreenProps<RootStackParamList, "Reward">) {
-  const { item } = route.params;
+}: NativeStackScreenProps<RootStackParamList, "RewardDetails">) {
+  const { item, type = "unredeemed", redeemedCode } = route.params;
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      // title: "Reward Details", // 设置页面标题
       headerRight: () => (
         <TouchableOpacity
-          // style={{ marginRight: 10 }} // 右侧间距
           onPress={() => shareReward(item.RID ?? "")}
         >
           <Image
             style={styles.shareIcon}
-            source={require("../assets/share.png")}
+            source={require("../../assets/share.png")}
           />
         </TouchableOpacity>
       ),
@@ -69,7 +72,6 @@ export default function Reward({
     setTimeout(() => setAlertVisible(true), 0);
   };
 
-  // 获取 Redux store 的数据
   const dispatch = useAppDispatch();
   const emailAddress = useAppSelector((state) => state.user.data?.emailAddress);
   const rewardData = useAppSelector((state) => state.reward.data);
@@ -77,13 +79,11 @@ export default function Reward({
 
   const [newPoint, setNewPoint] = useState(points || "");
   const [error, setError] = useState<string | null>(null);
-
   const [isLoading, setIsLoading] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
 
   const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  // 🎯 使用 useMemo 计算时间，只有 rewardData 变化时才会更新
   const startluxonDateTime = useMemo(() => {
     if (!rewardData?.validityStartDate) return null;
     return DateTime.fromISO(rewardData.validityStartDate).setZone(userTimeZone);
@@ -129,11 +129,10 @@ export default function Reward({
 
     if (isFeedbackFilled) {
       console.log("Proceeding with reward redemption...");
-      proceedRedemption(); // 直接进行兑换，不显示弹窗
+      proceedRedemption();
       return;
     }
 
-    // 如果 isFeedbackFilled 为 false，则弹出提示框
     showCustomAlert(
       "Redeem Reward",
       "Please fill out the form to redeem this reward.",
@@ -176,10 +175,9 @@ export default function Reward({
 
   const updateDataAfterRedemption = async () => {
     try {
-      // 更新积分
       if (points != undefined && rewardData?.price != undefined) {
         points -= rewardData?.price;
-        setNewPoint(points); // 更新状态
+        setNewPoint(points);
       }
 
       if (
@@ -187,10 +185,7 @@ export default function Reward({
         rewardData?.price != undefined &&
         points != undefined
       ) {
-        // 获取当前时间戳
         const currentTime = new Date().toISOString();
-
-        // 创建存储数据
         const pointsUsedData = {
           date: currentTime,
           points: rewardData?.price,
@@ -203,11 +198,21 @@ export default function Reward({
 
         await dispatch(fetchUserData(emailAddress)).unwrap();
 
-        showCustomAlert(
-          "Redeemed Successfully!",
-          `You have used ${rewardData?.price} points.\n\nRemaining Balance: ${points} points.`,
-          [{ text: "OK" }]
+        const redeemedCode = await redeemRandomVoucherCode(
+          item.RID,
+          emailAddress
         );
+        if (redeemedCode) {
+          showCustomAlert(
+            "Redeemed Successfully!",
+            `You have used ${rewardData?.price} points.\n\nRemaining Balance: ${points} points.`,
+            [{ text: "OK" }]
+          );
+        } else {
+          showCustomAlert("Redeemed Failed!", "No available stock.", [
+            { text: "OK" },
+          ]);
+        }
       }
     } catch (error) {
       showCustomAlert(
@@ -218,35 +223,38 @@ export default function Reward({
     }
   };
 
+  const showRewardCode = () => {
+    if (redeemedCode) {
+      showCustomAlert(
+        "Your Reward Code",
+        `Code: ${redeemedCode}`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Copy",
+            onPress: () => {
+              Clipboard.setString(redeemedCode);
+              showCustomAlert(
+                "Copied!",
+                "Reward code copied to clipboard.",
+                [{ text: "OK" }]
+              );
+            },
+          },
+        ]
+      );
+    }
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.headerContainer}>
-        {/* 遮罩层 */}
-        {/* {alertVisible &&  */}
-        {/* <View style={styles.overlay} /> */}
-        {/* } */}
-        {/* <TouchableOpacity
-          style={styles.shareButton}
-          onPress={() =>
-            shareReward(
-              "Check out this amazing reward!",
-              rewardData?.image ?? ""
-            )
-          }
-        >
-          <Image
-            style={styles.shareIcon}
-            source={require("../assets/share.png")}
-          />
-        </TouchableOpacity> */}
-
         <Image
           style={styles.rewardImage}
           source={{
             uri: rewardData?.image ?? defaultImg,
           }}
         />
-
         <Image
           style={styles.supplierLogo}
           source={{
@@ -308,22 +316,29 @@ export default function Reward({
 
       <View style={styles.redeemContainer}>
         <View style={styles.horizontalLine} />
-        <View style={styles.redeemButton}>
-          <TextButton
-            onPress={
-              isInvalid
-                ? () =>
-                    showCustomAlert(
-                      "Reward Invalid!",
-                      "This reward is invalid or expired.",
-                      [{ text: "OK" }]
-                    )
-                : () => checkIsFeedbackFilled()
-            }
-          >
-            Redeem
-          </TextButton>
-        </View>
+        {type === "unredeemed" && (
+          <View style={styles.redeemButton}>
+            <TextButton
+              onPress={
+                isInvalid
+                  ? () =>
+                      showCustomAlert(
+                        "Reward Invalid!",
+                        "This reward is invalid or expired.",
+                        [{ text: "OK" }]
+                      )
+                  : () => checkIsFeedbackFilled()
+              }
+            >
+              Redeem
+            </TextButton>
+          </View>
+        )}
+        {type === "redeemed" && (
+          <View style={styles.redeemButton}>
+            <TextButton onPress={showRewardCode}>Use Now</TextButton>
+          </View>
+        )}
 
         <CustomAlert
           visible={alertVisible}
@@ -341,42 +356,21 @@ const screenWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   headerContainer: {
-    // flexDirection: "row",
-    // height: "22%",
-    // width: "100%",
     backgroundColor: "#FF8D13",
-    // alignItems: "center",
-    // justifyContent: "center",
-    position: "relative", // 使得子元素能够绝对定位
-  },
-  // overlay: {
-  //   ...StyleSheet.absoluteFillObject, // 让它填满整个 `headerContainer`
-  //   backgroundColor: "rgba(0, 0, 0, 0.5)", // 半透明黑色遮罩
-  // },
-  shareButton: {
-    position: "absolute", // 绝对定位
-    top: 10, // 距离顶部的距离
-    right: 10, // 距离右边的距离
-    // backgroundColor: "rgba(0, 0, 0, 0.5)", // 半透明黑色背景，避免白色图标看不清
-    // padding: 8, // 让点击区域更大
-    // borderRadius: 20, // 圆形背景
-    zIndex: 10, // 确保在 Image 之上 (iOS)
-    elevation: 5, // 确保在 Image 之上 (Android)
+    position: "relative",
   },
   rewardImage: {
-    width: screenWidth, // 让图片宽度等于屏幕宽度
-    aspectRatio: 16 / 7, // 例如 16:5 的长宽比，按你的图片调整
+    width: screenWidth,
+    aspectRatio: 16 / 7,
     resizeMode: "contain",
-    // borderTopLeftRadius: 20,
-    // borderTopRightRadius: 20,
-    zIndex: 2, // 确保图片在 overlay 上面
+    zIndex: 2,
   },
   supplierLogo: {
     width: 50,
     height: 50,
-    position: "absolute", // 绝对定位
-    bottom: 10, // 距离底部的距离
-    left: 10, // 距离左边的距离
+    position: "absolute",
+    bottom: 10,
+    left: 10,
   },
   shareIcon: { height: 24, width: 24 },
   titleContainer: {
@@ -385,36 +379,17 @@ const styles = StyleSheet.create({
   },
   alternativesContainer: {
     flexDirection: "row",
-    // width: "100%",
-    // justifyContent: "space-evenly",
-    // justifyContent: "space-between",
-    // alignItems: "center", // 让子元素垂直居中
     marginTop: 10,
   },
   pointsContainer: {
-    // justifyContent: "space-evenly",
-    // width: "35%",
-    // justifyContent: "center",
-    // alignItems: "center",
-    marginHorizontal: 5, // 调整间距
-    // flex: 1, // 让它占据相同的空间
-    // marginBottom: 10,
+    marginHorizontal: 5,
   },
   verticleLine: {
-    // height: "100%",
     width: StyleSheet.hairlineWidth,
     backgroundColor: "#909090",
-    marginHorizontal: 30, // 调整间距
+    marginHorizontal: 30,
   },
-  validityContainer: {
-    // justifyContent: "center",
-    // alignItems: "center",
-    // flex: 1, // 让它占据相同的空间
-    // justifyContent: "space-evenly",
-    // width: "50%",
-    // marginBottom: 10,
-    // marginLeft: 20,
-  },
+  validityContainer: {},
   scrollContainer: {
     position: "absolute",
     top: 125,
@@ -422,24 +397,16 @@ const styles = StyleSheet.create({
     left: 5,
     right: 5,
   },
-  scrollViewContainer: {
-    // paddingHorizontal: 5,
-  },
+  scrollViewContainer: {},
   horizontalLine: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: "#909090",
     marginVertical: 10,
-    // marginHorizontal: "5%",
   },
   sectionContainer: {
-    // width: "90%",
     marginVertical: 10,
-    // justifyContent: "space-evenly",
-    // alignItems: "flex-start",
   },
   redeemContainer: {
-    // minWidth: "78%",
-    // height: "10%",
     position: "absolute",
     bottom: 10,
     right: 0,
