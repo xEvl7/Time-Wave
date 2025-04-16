@@ -178,7 +178,7 @@ const TimeBankRewardsPage = ({
                 renderItem={({ item }) => (
                   <RewardItem item={item} navigation={navigation} />
                 )}
-                seeAllPage="RewardList"
+                seeAllPage="RewardSeeAll"
               />
             ) : (
               <>
@@ -189,7 +189,7 @@ const TimeBankRewardsPage = ({
                   renderItem={({ item }) => (
                     <RewardItem item={item} navigation={navigation} />
                   )}
-                  seeAllPage="RewardList"
+                  seeAllPage="RewardSeeAll"
                 />
 
                 <ListSection
@@ -199,7 +199,7 @@ const TimeBankRewardsPage = ({
                   renderItem={({ item }) => (
                     <RewardItem item={item} navigation={navigation} />
                   )}
-                  seeAllPage="RewardList"
+                  seeAllPage="RewardSeeAll"
                 />
               </>
             )}

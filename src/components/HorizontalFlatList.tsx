@@ -30,7 +30,7 @@ export default function ListSection<T>({
       <View style={styles.listHeader}>
         <PrimaryText>{title}</PrimaryText>
         {seeAllPage && (
-          <TouchableOpacity onPress={() => navigation?.navigate(seeAllPage)}>
+          <TouchableOpacity onPress={() => navigation?.navigate(seeAllPage ,{ data })}>
             <ButtonText>See all</ButtonText>
           </TouchableOpacity>
         )}

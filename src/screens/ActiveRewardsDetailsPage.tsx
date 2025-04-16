@@ -24,18 +24,18 @@ export default function ActiveRewardsDetailsPage({
     <View>      
         <View style={styles.BackgroundStyle}>
           <View>
-            <Image       
+            {/*<Image       
             source={require("../assets/test3.png")}
-            style={styles.image}/></View>
+            style={styles.image}/>*/}</View>
           <ContentContainer>
             <Text style={styles.Header}>
               Medical Check Up
             </Text>          
             <View>
-            <Image
+            {/*<Image
               source={require("../assets/active-icon.png")}
               style={{marginLeft:'40%',marginTop:10}}
-            />
+            />*/}
             </View>
             <View style={{alignContent:'center'}}>      
               <View style={styles.TabStyle}> 

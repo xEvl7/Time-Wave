@@ -1,6 +1,7 @@
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { CommunityProps } from "./features/communitySlice";
 import { ActivityProps } from "./features/activitySlice";
+import { RewardType } from "./types";
 
 export type RootStackParamList = {
   SignUp: undefined;
@@ -64,6 +65,7 @@ export type RootStackParamList = {
   MyRewardsPage: undefined;
   PastRewardsDetailsPage: undefined;
   PastRewardsPage: undefined;
+  RewardSeeAll: {  data: RewardType[] };
   RewardsDetailsPage: undefined;
   TimeBankRewardsPage: undefined;
   Reward: { item: { RID: string } };

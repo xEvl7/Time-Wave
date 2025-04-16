@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import TextButton from "../components/TextButton";
 import ContentContainer from "../components/ContentContainer";
-import { fetchRewardData } from "../features/rewardSlice";
+import { fetchRewardData,updateRewardStock } from "../features/rewardSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch, useAppSelector } from "../hooks";
@@ -33,7 +33,7 @@ export default function Reward({
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      // title: "Reward Details", // 设置页面标题
+      title: "Reward Details", // 设置页面标题
       headerRight: () => (
         <TouchableOpacity
           // style={{ marginRight: 10 }} // 右侧间距
@@ -149,8 +149,45 @@ export default function Reward({
     );
   };
 
+  const userVolunteerOf = useAppSelector((state) => state.user.data?.volunteerOf) || [];
+  const userAdminOf = useAppSelector((state) => state.user.data?.adminOf) || [];
+  const forCommunities = rewardData?.forcommunities || "all"; // 允许的社区
+  
   const proceedRedemption = () => {
     const price = rewardData?.price;
+    const qtyAvailable = rewardData?.qtyAvailable; // 获取库存数量
+    
+    
+
+    
+    
+      // 如果 reward 是 "all"，所有人都可以兑换
+    if (forCommunities !== "all") {
+        // 用户所属的社区
+      const userCommunities = [ ...userAdminOf, ...userVolunteerOf];
+    
+        // 检查用户是否至少属于其中一个符合的社区
+      const isEligible = userCommunities.some((community) => forCommunities.includes(community));
+    
+      if (!isEligible) {
+        showCustomAlert(
+          "Not Eligible",
+          "You are not a member of the required community to redeem this reward.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+    }
+    
+    if (qtyAvailable === 0) {
+      showCustomAlert(
+        "Out of Stock",
+        "This reward is no longer available.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    
     if (price !== undefined && points !== undefined) {
       if (points >= price) {
         showCustomAlert(
@@ -185,8 +222,15 @@ export default function Reward({
       if (
         emailAddress != undefined &&
         rewardData?.price != undefined &&
-        points != undefined
+        points != undefined &&
+        rewardData?.qtyAvailable != undefined
       ) {
+        const newQtyAvailable = rewardData.qtyAvailable - 1;
+
+        if (newQtyAvailable < 0) {
+          showCustomAlert("Error", "Stock is already 0!", [{ text: "OK" }]);
+          return;
+        }
         // 获取当前时间戳
         const currentTime = new Date().toISOString();
 
@@ -199,9 +243,11 @@ export default function Reward({
         await Promise.all([
           dispatch(storePointsUsedDataToFirebase(pointsUsedData)).unwrap(),
           dispatch(updateUserPoints({ emailAddress, points })).unwrap(),
+          dispatch(updateRewardStock({ rewardId: item.RID, qtyAvailable: newQtyAvailable })).unwrap(), // 更新库存
         ]);
 
         await dispatch(fetchUserData(emailAddress)).unwrap();
+        await dispatch(fetchRewardData(item.RID)).unwrap(); // 重新获取奖励数据，确保库存更新
 
         showCustomAlert(
           "Redeemed Successfully!",
@@ -221,10 +267,6 @@ export default function Reward({
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.headerContainer}>
-        {/* 遮罩层 */}
-        {/* {alertVisible &&  */}
-        {/* <View style={styles.overlay} /> */}
-        {/* } */}
         {/* <TouchableOpacity
           style={styles.shareButton}
           onPress={() =>
@@ -347,12 +389,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF8D13",
     // alignItems: "center",
     // justifyContent: "center",
-    position: "relative", // 使得子元素能够绝对定位
+    // position: "relative", // 使得子元素能够绝对定位
   },
-  // overlay: {
-  //   ...StyleSheet.absoluteFillObject, // 让它填满整个 `headerContainer`
-  //   backgroundColor: "rgba(0, 0, 0, 0.5)", // 半透明黑色遮罩
-  // },
   shareButton: {
     position: "absolute", // 绝对定位
     top: 10, // 距离顶部的距离
@@ -369,7 +407,6 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     // borderTopLeftRadius: 20,
     // borderTopRightRadius: 20,
-    zIndex: 2, // 确保图片在 overlay 上面
   },
   supplierLogo: {
     width: 50,
@@ -441,10 +478,10 @@ const styles = StyleSheet.create({
     // minWidth: "78%",
     // height: "10%",
     position: "absolute",
-    bottom: 10,
+    bottom: 20,
     right: 0,
     left: 0,
-    marginHorizontal: "6%",
+    // marginHorizontal: "10%",
   },
   redeemButton: {
     marginHorizontal: "10%",

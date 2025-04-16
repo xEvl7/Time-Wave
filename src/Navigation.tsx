@@ -37,12 +37,13 @@ import NewProfile from "./screens/NewProfile";
 import Setting from "./screens/Setting";
 import ChangeYourPassword from "./screens/ChangeYourPassword";
 import EditProfile from "./screens/EditProfile";
-import reward from "./screens/reward";
+import Reward from "./screens/Reward";
 import Account from "./screens/Account";
 import PointsHistory from "./screens/PointsHistory";
 import PointsPolicy from "./screens/PointsPolicy";
 import ContributionsHistory from "./screens/ContributionsHistory";
 import RewardsDetailsPage from "./screens/RewardsDetailsPage";
+import RewardSeeAll from "./screens/RewardSeeAll";
 import AdminControl from "./screens/AdminControl";
 import ActivityHistory from "./screens/ActivityHistory";
 import GoogleFormScreen from "./screens/GoogleFormScreen";
@@ -233,6 +234,7 @@ const renderSignedInScreens = () => (
     <Stack.Screen name="ChangeYourPassword" component={ChangeYourPassword} />
     <Stack.Screen name="EditProfile" component={EditProfile} />
     <Stack.Screen name="Communities" component={Communities} />
+    <Stack.Screen name="RewardSeeAll" component={RewardSeeAll} />
     <Stack.Screen name="ActivitySeeAll" component={ActivitySeeAll} />
     {/* <Stack.Screen name="CommunityProfile" component={CommunityProfile} /> */}
     <Stack.Screen name="MemberSeeAll" component={MemberSeeAll} />
