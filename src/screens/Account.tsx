@@ -7,7 +7,7 @@ import {
   ScrollView,
   RefreshControl,
 } from "react-native";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import {
@@ -18,7 +18,6 @@ import {
   selectUserData,
 } from "../features/userSlice";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import { RootState } from "../store";
 import ProgressBar from "../components/ProgressBar";
 import SectionContainer from "../components/SectionContainer";
 import VerticalItemList from "../components/VerticalItemList";

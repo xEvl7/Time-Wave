@@ -34,7 +34,7 @@ export type RootStackParamList = {
   CommunityInfo: CommunityProps;
   ProfileInfo: { item: any };
   // CommunityProfile: { item: any };
-  
+
   MemberSeeAll: { item: any; member: any };
   SelectAdmin: undefined;
   AddAdmin: { item: any; member: any };
@@ -61,12 +61,15 @@ export type RootStackParamList = {
 
   // reward section
   TimeBankRewards: undefined;
-  RewardSeeAll: {  data: RewardType[] };
+  RewardSeeAll: { data: RewardType[] };
   // RewardDetails: { item: { RID: string } };
   RewardDetails: {
     item: { RID: string };
-    type?: "unredeemed" | "redeemed";
+    type?: string;
     redeemedCode?: string;
+    expiredDate: any;
+    redeemedDate: any;
+    usedDate: any;
   };
   MyRewards: undefined;
 };

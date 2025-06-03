@@ -12,12 +12,14 @@ export type RewardData = {
   supplierName: string;
   contactInfo: string;
   highlight: string;
+  howToUse: string;
   image: string;
   name: string;
   price: number;
   qtyAvailable: number;
   status: string;
   termsConditions: string;
+  createdDate: any;
   validityStartDate: any;
   validityEndDate: any;
   forcommunities: string[];
@@ -58,6 +60,9 @@ export const fetchRewardData = createAsyncThunk(
 
     return {
       ...rewardData,
+      createdDate: rewardData.createdDate?.seconds
+        ? new Date(rewardData.createdDate.seconds * 1000).toISOString()
+        : null,
       validityStartDate: rewardData.validityStartDate?.seconds
         ? new Date(rewardData.validityStartDate.seconds * 1000).toISOString()
         : null,
@@ -72,19 +77,27 @@ export const fetchRewardData = createAsyncThunk(
 export const loadRewardDataFromStore = createAsyncThunk(
   "user/loadUserDataFromCache",
   async () => {
-    let rewardDataJson: string | null = await SecureStore.getItemAsync(REWARD_DATA);
+    let rewardDataJson: string | null = await SecureStore.getItemAsync(
+      REWARD_DATA
+    );
 
     if (rewardDataJson) {
       let rewardData = JSON.parse(rewardDataJson);
 
       return {
         ...rewardData,
-        validityStartDate: typeof rewardData.validityStartDate === "string"
-          ? rewardData.validityStartDate
-          : null,
-        validityEndDate: typeof rewardData.validityEndDate === "string"
-          ? rewardData.validityEndDate
-          : null,
+        createdDate:
+          typeof rewardData.createdDate === "string"
+            ? rewardData.createdDate
+            : null,
+        validityStartDate:
+          typeof rewardData.validityStartDate === "string"
+            ? rewardData.validityStartDate
+            : null,
+        validityEndDate:
+          typeof rewardData.validityEndDate === "string"
+            ? rewardData.validityEndDate
+            : null,
       };
     }
 
@@ -98,7 +111,7 @@ export const fetchRewardsPaginated = createAsyncThunk(
   async ({ limit, lastDoc }: { limit: number; lastDoc?: any }) => {
     let query = firestore()
       .collection("Rewards")
-      .orderBy("validityEndDate")
+      .orderBy("createdDate", "desc")
       .limit(limit);
 
     if (lastDoc) {
@@ -108,6 +121,9 @@ export const fetchRewardsPaginated = createAsyncThunk(
     const querySnapshot = await query.get();
     const rewards = querySnapshot.docs.map((doc) => ({
       ...doc.data(),
+      createdDate: doc.data().createdDate?.seconds
+        ? new Date(doc.data().createdDate.seconds * 1000).toISOString()
+        : null,
       validityStartDate: doc.data().validityStartDate?.seconds
         ? new Date(doc.data().validityStartDate.seconds * 1000).toISOString()
         : null,
@@ -123,10 +139,16 @@ export const fetchRewardsPaginated = createAsyncThunk(
   }
 );
 
-// 異步操作：更新獎勵庫存數量 
+// 異步操作：更新獎勵庫存數量
 const updateRewardStock = createAsyncThunk(
   "reward/updateRewardStock",
-  async ({ rewardId, qtyAvailable }: { rewardId: string; qtyAvailable: number }) => {
+  async ({
+    rewardId,
+    qtyAvailable,
+  }: {
+    rewardId: string;
+    qtyAvailable: number;
+  }) => {
     try {
       const rewardRef = firestore().collection("Rewards").doc(rewardId);
       await rewardRef.update({ qtyAvailable });
@@ -159,10 +181,13 @@ const rewardSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchRewardData.fulfilled, (state, action: PayloadAction<RewardData>) => {
-        state.data = action.payload;
-        console.log(`Successfully fetched ${state.data.RID}'s data`);
-      })
+      .addCase(
+        fetchRewardData.fulfilled,
+        (state, action: PayloadAction<RewardData>) => {
+          state.data = action.payload;
+          console.log(`Successfully fetched ${state.data.RID}'s data`);
+        }
+      )
       .addCase(updateRewardStock.fulfilled, (state, action) => {
         const { rewardId, qtyAvailable } = action.payload;
         if (state.data && state.data.RID === rewardId) {
@@ -170,7 +195,9 @@ const rewardSlice = createSlice({
         }
 
         // 更新 `allRewards` 中的數量
-        const rewardIndex = state.allRewards.findIndex((r) => r.RID === rewardId);
+        const rewardIndex = state.allRewards.findIndex(
+          (r) => r.RID === rewardId
+        );
         if (rewardIndex !== -1) {
           state.allRewards[rewardIndex].qtyAvailable = qtyAvailable;
         }
@@ -178,23 +205,31 @@ const rewardSlice = createSlice({
       .addCase(fetchRewardData.rejected, (_, action) => {
         console.error(action.error);
       })
-      .addCase(loadRewardDataFromStore.fulfilled, (state, action: PayloadAction<RewardData | null>) => {
-        if (action.payload) {
-          state.data = action.payload;
-          console.log(`Successfully Loaded ${state.data.name}'s data from Secure Store.`);
-        } else {
-          console.log("User data is undefined.");
+      .addCase(
+        loadRewardDataFromStore.fulfilled,
+        (state, action: PayloadAction<RewardData | null>) => {
+          if (action.payload) {
+            state.data = action.payload;
+            console.log(
+              `Successfully Loaded ${state.data.name}'s data from Secure Store.`
+            );
+          } else {
+            console.log("User data is undefined.");
+          }
         }
-      })
+      )
       .addCase(loadRewardDataFromStore.rejected, () => {
         console.log("User data is undefined.");
       })
       .addCase(loadRewardDataFromStore.pending, () => {
         console.log("Loading user's data from cache ...");
       })
-      .addCase(updateRewardData.fulfilled, (state, action: PayloadAction<RewardData>) => {
-        state.data = action.payload;
-      });
+      .addCase(
+        updateRewardData.fulfilled,
+        (state, action: PayloadAction<RewardData>) => {
+          state.data = action.payload;
+        }
+      );
   },
 });
 
@@ -222,4 +257,4 @@ export const { setRewards, setSearchQuery } = rewardSlice.actions;
 
 export default rewardSlice.reducer;
 
-export { updateRewardStock};
+export { updateRewardStock };

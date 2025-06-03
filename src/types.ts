@@ -31,4 +31,5 @@ export type RewardObtainedType = {
   status: string;
   usedDate: any;
   reference: any;
+  code: string;
 };

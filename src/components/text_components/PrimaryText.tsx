@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 
 type PrimaryTextProp = {
   style?: StyleProp<TextStyle>;
-  children: string;
+  children: React.ReactNode; // ← 修改这里，允许嵌套文本或元素
 };
 
 const PrimaryText = ({ style, children }: PrimaryTextProp) => {
@@ -14,7 +14,6 @@ const PrimaryText = ({ style, children }: PrimaryTextProp) => {
 const styles = StyleSheet.create({
   primary: {
     fontFamily: "Roboto-Bold",
-    // fontWeight: "600",
     fontSize: 18,
     color: "#45474E",
   },
