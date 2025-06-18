@@ -73,6 +73,7 @@ type RewardsObtainedData = {
   status: string;
   usedDate: any;
   rewardInfo: any;
+  code: string;
 };
 type RewardsActiveData = {
   reference: any;
@@ -81,6 +82,7 @@ type RewardsActiveData = {
   status: string;
   usedDate: any;
   rewardInfo: any;
+  code: string;
 };
 type RewardsPastData = {
   reference: any;
@@ -89,6 +91,7 @@ type RewardsPastData = {
   status: string;
   usedDate: any;
   rewardInfo: any;
+  code: string;
 };
 
 type UserState = {
@@ -526,6 +529,11 @@ export const fetchRewardsObtainedData = createAsyncThunk(
         rewardInfo = rewardDocSnapshot.docs[0].data();
 
         // 处理 Firestore Timestamp，转换为字符串
+        if (rewardInfo.createdDate) {
+          rewardInfo.createdDate = rewardInfo.createdDate
+            .toDate()
+            .toISOString();
+        }
         if (rewardInfo.validityEndDate) {
           rewardInfo.validityEndDate = rewardInfo.validityEndDate
             .toDate()
@@ -542,15 +550,17 @@ export const fetchRewardsObtainedData = createAsyncThunk(
       const data: RewardsObtainedData = {
         reference: rewardObtained.reference || "N/A",
         expiredDate:
-          rewardObtained.expiredDate?.toDate()?.toLocaleString() || "N/A",
+          rewardObtained.expiredDate?.toDate()?.toISOString() || "N/A",
         redeemedDate:
-          rewardObtained.redeemedDate?.toDate()?.toLocaleString() || "N/A",
-        usedDate: rewardObtained.usedDate?.toDate()?.toLocaleString() || "N/A",
+          rewardObtained.redeemedDate?.toDate()?.toISOString() || "N/A",
+        usedDate: rewardObtained.usedDate?.toDate()?.toISOString() || "N/A",
         status: rewardObtained.status || "N/A",
         rewardInfo: rewardInfo || null, // 将奖励信息添加到数据中
+        code: rewardObtained.code || "N/A",
       };
 
       rewardObtainedData.push(data);
+      console.log("rewardObtainedData", data);
     }
 
     return rewardObtainedData;

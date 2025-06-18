@@ -15,7 +15,6 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import HeaderText from "../../components/text_components/HeaderText";
 import SecondaryText from "../../components/text_components/SecondaryText";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { RootState } from "../../store";
 import HorizontalFlatList from "../../components/HorizontalFlatList";
 import RewardItem from "../../components/RewardItem";
 import SearchBar from "../../components/SearchBar";

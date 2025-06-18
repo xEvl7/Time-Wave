@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   Pressable,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
@@ -16,6 +15,10 @@ import { RootStackParamList } from "../../Screen.types";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { RootState } from "../../store";
 import { RewardObtainedType } from "../../types";
+import SecondaryText from "../../components/text_components/SecondaryText";
+import PrimaryText from "../../components/text_components/PrimaryText";
+import { DateTime } from "luxon";
+import styles from "../../styles";
 
 export default function MyRewards({
   navigation,
@@ -32,6 +35,8 @@ export default function MyRewards({
   );
   const [activeTab, setActiveTab] = useState<"active" | "past">("active");
   const [refreshing, setRefreshing] = useState(false);
+
+  const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   useEffect(() => {
     if (email) {
@@ -55,34 +60,104 @@ export default function MyRewards({
 
   const renderRewardItem = useCallback(
     ({ item }: { item: RewardObtainedType }) => (
+      // console.log(item),
       <Pressable
         onPress={() =>
           navigation.navigate("RewardDetails", {
             item: { RID: item.reference },
-            type: "redeemed",
-            redeemedCode: "X7B4N9P2",
+            type: item.status,
+            redeemedCode: item.code,
+            expiredDate: item.expiredDate,
+            redeemedDate: item.redeemedDate,
+            usedDate: item.usedDate,
           })
         }
       >
-        <View style={styles.gridItem}>
-          <View
+        <View style={styles.myRewardGridItem}>
+          {/* <View
             style={[
               styles.imageBox,
-              activeTab === "past" && styles.usedImageBox,
+              activeTab === "past" && styles.imageOverlay,
             ]}
           >
             <Image
               source={{ uri: item.rewardInfo.image }}
               style={styles.image}
             />
+          </View> */}
+          <View style={styles.verticalImageBox}>
+            <Image
+              source={{ uri: item.rewardInfo.image }}
+              style={styles.verticalImage}
+            />
+
+            {activeTab === "past" && (
+              <View style={styles.overlayContainer}>
+                <View style={styles.imageOverlay} />
+              </View>
+            )}
           </View>
-          <View style={styles.text}>
-            <Text style={styles.supplierName}>
+          <View style={styles.verticalTextContainer}>
+            <PrimaryText style={styles.itemTitle}>
+              {item.rewardInfo.name}
+            </PrimaryText>
+            <SecondaryText style={styles.itemSubTitle}>
               {item.rewardInfo.supplierName}
-            </Text>
-            <Text style={styles.rewardTitle}>{item.rewardInfo.name}</Text>
-            <Text style={styles.expiryDate}>Expires on {item.expiredDate}</Text>
-            {activeTab === "past" && <Text style={styles.usedBadge}>Used</Text>}
+            </SecondaryText>
+            {activeTab === "active" && (
+              <SecondaryText style={styles.expiryDateText}>
+                Expires on{" "}
+                {typeof DateTime.fromISO(item.expiredDate).setZone(userTimeZone)
+                  ?.toFormat === "function"
+                  ? DateTime.fromISO(item.expiredDate)
+                      .setZone(userTimeZone)
+                      .toFormat("d MMM yyyy, hh:mm:ss a")
+                  : DateTime.fromISO(item.expiredDate).setZone(userTimeZone)
+                  ? String(
+                      DateTime.fromISO(item.expiredDate).setZone(userTimeZone)
+                    )
+                  : "Unknown"}
+              </SecondaryText>
+            )}
+            {activeTab === "past" && item.usedDate !== "N/A" && (
+              <SecondaryText style={styles.expiryDateText}>
+                Used on{" "}
+                {typeof DateTime.fromISO(item.usedDate).setZone(userTimeZone)
+                  ?.toFormat === "function"
+                  ? DateTime.fromISO(item.usedDate)
+                      .setZone(userTimeZone)
+                      .toFormat("d MMM yyyy, hh:mm:ss a")
+                  : DateTime.fromISO(item.usedDate).setZone(userTimeZone)
+                  ? String(
+                      DateTime.fromISO(item.usedDate).setZone(userTimeZone)
+                    )
+                  : "Unknown"}
+              </SecondaryText>
+            )}
+            {activeTab === "past" && item.usedDate === "N/A" && (
+              <SecondaryText style={styles.expiryDateText}>
+                Expired on{" "}
+                {typeof DateTime.fromISO(item.expiredDate).setZone(userTimeZone)
+                  ?.toFormat === "function"
+                  ? DateTime.fromISO(item.expiredDate)
+                      .setZone(userTimeZone)
+                      .toFormat("d MMM yyyy, hh:mm:ss a")
+                  : DateTime.fromISO(item.expiredDate).setZone(userTimeZone)
+                  ? String(
+                      DateTime.fromISO(item.expiredDate).setZone(userTimeZone)
+                    )
+                  : "Unknown"}
+              </SecondaryText>
+            )}
+            {activeTab === "active" && (
+              <SecondaryText style={styles.activeBadge}>Use Now</SecondaryText>
+            )}
+            {activeTab === "past" && item.usedDate !== "N/A" && (
+              <SecondaryText style={styles.usedBadge}>Used</SecondaryText>
+            )}
+            {activeTab === "past" && item.usedDate === "N/A" && (
+              <SecondaryText style={styles.expiredBadge}>Expired</SecondaryText>
+            )}
           </View>
         </View>
       </Pressable>
@@ -91,7 +166,7 @@ export default function MyRewards({
   );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.greyContainer}>
       {/* Tab 按钮 */}
       <View style={styles.tabContainer}>
         {["active", "past"].map((tab) => (
@@ -126,116 +201,15 @@ export default function MyRewards({
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderRewardItem}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={fetchData} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={fetchData}
+              colors={["#FF8D13"]} // 仅适用于 Android
+              tintColor="#FF8D13" // 仅适用于 iOS
+            />
           }
         />
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F8F8" },
-
-  tabContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  tabButton: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 12,
-    backgroundColor: "white",
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderColor: "#FF8D13",
-  },
-  activeTabText: {
-    color: "#FF8D13",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  tabText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#BABABA",
-  },
-
-  loadingIndicator: { flex: 1, justifyContent: "center", alignItems: "center" },
-
-  listContent: { paddingBottom: 100 },
-
-  gridItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 10,
-    marginTop: 12,
-    // marginBottom: 12,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 15,
-    padding: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  imageBox: {
-    marginLeft: 10,
-    alignSelf: "center",
-    // height: "80%", // 增大高度
-    width: "40%", // 让图片区域更宽
-    backgroundColor: "#F1CFA3",
-    borderRadius: 15,
-    justifyContent: "center", // 让图片居中
-    alignItems: "center",
-  },
-
-  usedImageBox: { backgroundColor: "#9E815B" },
-
-  image: {
-    alignSelf: "center",
-    resizeMode: "cover",
-    width: 180, // 增大宽度
-    height: 140, // 增大高度
-    borderRadius: 15, // 让图片边角更圆润
-  },
-
-  text: {
-    flex: 1,
-    marginLeft: 15,
-  },
-
-  supplierName: {
-    fontSize: 12,
-    color: "#888",
-    marginBottom: 2,
-  },
-
-  rewardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 5,
-  },
-
-  expiryDate: {
-    fontSize: 14,
-    color: "#666",
-  },
-
-  usedBadge: {
-    position: "absolute",
-    right: 10,
-    bottom: -20,
-    backgroundColor: "#D3D3D3",
-    color: "#555",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-});

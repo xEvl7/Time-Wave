@@ -5,43 +5,45 @@ import {
   View,
   Image,
   Dimensions,
-  Clipboard,
 } from "react-native";
 import TextButton from "../../components/TextButton";
 import ContentContainer from "../../components/ContentContainer";
-import { fetchRewardData,updateRewardStock } from "../../features/rewardSlice";
+import { fetchRewardData, updateRewardStock } from "../../features/rewardSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../Screen.types";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import React, { useState, useEffect, useMemo, useLayoutEffect } from "react";
 import { DateTime } from "luxon";
-import {
-  fetchUserData,
-  storePointsUsedDataToFirebase,
-  updateUserPoints,
-} from "../../features/userSlice";
+import { fetchUserData, updateUserPoints } from "../../features/userSlice";
 import { shareReward } from "../../utils/shareUtils";
 import CustomAlert from "../../components/CustomAlert";
 import HeaderText from "../../components/text_components/HeaderText";
 import ParagraphText from "../../components/text_components/ParagraphText";
 import SecondaryText from "../../components/text_components/SecondaryText";
 import {
-  fetchRewardCodesDataByRID,
   redeemRandomVoucherCode,
+  updateRewardsObtained,
 } from "../../utils/firebaseUtils";
+import PrimaryText from "../../components/text_components/PrimaryText";
+import * as Clipboard from "expo-clipboard";
 
 export default function RewardDetails({
   navigation,
   route,
 }: NativeStackScreenProps<RootStackParamList, "RewardDetails">) {
-  const { item, type = "unredeemed", redeemedCode } = route.params;
+  const {
+    item,
+    type = "unredeemed",
+    redeemedCode,
+    expiredDate,
+    redeemedDate,
+    usedDate,
+  } = route.params;
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity
-          onPress={() => shareReward(item.RID ?? "")}
-        >
+        <TouchableOpacity onPress={() => shareReward(item.RID ?? "")}>
           <Image
             style={styles.shareIcon}
             source={require("../../assets/share.png")}
@@ -84,15 +86,39 @@ export default function RewardDetails({
 
   const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+  // const startluxonDateTime = useMemo(() => {
+  //   if (!rewardData?.validityStartDate) return null;
+  //   return DateTime.fromISO(rewardData.validityStartDate).setZone(userTimeZone);
+  // }, [rewardData]);
+
+  // const endluxonDateTime = useMemo(() => {
+  //   if (!rewardData?.validityEndDate) return null;
+  //   return DateTime.fromISO(rewardData.validityEndDate).setZone(userTimeZone);
+  // }, [rewardData]);
+
   const startluxonDateTime = useMemo(() => {
     if (!rewardData?.validityStartDate) return null;
     return DateTime.fromISO(rewardData.validityStartDate).setZone(userTimeZone);
-  }, [rewardData]);
+    // return rewardData?.validityStartDate;
+  }, [rewardData?.validityStartDate]);
 
   const endluxonDateTime = useMemo(() => {
     if (!rewardData?.validityEndDate) return null;
     return DateTime.fromISO(rewardData.validityEndDate).setZone(userTimeZone);
-  }, [rewardData]);
+    // return rewardData?.validityEndDate;
+  }, [rewardData?.validityEndDate]);
+
+  const expiredluxonDateTime = useMemo(() => {
+    if (!expiredDate) return null;
+    return DateTime.fromISO(expiredDate).setZone(userTimeZone);
+    // return expiredDate;
+  }, [expiredDate]);
+
+  const usedluxonDateTime = useMemo(() => {
+    if (!usedDate) return null;
+    return DateTime.fromISO(usedDate).setZone(userTimeZone);
+    // return usedDate;
+  }, [usedDate]);
 
   useEffect(() => {
     if (item.RID) {
@@ -148,26 +174,25 @@ export default function RewardDetails({
     );
   };
 
-  const userVolunteerOf = useAppSelector((state) => state.user.data?.volunteerOf) || [];
+  const userVolunteerOf =
+    useAppSelector((state) => state.user.data?.volunteerOf) || [];
   const userAdminOf = useAppSelector((state) => state.user.data?.adminOf) || [];
   const forCommunities = rewardData?.forcommunities || "all"; // 允许的社区
-  
+
   const proceedRedemption = () => {
     const price = rewardData?.price;
     const qtyAvailable = rewardData?.qtyAvailable; // 获取库存数量
-    
-    
 
-    
-    
-      // 如果 reward 是 "all"，所有人都可以兑换
+    // 如果 reward 是 "all"，所有人都可以兑换
     if (forCommunities !== "all") {
-        // 用户所属的社区
-      const userCommunities = [ ...userAdminOf, ...userVolunteerOf];
-    
-        // 检查用户是否至少属于其中一个符合的社区
-      const isEligible = userCommunities.some((community) => forCommunities.includes(community));
-    
+      // 用户所属的社区
+      const userCommunities = [...userAdminOf, ...userVolunteerOf];
+
+      // 检查用户是否至少属于其中一个符合的社区
+      const isEligible = userCommunities.some((community) =>
+        forCommunities.includes(community)
+      );
+
       if (!isEligible) {
         showCustomAlert(
           "Not Eligible",
@@ -177,16 +202,14 @@ export default function RewardDetails({
         return;
       }
     }
-    
+
     if (qtyAvailable === 0) {
-      showCustomAlert(
-        "Out of Stock",
-        "This reward is no longer available.",
-        [{ text: "OK" }]
-      );
+      showCustomAlert("Out of Stock", "This reward is no longer available.", [
+        { text: "OK" },
+      ]);
       return;
     }
-    
+
     if (price !== undefined && points !== undefined) {
       if (points >= price) {
         showCustomAlert(
@@ -230,15 +253,20 @@ export default function RewardDetails({
           return;
         }
         const currentTime = new Date().toISOString();
-        const pointsUsedData = {
-          date: currentTime,
-          points: rewardData?.price,
-        };
+        // const pointsUsedData = {
+        //   date: currentTime,
+        //   points: rewardData?.price,
+        // };
 
         await Promise.all([
-          dispatch(storePointsUsedDataToFirebase(pointsUsedData)).unwrap(),
+          // dispatch(storePointsUsedDataToFirebase(pointsUsedData)).unwrap(),
           dispatch(updateUserPoints({ emailAddress, points })).unwrap(),
-          dispatch(updateRewardStock({ rewardId: item.RID, qtyAvailable: newQtyAvailable })).unwrap(), // 更新库存
+          dispatch(
+            updateRewardStock({
+              rewardId: item.RID,
+              qtyAvailable: newQtyAvailable,
+            })
+          ).unwrap(), // 更新库存
         ]);
 
         await dispatch(fetchUserData(emailAddress)).unwrap();
@@ -246,6 +274,7 @@ export default function RewardDetails({
 
         const redeemedCode = await redeemRandomVoucherCode(
           item.RID,
+          rewardData?.price,
           emailAddress
         );
         if (redeemedCode) {
@@ -269,31 +298,69 @@ export default function RewardDetails({
     }
   };
 
+  // Add this state at the top with other state declarations
+  const [isCodeDisplayed, setIsCodeDisplayed] = useState(false);
+
+  // Add these functions to handle the button logic
   const showRewardCode = () => {
+    // if (redeemedCode) {
+    //   setIsCodeDisplayed(true); // Switch to displaying the code and copy button
+    // }
     if (redeemedCode) {
+      // ask user confirmation
+      showCustomAlert("Confirm use now?", `Cannot be used again after this.`, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Confirm",
+          onPress: () => useNow(),
+        },
+      ]);
+    } else {
+      showCustomAlert("Unexpected error", "Please contact administrator", [
+        { text: "OK" },
+      ]);
+    }
+  };
+
+  const useNow = async () => {
+    if (redeemedCode) {
+      // setIsCodeDisplayed(true); // Switch to displaying the code and copy button
       showCustomAlert(
-        "Your Reward Code",
-        `Code: ${redeemedCode}`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Copy",
-            onPress: () => {
-              Clipboard.setString(redeemedCode);
-              showCustomAlert(
-                "Copied!",
-                "Reward code copied to clipboard.",
-                [{ text: "OK" }]
-              );
-            },
-          },
-        ]
+        "Reward link will send to your email:",
+        `${emailAddress}`,
+        [{ text: "OK" }]
       );
+      // update the reward obtained status to "used"
+      await updateRewardsObtained(redeemedCode, emailAddress);
+
+      // @todo here you can add the logic to send the link to the email
+    } else {
+      showCustomAlert("Unexpected error", "Please contact administrator", [
+        { text: "OK" },
+      ]);
+    }
+  };
+
+  const copyRewardCode = () => {
+    if (redeemedCode) {
+      Clipboard.setStringAsync(redeemedCode);
+      showCustomAlert("Copied!", "Reward code copied to clipboard.", [
+        { text: "OK" },
+      ]);
+    }
+  };
+
+  const goToRewardLink = () => {
+    if (redeemedCode) {
+      // here go to the link
     }
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: "#fff" }}
+      contentContainerStyle={{ flexGrow: 1 }}
+    >
       <View style={styles.headerContainer}>
         <Image
           style={styles.rewardImage}
@@ -314,77 +381,148 @@ export default function RewardDetails({
           <HeaderText>{String(rewardData?.name ?? "")}</HeaderText>
         </View>
 
+        {(type === "active" || type === "used" || type === "expired") && (
+          <View style={styles.statusLabelWrapper}>
+            <View
+              style={[
+                styles.statusLabelContainer,
+                type === "active"
+                  ? styles.activeBg
+                  : type === "used"
+                  ? styles.usedBg
+                  : styles.expiredBg,
+              ]}
+            >
+              <PrimaryText
+                style={[
+                  styles.baseLabelText,
+                  type === "active"
+                    ? styles.activeText
+                    : type === "used"
+                    ? styles.usedText
+                    : styles.expiredText,
+                ]}
+              >
+                {type === "used"
+                  ? "Used"
+                  : type === "expired"
+                  ? "Expired"
+                  : "Active"}
+              </PrimaryText>
+            </View>
+          </View>
+        )}
+
         <View style={styles.alternativesContainer}>
           <View style={styles.pointsContainer}>
-            <HeaderText>Points</HeaderText>
-            <SecondaryText>{String(rewardData?.price)} points</SecondaryText>
-          </View>
-          <View style={styles.verticleLine} />
-          <View style={styles.validityContainer}>
-            <HeaderText>Validity</HeaderText>
             <SecondaryText>
-              {typeof startluxonDateTime?.toFormat === "function"
-                ? startluxonDateTime.toFormat("d MMM yyyy")
-                : "Unknown"}{" "}
-              to{" "}
-              {typeof endluxonDateTime?.toFormat === "function"
-                ? endluxonDateTime.toFormat("d MMM yyyy")
-                : "Unknown"}
+              {type === "unredeemed" ? "Points" : "Redeemed With"}
             </SecondaryText>
+            <PrimaryText style={{ color: "#FF8D13" }}>{String(rewardData?.price)} points</PrimaryText>
+          </View>
+
+          <View style={styles.verticalLine} />
+
+          <View style={styles.validityContainer}>
+            <SecondaryText>
+              {type === "unredeemed"
+                ? "Validity"
+                : type === "used"
+                ? "Used On"
+                : "Expired On"}
+            </SecondaryText>
+            <PrimaryText>
+              {type === "unredeemed"
+                ? `${
+                    typeof startluxonDateTime?.toFormat === "function"
+                      ? startluxonDateTime.toFormat("d MMM yyyy")
+                      : "Unknown"
+                  } to ${
+                    typeof endluxonDateTime?.toFormat === "function"
+                      ? endluxonDateTime.toFormat("d MMM yyyy")
+                      : "Unknown"
+                  }`
+                : type === "used"
+                ? typeof usedluxonDateTime?.toFormat === "function"
+                  ? usedluxonDateTime.toFormat("d MMM yyyy, hh:mm:ss a")
+                  : usedluxonDateTime
+                  ? String(usedluxonDateTime)
+                  : "Unknown"
+                : typeof expiredluxonDateTime?.toFormat === "function"
+                ? expiredluxonDateTime.toFormat("d MMM yyyy, hh:mm:ss a")
+                : expiredluxonDateTime
+                ? String(expiredluxonDateTime)
+                : "Unknown"}
+            </PrimaryText>
           </View>
         </View>
 
-        <View style={styles.horizontalLine} />
+        <View style={[styles.hairlineBase, styles.horizontalLine]} />
 
-        <View style={styles.scrollContainer}>
-          <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-            <View style={styles.sectionContainer}>
-              <HeaderText>Highlight</HeaderText>
-              <ParagraphText>
-                {String(rewardData?.highlight ?? "")}
-              </ParagraphText>
-            </View>
-            <View style={styles.sectionContainer}>
-              <HeaderText>Terms & Conditions</HeaderText>
-              <ParagraphText>
-                {String(rewardData?.termsConditions ?? "")}
-              </ParagraphText>
-            </View>
-            <View style={styles.sectionContainer}>
-              <HeaderText>Contact Info</HeaderText>
-              <ParagraphText>
-                {String(rewardData?.contactInfo ?? "")}
-              </ParagraphText>
-            </View>
-          </ScrollView>
-        </View>
-      </ContentContainer>
-
-      <View style={styles.redeemContainer}>
-        <View style={styles.horizontalLine} />
         {type === "unredeemed" && (
-          <View style={styles.redeemButton}>
-            <TextButton
-              onPress={
-                isInvalid
-                  ? () =>
-                      showCustomAlert(
-                        "Reward Invalid!",
-                        "This reward is invalid or expired.",
-                        [{ text: "OK" }]
-                      )
-                  : () => checkIsFeedbackFilled()
-              }
-            >
-              Redeem
-            </TextButton>
+          <View style={styles.sectionContainer}>
+            <PrimaryText>Highlight</PrimaryText>
+            <ParagraphText>{String(rewardData?.highlight ?? "")}</ParagraphText>
           </View>
         )}
-        {type === "redeemed" && (
-          <View style={styles.redeemButton}>
-            <TextButton onPress={showRewardCode}>Use Now</TextButton>
+        {type !== "unredeemed" && (
+          <View style={styles.sectionContainer}>
+            <PrimaryText>How To Use</PrimaryText>
+            <ParagraphText>{String(rewardData?.howToUse ?? "")}</ParagraphText>
           </View>
         )}
+
+        <View style={styles.sectionContainer}>
+          <PrimaryText>Terms & Conditions</PrimaryText>
+          <ParagraphText>
+            {String(rewardData?.termsConditions ?? "")}
+          </ParagraphText>
+        </View>
+
+        <View style={styles.sectionContainer}>
+          <PrimaryText>Contact Info</PrimaryText>
+          <ParagraphText>{String(rewardData?.contactInfo ?? "")}</ParagraphText>
+        </View>
+
+        <View style={styles.redeemContainer}>
+          <View style={[styles.hairlineBase, styles.horizontalLine]} />
+          {type === "unredeemed" && (
+            <View style={styles.redeemButton}>
+              <TextButton
+                onPress={
+                  isInvalid
+                    ? () =>
+                        showCustomAlert(
+                          "Reward Invalid!",
+                          "This reward is invalid or expired.",
+                          [{ text: "OK" }]
+                        )
+                    : () => checkIsFeedbackFilled()
+                }
+              >
+                Redeem
+              </TextButton>
+            </View>
+          )}
+          {type === "active" && (
+            <View style={styles.redeemButton}>
+              {isCodeDisplayed ? (
+                <>
+                  {/* <View style={styles.redeemedCodeBorder}>
+                    <PrimaryText style={{ textAlign: "center" }}>
+                      {` ${redeemedCode ?? ""}`}
+                    </PrimaryText>
+                  </View>
+                  <TextButton onPress={copyRewardCode}>
+                    Copy Reward Code
+                  </TextButton> */}
+                </>
+              ) : (
+                <TextButton onPress={showRewardCode}>Use Now</TextButton>
+              )}
+            </View>
+          )}
+        </View>
 
         <CustomAlert
           visible={alertVisible}
@@ -393,8 +531,8 @@ export default function RewardDetails({
           buttons={alertButtons}
           onClose={() => setAlertVisible(false)}
         />
-      </View>
-    </View>
+      </ContentContainer>
+    </ScrollView>
   );
 }
 
@@ -409,18 +547,22 @@ const styles = StyleSheet.create({
     width: screenWidth,
     aspectRatio: 16 / 7,
     resizeMode: "contain",
-    zIndex: 2,
+    zIndex: 1,
+    borderRadius: 1, // 让图片边角更圆润
   },
   supplierLogo: {
     width: 50,
     height: 50,
     position: "absolute",
     bottom: 10,
-    left: 10,
+    left: 15,
+    zIndex: 2,
+    borderRadius: 10, // 让图片边角更圆润
   },
   shareIcon: { height: 24, width: 24 },
   titleContainer: {
-    padding: 5,
+    // padding: 5,
+    paddingBottom: 10,
     alignItems: "center",
   },
   alternativesContainer: {
@@ -428,38 +570,77 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   pointsContainer: {
-    marginHorizontal: 5,
+    // marginHorizontal: 5,
   },
-  verticleLine: {
+  verticalLine: {
     width: StyleSheet.hairlineWidth,
     backgroundColor: "#909090",
-    marginHorizontal: 30,
+    marginHorizontal: 13,
   },
   validityContainer: {},
   scrollContainer: {
-    position: "absolute",
-    top: 125,
-    bottom: 100,
-    left: 5,
-    right: 5,
+    marginHorizontal: 5,
   },
-  scrollViewContainer: {},
+  scrollViewContainer: {
+    paddingBottom: 50,
+  },
+  hairlineBase: {
+    backgroundColor: "#909090",
+  },
   horizontalLine: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: "#909090",
     marginVertical: 10,
   },
   sectionContainer: {
     marginVertical: 10,
   },
   redeemContainer: {
-    position: "absolute",
-    bottom: 20,
-    right: 0,
-    left: 0,
-    // marginHorizontal: "10%",
+    backgroundColor: "#fff",
   },
   redeemButton: {
     marginHorizontal: "10%",
+  },
+  redeemedCodeBorder: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 10,
+    marginVertical: 8,
+  },
+  statusLabelWrapper: {
+    alignItems: "center",
+  },
+  statusLabelContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+
+  // 分离文字样式
+  baseLabelText: {
+    fontWeight: "bold",
+    fontSize: 15,
+  },
+  activeText: {
+    // color: "#2E7D32",
+    color: "#FFFFFF",
+  },
+  usedText: {
+    color: "#616161",
+  },
+  expiredText: {
+    color: "#C62828",
+  },
+
+  // 分离背景样式
+  activeBg: {
+    // backgroundColor: "#DFF5E1",
+    backgroundColor: "#FF8D13",
+  },
+  usedBg: {
+    backgroundColor: "#E0E0E0",
+  },
+  expiredBg: {
+    backgroundColor: "#FFEBEE",
   },
 });

@@ -1,10 +1,19 @@
 import { firebase } from "@react-native-firebase/firestore";
-import { CommunityType, RewardCodesType, RewardType } from "../types";
+import {
+  CommunityType,
+  RewardCodesType,
+  RewardObtainedType,
+  RewardType,
+} from "../types";
 
 // Rewards
 export const fetchRewardsData = async (): Promise<RewardType[]> => {
   try {
-    const response = await firebase.firestore().collection("Rewards").get();
+    const response = await firebase
+      .firestore()
+      .collection("Rewards")
+      .orderBy("createdDate", "desc")
+      .get();
     console.log("Successfully fetched reward's data");
     return response.docs.map((doc) => doc.data() as RewardType);
   } catch (error) {
@@ -49,6 +58,7 @@ export const fetchRewardCodesDataByRID = async (
 
 export const redeemRandomVoucherCode = async (
   RID: string,
+  price: number,
   emailAddress: string | undefined // 改为 email，与 fetchRewardsObtainedData 一致
 ): Promise<RewardCodesType | null> => {
   try {
@@ -109,7 +119,7 @@ export const redeemRandomVoucherCode = async (
       return null;
     }
 
-    // 使用事务更新 code 和 RewardsObtained
+    // 使用事务更新 Codes , RewardsObtained & PointsUsed
     const codeRef = db
       .collection("Rewards")
       .doc(RID)
@@ -119,6 +129,11 @@ export const redeemRandomVoucherCode = async (
       .collection("Users")
       .doc(userDocId)
       .collection("RewardsObtained")
+      .doc(); // 新文档，自动生成 ID
+    const pointsUsedRef = db
+      .collection("Users")
+      .doc(userDocId)
+      .collection("PointsUsed")
       .doc(); // 新文档，自动生成 ID
 
     return await db.runTransaction(async (transaction) => {
@@ -144,7 +159,8 @@ export const redeemRandomVoucherCode = async (
       transaction.update(codeRef, updatedCodeData);
 
       // 当前时间
-      const now = firebase.firestore.Timestamp.now();
+      // const now = firebase.firestore.Timestamp.now();
+      const now = new Date();
 
       // 1个月后
       const oneMonthLater = new Date();
@@ -157,7 +173,7 @@ export const redeemRandomVoucherCode = async (
       const rewardObtainedData = {
         code: selectedCode,
         reference: RID,
-        redeemedDate: firebase.firestore.Timestamp.fromDate(new Date()),
+        redeemedDate: firebase.firestore.Timestamp.fromDate(now),
         // expiredDate: codeData.expiresAt
         //   ? codeData.expiresAt
         //   : null,
@@ -166,6 +182,14 @@ export const redeemRandomVoucherCode = async (
         status: "active",
       };
       transaction.set(rewardObtainedRef, rewardObtainedData);
+
+      // 添加到 PointsUsed
+      const pointsUsedData = {
+        date: firebase.firestore.Timestamp.fromDate(now),
+        points: price,
+        reference: rewardObtainedRef.id,
+      };
+      transaction.set(pointsUsedRef, pointsUsedData);
 
       console.log(
         `Successfully redeemed code ${selectedCode} for user ${userDocId}`
@@ -185,6 +209,67 @@ export const redeemRandomVoucherCode = async (
     return null;
   }
 };
+
+export const updateRewardsObtained = async (
+  redeemedCode: string,
+  emailAddress: string | undefined
+): Promise<void> => {
+  try {
+    const db = firebase.firestore();
+
+    // 查询用户文档
+    const userSnapshot = await db
+      .collection("Users")
+      .where("emailAddress", "==", emailAddress)
+      .get();
+
+    if (userSnapshot.size !== 1) {
+      console.log(`User with email ${emailAddress} not found or multiple found`);
+      return;
+    }
+
+    const userDocId = userSnapshot.docs[0].id;
+
+    // 查询 RewardsObtained 中 code 匹配的文档（限制最多1个）
+    const rewardObtainedQuerySnapshot = await db
+      .collection("Users")
+      .doc(userDocId)
+      .collection("RewardsObtained")
+      .where("code", "==", redeemedCode)
+      .limit(1)
+      .get();
+
+    if (rewardObtainedQuerySnapshot.empty) {
+      console.log(`RewardObtained ${redeemedCode} not exists`);
+      return;
+    }
+
+    const rewardObtainedRef = rewardObtainedQuerySnapshot.docs[0].ref;
+
+    await db.runTransaction(async (transaction) => {
+      const rewardSnap = await transaction.get(rewardObtainedRef);
+      const currentData = rewardSnap.data() as RewardObtainedType;
+
+      if (currentData.status !== "active") {
+        console.log(`RewardObtained ${redeemedCode} is no longer active`);
+        return;
+      }
+
+      transaction.update(rewardObtainedRef, {
+        status: "used",
+        usedDate: firebase.firestore.Timestamp.now(),
+      });
+
+      console.log(`Updated RewardObtained ${redeemedCode} for user ${userDocId}`);
+    });
+  } catch (error) {
+    console.error(
+      `Error updating RewardObtained for redeemedCode: ${redeemedCode}`,
+      error
+    );
+  }
+};
+
 
 // Communities
 export const fetchCommunitiesData = async (): Promise<CommunityType[]> => {

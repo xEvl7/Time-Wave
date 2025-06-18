@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
+import styles from "../styles";
 
 const VerticalItemList = ({
   imageSource,
@@ -15,65 +16,23 @@ const VerticalItemList = ({
   onPress: any;
 }) => (
   <TouchableOpacity onPress={onPress}>
-    <View style={styles.container}>
-      <Image source={{ uri: imageSource }} style={styles.image} />
-      <View>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-        <View style={styles.pointsContainer}>
+    <View style={styles.verticalGridItem}>
+      <View style={styles.verticalImageBox}>
+        <Image source={{ uri: imageSource }} style={styles.verticalImage} />
+      </View>
+      <View style={styles.verticalTextContainer}>
+        <Text style={styles.itemTitle}>{title}</Text>
+        <Text style={styles.itemSubTitle}>{subtitle}</Text>
+        <View style={styles.pointContainer}>
           <Image
             source={require("../assets/diamond.png")}
-            style={styles.icon}
+            style={styles.pointIcon}
           />
-          <Text style={styles.points}>{points}</Text>
-          <Text style={styles.pointsLabel}> Points</Text>
+          <Text style={styles.point}>{points} Points</Text>
         </View>
       </View>
     </View>
   </TouchableOpacity>
 );
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  image: {
-    width: 150,
-    height: 100,
-    marginRight: 12,
-    resizeMode: "stretch",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  title: {
-    fontSize: 15,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  pointsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  icon: {
-    width: 20,
-    height: 20,
-    marginRight: 5,
-  },
-  points: {
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  pointsLabel: {
-    fontSize: 12,
-    marginLeft: 2,
-  },
-});
 
 export default VerticalItemList;

@@ -58,12 +58,14 @@ export default function CommunityItem({
       onPressOut={handlePressOut}
     >
       <Animated.View
-        style={[styles.gridItem, { transform: [{ scale: scaleAnim }] }]}
+        style={[styles.horizontalGridItem, { transform: [{ scale: scaleAnim }] }]}
       >
-        <Image source={{ uri: item.logo }} style={styles.image} />
-        <View style={styles.text}>
-          <Text style={styles.description}>{item.name}</Text>
-          <Text style={styles.subDescription}>{item.description}</Text>
+        <View style={styles.horizontalImageBox}>
+          <Image source={{ uri: item.logo }} style={styles.horizontalImage} />
+        </View>
+        <View style={styles.horizontalTextContainer}>
+          <Text style={styles.itemTitle}>{item.name}</Text>
+          <Text style={styles.itemSubTitle}>{item.description}</Text>
         </View>
       </Animated.View>
     </TouchableWithoutFeedback>
