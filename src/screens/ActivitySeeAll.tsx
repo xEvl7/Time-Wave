@@ -48,7 +48,7 @@ import CreateActivity from "./CreateActivity";
                 //item={item}
               />
             </ScrollView>
-            <TextButton onPress={()=>navigation.navigate("CreateActivity", {item} )}> New Activity</TextButton>
+            <TextButton onPress={()=>navigation.navigate("CreateActivity", item )}> New Activity</TextButton>
           </View>
         </ContentContainer>
       </>

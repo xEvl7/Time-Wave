@@ -34,6 +34,7 @@ const Communities = ({
   >([]);
   const [loading, setLoading] = useState(true);
   const item = route.params;
+  console.log("item", item);
 
   useEffect(() => {
     const fetchCommunitiesData = async () => {
@@ -57,7 +58,7 @@ const Communities = ({
   const renderCommunityItem = ({ item }: { item: any }) => (
     <Pressable
       style={styles.gridItem}
-      onPress={() => navigation.navigate("CommunityInfo", { item })}
+      onPress={() => navigation.navigate("CommunityInfo", item)}
     >
       <View style={styles.imageBox}>
         <Image

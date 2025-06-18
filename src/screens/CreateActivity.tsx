@@ -4,7 +4,7 @@ import ContentContainer from "../components/ContentContainer";
 import PrimaryText from "../components/text_components/PrimaryText";
 import ValidatedTextInput from "../components/ValidatedTextInput";
 import TextButton from "../components/TextButton";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons'
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as ImagePicker from "expo-image-picker";
 import storage from "@react-native-firebase/storage";
-import firestore, { firebase } from "@react-native-firebase/firestore";
+import firestore, { firebase, FirebaseFirestoreTypes  } from "@react-native-firebase/firestore";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 type CreateActivityRouteProp = RouteProp<RootStackParamList, "CreateActivity">;
@@ -29,7 +29,7 @@ const CreateActivity = ({
   const [commID,setcommID] = useState<string | null>(item.item.id);
   
   const [image, setImage] = useState<string | null>(null);
-  const [endDate, setEndDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<FirebaseFirestoreTypes.Timestamp | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const generalLogo = "https://firebasestorage.googleapis.com/v0/b/time-wave-88653.appspot.com/o/activitylogo.png?alt=media&token=16563524-d8c6-4b62-8521-40b938684856";
 
@@ -38,6 +38,10 @@ const CreateActivity = ({
       Alert.alert("Error", "User authentication required");
       return;
     }
+
+    setcommID(item.item.id); 
+    console.log("commID: ", commID);
+    console.log("item: ", item); 
   
     try {
       // Sanitize data before sending to Firestore
@@ -50,11 +54,12 @@ const CreateActivity = ({
   
       let activityData = { 
         ...sanitizedData,
-        logo: generalLogo,
-        communityId:  commID || 'default-community-id', // Ensure required field
-        createdBy: ownUserId,
-        postedDate: firebase.firestore.Timestamp.now(),
-        endDate: endDate || firebase.firestore.Timestamp.now().toISOString() // Fallback date
+        logo        : generalLogo,
+        communityId :  commID       || 'default-community-id', // Ensure required field
+        createdBy   : ownUserId,
+        postedDate  : firebase.firestore.Timestamp.now(),
+        endDate     : endDate ? endDate : firebase.firestore.Timestamp.now(), //firebase.firestore.Timestamp.fromDate(new Date(endDate)) //endDate       || firebase.firestore.Timestamp.now(),//.toISOString() // Fallback date
+        location    : sanitizedData.location || 'Unspecified location',
       };
   
       if (image) {
@@ -73,24 +78,24 @@ const CreateActivity = ({
         ...activityData,
         id: activityRef.id,
         // Convert undefined values to null for Firestore
-        tac: activityData.tac || null,
+        // tac: activityData.tac || null,
         location: activityData.location || 'Unspecified location'
       };
   
       
 
       type ActivityProps ={       
-          item:any;
-          id: string;
-          logo?: string;
-          name: string;
-          description: string;
+          item        :any;
+          id          : string;
+          logo?       : string;
+          name        : string;
+          description : string;
           // tac: string;
-          location:string;
-          createdBy?: string;
-          communityId: string; 
-          endDate?: string | null; // User-chosen end date (ISO string)
-          postedDate: string; // Automatically set at creation (ISO string)
+          location    : string;
+          createdBy?  : string;
+          communityId : string; 
+          endDate?    : string | null; // User-chosen end date (ISO string)
+          postedDate  : string; // Automatically set at creation (ISO string)
       };
 
      await activityRef.set(finalData);
@@ -113,7 +118,7 @@ const CreateActivity = ({
 
   const handleDateConfirm = (date: Date) => {
     setShowDatePicker(false);
-    setEndDate(date.toISOString());
+    setEndDate(firebase.firestore.Timestamp.fromDate(date)); //.toISOString()
   };
 
   const pickImage = async () => {
@@ -204,7 +209,7 @@ const CreateActivity = ({
             style={styles.dateButton}
           >
             <Text style={styles.dateText}>
-              {endDate ? new Date(endDate).toLocaleDateString() : "Select date"}
+              {endDate ? endDate.toDate().toLocaleDateString() : "Select date"}
             </Text>
           </TouchableOpacity>
         </View>

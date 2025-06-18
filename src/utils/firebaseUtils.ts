@@ -191,7 +191,10 @@ export const fetchCommunitiesData = async (): Promise<CommunityType[]> => {
   try {
     const response = await firebase.firestore().collection("Communities").get();
     console.log("Successfully fetched communities's data");
-    return response.docs.map((doc) => doc.data() as CommunityType);
+    return response.docs.map((doc) => ({
+      id:doc.id,
+      ...doc.data(),
+    }))  as CommunityType[];
   } catch (error) {
     console.error("Error fetching communities data:", error);
     return [];

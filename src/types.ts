@@ -15,6 +15,7 @@ export type RewardCodesType = {
 };
 
 export type CommunityType = {
+  id: string;
   logo: string;
   name: string;
   description: string;

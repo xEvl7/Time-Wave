@@ -45,9 +45,10 @@ const CommunityInfo = ({
   navigation,
   route,
 }: NativeStackScreenProps<RootStackParamList, "CommunityInfo">) => {
-  const item = route.params;
-  console.log("route.params item", item.id);
+  const item = route.params;  
   const docId = route.params.id;
+  console.log("route.params ", route.params);
+  console.log("comm item ", item); 
 
   const userId = useAppSelector((state) => state.user.data?.uid) || "";
 
@@ -59,6 +60,7 @@ const CommunityInfo = ({
   const [image, setImage] = useState<string | null>(route.params.logo || null);
 
   const update = firebase.firestore().collection("Communities").doc(docId);
+
 
   useEffect(() => {
     console.log("checking is admin?");
@@ -206,7 +208,7 @@ const CommunityInfo = ({
             />
           </TouchableOpacity>
           <ContentContainer>
-            <View style={styles.Header}>
+            <View style={styles.HeaderContainer}>
               {isAdmin ? (
                 <TextInput
                   style={styles.editingText}
@@ -264,7 +266,10 @@ const CommunityInfo = ({
               <OngoingListSection
                 title={"Ongoing Activities"}
                 navigation={navigation}
-                item={item}
+                item={item}                
+                docId={docId}
+                isAdmin={isAdmin}
+                // isPast={false}
               />
             </View>
             <View style={styles.listHeader}></View>
@@ -273,6 +278,9 @@ const CommunityInfo = ({
                 title={"Past Activities"}
                 navigation={navigation}
                 item={item}
+                docId={docId}
+                isAdmin={isAdmin}
+                // isPast={false}
               />
             </View>
             <View style={styles.listFooter}></View>
@@ -283,13 +291,14 @@ const CommunityInfo = ({
             position: "absolute",
             left: "26%",
             bottom: "3%",
+            width: "50%",
           }}
         >
           {isAdmin ? (
             <TextButton onPress={handleEdit}> Save Changes </TextButton>
           ) : (
             <TextButton onPress={handlePressJoin}>
-              {" "}Join this community{" "}
+                 Join this community      
             </TextButton>
           )}
         </View>
@@ -327,12 +336,15 @@ const NavigationItem = ({
   );
 };
 
-type UserListProps = {
-  title: any;
+type ListProps = {
+  title: string;
   navigation: NavigationProp<RootStackParamList>;
   item: any;
-  isAdmin: any;
   docId: any;
+};
+
+type UserListProps = ListProps & {  
+  isAdmin: boolean
 };
 
 type UserType = {
@@ -351,7 +363,7 @@ const renderAdminItems = ({
   docId,
 }: {
   title: any;
-  item: UserType;
+  item: any; //UserType;
   navigation: any;
   isAdmin: any;
   docId: any;
@@ -413,7 +425,7 @@ const renderAdminItems = ({
           </View>
         </Pressable>
       ) : (
-        <Pressable onPress={() => navigation.navigate("ProfileInfo", { item })}>
+        <Pressable onPress={handleAdminProfile}>
           <View style={styles.peopleGrid}>
             <View style={styles.profileImageBox}>
               <Image source={{ uri: item.logo }} style={styles.profilepic} />
@@ -425,6 +437,7 @@ const renderAdminItems = ({
     </View>
   );
 };
+
 const AdminListSection = ({
   title,
   navigation,
@@ -459,6 +472,7 @@ const AdminListSection = ({
   const limitedAdminData = user.slice(0, limit);
 
   const member = 1; //admin
+
   const handleSeeAllPress = () => {
     navigation.navigate("MemberSeeAll", { item, member });
     console.log("transfer see all ", item);
@@ -472,6 +486,7 @@ const AdminListSection = ({
           <ButtonText>See all</ButtonText>
         </Pressable>
       </View>
+
       <FlatList
         showsVerticalScrollIndicator={false}
         horizontal
@@ -504,27 +519,93 @@ const renderVolunteerItems = ({
   item,
   navigation,
   isAdmin,
+  docId
 }: {
   title: any;
-  item: UserType;
+  item: any; //UserType;
   navigation: any;
   isAdmin: any;
-}) => (
-  <Pressable onPress={() => navigation.navigate("ProfileInfo", { item })}>
-    <View style={styles.peopleGrid}>
-      <View style={styles.profileImageBox}>
-        <Image source={{ uri: item.logo }} style={styles.profilepic} />
-        <Text style={styles.profileName}>{item.name}</Text>
-      </View>
+  docId: any;
+}) => {
+  const handleVolunteerProfile = () => {
+    navigation.navigate("ProfileInfo", { item });
+  };
+
+  console.log("item", item);
+  console.log("docId", docId);
+
+  const volunteerToRemove = item.uid; 
+  const handleRemoveVolunteer = () => {
+    Alert.alert(
+      "Caution",
+      `You are going to remove ${item.name} `,
+      [
+        {
+          text: "Remove",
+          onPress: () => {
+            console.log("Yes Pressed,docId,item : ", docId, volunteerToRemove);
+            const removeVolunteer = async () => {
+              try {
+                firebase
+                  .firestore()
+                  .collection("Communities")
+                  .doc(docId)
+                  .update({
+                    volunteers: firebase.firestore.FieldValue.arrayRemove(
+                      volunteerToRemove
+                    ),
+                  });
+              } catch (error) {
+                console.error("Error removing volunteer", error);
+              }
+            };
+            removeVolunteer();
+          },
+        },
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+    return (
+    <View>
+      {isAdmin ? (
+        <Pressable
+          onPress={handleVolunteerProfile}
+          onLongPress={handleRemoveVolunteer}
+        >
+          <View style={styles.peopleGrid}>
+            <View style={styles.profileImageBox}>
+              <Image source={{ uri: item.logo }} style={styles.profilepic} />
+              <Text style={styles.profileName}>{item.name}</Text>
+            </View>
+          </View>
+        </Pressable>
+      ) : (
+        <Pressable onPress={() => navigation.navigate("ProfileInfo", { item })}>
+          <View style={styles.peopleGrid}>
+            <View style={styles.profileImageBox}>
+              <Image source={{ uri: item.logo }} style={styles.profilepic} />
+              <Text style={styles.profileName}>{item.name}</Text>
+            </View>
+          </View>
+        </Pressable>
+      )}
     </View>
-  </Pressable>
-);
+  ); 
+};
 
 const VolunteerListSection = ({
   title,
   navigation,
   item,
   isAdmin,
+  docId,
 }: UserListProps) => {
   const [userData, setUserData] = useState<
     FirebaseFirestoreTypes.DocumentData[]
@@ -552,6 +633,7 @@ const VolunteerListSection = ({
 
   const limit = 5;
   const limitedVolunteerData = userData.slice(0, limit);
+  
   const member = 0; //volunteer
 
   const handleSeeAllPress = () => {
@@ -575,7 +657,7 @@ const VolunteerListSection = ({
         data={limitedVolunteerData} // data from firebase
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) =>
-          renderVolunteerItems({ title, item, navigation, isAdmin })
+          renderVolunteerItems({ title, item, navigation, isAdmin, docId })
         }
         contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
         ListEmptyComponent={() => (
@@ -593,11 +675,6 @@ const VolunteerListSection = ({
       />
     </View>
   );
-};
-type ListSectionProps = {
-  title: string;
-  navigation: NavigationProp<RootStackParamList>;
-  item: any;
 };
 
 const renderActivityItems = ({
@@ -625,36 +702,35 @@ const ActivityListSection = ({
   title,
   navigation,
   item,
+  docId,
   isPast,
-}: ListSectionProps & { isPast: boolean }) => {
+}: ListProps & { isPast: boolean }) => {
   const [activitiesData, setActivitiesData] = useState<ActivityProps[]>([]);
-  const [communityData, setCommunityData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchActivitiesData = async () => {
       try {
-        const communityId = item.id; // Ensure `item.id` is correctly passed
+        const communityId = docId;
         console.log("Fetching activities for communityId:", communityId);
 
-        const activitiesRef = firebase.firestore().collection("Activities");
+        const now = firebase.firestore.Timestamp.now();
 
-        // Filter activities by communityId
-        let query = activitiesRef.where("communityId", "==", communityId);
+        let query = firebase
+          .firestore()
+          .collection("Activities")
+          .where("communityId", "==", communityId);
 
-        // Further filter by date (past or ongoing)
-        const nowISO = new Date().toISOString();
-
-        // Further filter by date (past or ongoing)
+        // Compare with Firestore Timestamp
         if (isPast) {
-          query = query.where("endDate", "<=", nowISO);
+          query = query.where("endDate", "<=", now);
         } else {
-          query = query.where("endDate", ">=", nowISO);
+          query = query.where("endDate", ">=", now);
         }
 
         const querySnapshot = await query.get();
         const fetchedActivitiesData = querySnapshot.docs.map((doc) => ({
-          id: doc.id, // Ensure `id` is included
+          id: doc.id,
           ...doc.data(),
         })) as ActivityProps[];
 
@@ -663,20 +739,25 @@ const ActivityListSection = ({
       } catch (error) {
         console.error(
           "Error fetching activities data for communityId:",
-          item.id,
+          docId,
           error
         );
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchActivitiesData();
-  }, [isPast, item.id]);
+  }, [isPast, docId]);
 
   const limit = 5;
   const limitedActivitiesData = activitiesData.slice(0, limit);
 
   const handleSeeAllPress = () => {
-    navigation.navigate("ActivitySeeAll", { activities: activitiesData, item: item });
+    navigation.navigate("ActivitySeeAll", {
+      activities: activitiesData,
+      item: item,
+    });
   };
 
   return (
@@ -712,29 +793,179 @@ const ActivityListSection = ({
   );
 };
 
+const OngoingListSection = ({
+  title,
+  navigation,
+  item,
+  docId,
+  // isAdmin,
+}: ListProps) => (
+  <ActivityListSection
+    title={title}
+    navigation={navigation}
+    item={item}
+    docId={docId}
+    isPast={false}
+  />
+);
+
+const PastListSection = ({
+  title,
+  navigation,
+  item,
+  docId,
+  // isAdmin,
+}: ListProps) => (
+  <ActivityListSection
+    title={title}
+    navigation={navigation}
+    item={item}
+    docId={docId}
+    isPast={true}
+  />
+);
 
 
-const OngoingListSection = ({ title, navigation, item }: ListSectionProps) => {
-  return (
-    <ActivityListSection
-      title={title}
-      navigation={navigation}
-      item={item}
-      isPast={false}
-    />
-  );
-};
+// const renderActivityItems = ({
+//   item,
+//   navigation,
+// }: {
+//   item: ActivityProps;
+//   navigation: any;
+// }) => (
+//   <Pressable onPress={() => navigation.navigate("ActivityInfo", { item })}>
+//     <View style={styles.gridItem}>
+//       <View style={styles.imageBox}>
+//         <Image source={{ uri: item.logo }} style={styles.image} />
+//       </View>
+//       <View style={styles.text}>
+//         <Text style={styles.description}>{item.name}</Text>
+//         <Text style={styles.subDescription}>{item.description}</Text>
+//         <View style={styles.pointContainer}></View>
+//       </View>
+//     </View>
+//   </Pressable>
+// );
 
-const PastListSection = ({ title, navigation, item }: ListSectionProps) => {
-  return (
-    <ActivityListSection
-      title={title}
-      navigation={navigation}
-      item={item}
-      isPast={true}
-    />
-  );
-};
+// const ActivityListSection = ({
+//   title,
+//   navigation,
+//   item,
+//   docId,
+//   isPast,
+// }: ListProps & { isPast: boolean }) => {
+//   const [activitiesData, setActivitiesData] = useState<ActivityProps[]>([]);
+//   const [communityData, setCommunityData] = useState(null);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     const fetchActivitiesData = async () => {
+//       try {
+//         const communityId = docId;// item.id; // Ensure `item.id` is correctly passed
+//         console.log("Fetching activities for communityId:", communityId);
+
+//         const activitiesRef = firebase.firestore().collection("Activities");
+
+//         // Filter activities by communityId
+//        const now = firebase.firestore.Timestamp.now(); // Get Firestore Timestamp
+
+//         let query = firebase.firestore()
+//           .collection("Activities")
+//           .where("communityId", "==", communityId);
+
+//         if (isPast) {
+//           query = query.where("endDate", "<=", now);
+//         } else {
+//           query = query.where("endDate", ">=", now);
+//         }
+
+//         const querySnapshot = await query.get();
+//         const fetchedActivitiesData = querySnapshot.docs.map((doc) => ({
+//           id: doc.id, // Ensure `id` is included
+//           ...doc.data(),
+//         })) as ActivityProps[];
+
+//         console.log("Fetched activities:", fetchedActivitiesData);
+//         setActivitiesData(fetchedActivitiesData);
+//       } catch (error) {
+//         console.error(
+//           "Error fetching activities data for communityId:",
+//           item.id,
+//           error
+//         );
+//       }
+//     };
+
+//     fetchActivitiesData();
+//   }, [isPast, item.id]);
+
+//   const limit = 5;
+//   const limitedActivitiesData = activitiesData.slice(0, limit);
+
+//   const handleSeeAllPress = () => {
+//     navigation.navigate("ActivitySeeAll", { activities: activitiesData, item: item });
+//   };
+
+//   return (
+//     <View>
+//       <View style={styles.listHeader}>
+//         <PrimaryText>{title}</PrimaryText>
+//         <Pressable onPress={handleSeeAllPress}>
+//           <ButtonText>See all</ButtonText>
+//         </Pressable>
+//       </View>
+
+//       <FlatList
+//         horizontal
+//         showsHorizontalScrollIndicator={false}
+//         data={limitedActivitiesData}
+//         keyExtractor={(item) => item.id}
+//         renderItem={({ item }) => renderActivityItems({ item, navigation })}
+//         contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
+//         ListEmptyComponent={() => (
+//           <Text
+//             style={{
+//               color: "red",
+//               textAlign: "center",
+//               marginBottom: 20,
+//               marginLeft: 20,
+//             }}
+//           >
+//             No data available
+//           </Text>
+//         )}
+//       />
+//     </View>
+//   );
+// };
+
+
+
+// const OngoingListSection = ({ title, navigation, item, docId, isAdmin }: ListProps) => {
+//   return (
+//     <ActivityListSection
+//       title={title}
+//       navigation={navigation}
+//       item={item}
+//       docId={docId}
+//       isPast={false}
+//       isAdmin={isAdmin}
+//     />
+//   );
+// };
+
+// const PastListSection = ({ title, navigation, item, docId, isAdmin }: ListProps) => {
+//   return (
+//     <ActivityListSection
+//       title={title}
+//       navigation={navigation}
+//       item={item}
+//       docId={docId}
+//       isPast={true}
+//       isAdmin={isAdmin}
+//     />
+//   );
+// };
 
 export default CommunityInfo;
 
@@ -748,6 +979,15 @@ const styles = StyleSheet.create({
   Header: {
     fontSize: 20,
     fontWeight: "bold",
+  },
+  HeaderContainer: {
+    height  : 50,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    backgroundColor: "#F1CFA3",
+
   },
   contentContainer: {
     borderColor: "#BDBDBD",
