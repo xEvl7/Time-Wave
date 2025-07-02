@@ -44,17 +44,20 @@ const HomePage = ({ navigation }: { navigation: NavigationProp<any> }) => {
 
   // fetch user & contribution data again from firebase into redux store
   const refreshData = useCallback(async () => {
-    if (!email) return;
-    try {
-      await Promise.all([
-        dispatch(fetchUserData(email)),
-        fetchCommunitiesData().then(setCommunitiesData),
-        fetchRewardsData().then(setRewardsData),
-      ]);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  }, [email, dispatch]);
+  if (!email) return;
+  try {
+    await Promise.all([
+      dispatch(fetchUserData(email)),
+      fetchCommunitiesData().then(setCommunitiesData),
+      fetchRewardsData().then((data) => {
+        const activeRewards = data.filter((reward) => reward.status === "active");
+        setRewardsData(activeRewards);
+      }),
+    ]);
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+}, [email, dispatch]);
 
   const onRefresh = async () => {
     setRefreshing(true);

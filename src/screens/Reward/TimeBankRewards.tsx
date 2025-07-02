@@ -15,6 +15,7 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import HeaderText from "../../components/text_components/HeaderText";
 import SecondaryText from "../../components/text_components/SecondaryText";
 import { useAppDispatch, useAppSelector } from "../../hooks";
+import { RootState } from "../../store";
 import HorizontalFlatList from "../../components/HorizontalFlatList";
 import RewardItem from "../../components/RewardItem";
 import SearchBar from "../../components/SearchBar";
@@ -66,8 +67,12 @@ const TimeBankRewards = ({
       await Promise.all([
         dispatch(fetchUserData(email)),
         dispatch(fetchUserContributionData(email)),
-        fetchRewardsData().then(setRewardsData),
+        fetchRewardsData().then((data) => {
+          const activeRewards = data.filter((reward) => reward.status === "active");
+          setRewardsData(activeRewards);
+        }),
       ]);
+      
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -177,7 +182,7 @@ const TimeBankRewards = ({
                 renderItem={({ item }) => (
                   <RewardItem item={item} navigation={navigation} />
                 )}
-                seeAllPage="RewardSeeAll"
+                seeAllPage="RewardSeeAll_search"
               />
             ) : (
               <>
@@ -190,7 +195,7 @@ const TimeBankRewards = ({
                   )}
                   seeAllPage="RewardSeeAll"
                 />
-
+                {/*}
                 <HorizontalFlatList
                   title="Individual"
                   navigation={navigation}
@@ -198,8 +203,8 @@ const TimeBankRewards = ({
                   renderItem={({ item }) => (
                     <RewardItem item={item} navigation={navigation} />
                   )}
-                  seeAllPage="RewardSeeAll"
-                />
+                  seeAllPage="RewardSeeAll_individual"
+                />*/}
               </>
             )}
           </ScrollView>
