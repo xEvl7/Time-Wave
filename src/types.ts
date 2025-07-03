@@ -4,6 +4,7 @@ export type RewardType = {
   name: string;
   supplierName: string;
   price: number;
+  status: string;
 };
 
 export type RewardCodesType = {
@@ -15,6 +16,7 @@ export type RewardCodesType = {
 };
 
 export type CommunityType = {
+  id: string;
   logo: string;
   name: string;
   description: string;

@@ -47,7 +47,8 @@ export default function CommunityItem({
 
     if (distance < 5) {
       // 只有当手指几乎没有移动时才跳转
-      navigation.navigate("CommunityInfo", { item });
+      navigation.navigate("CommunityInfo",  item );
+      console.log("CommunityInfo : communityitem", item);
     }
   };
 

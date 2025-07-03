@@ -59,6 +59,9 @@ export type RootStackParamList = {
   EditProfile: undefined;
   NewProfile: undefined;
 
+  ApproveVolunteer: undefined;
+  RemoveVolunteer: undefined;
+
   // reward section
   TimeBankRewards: undefined;
   RewardSeeAll: { data: RewardType[] };

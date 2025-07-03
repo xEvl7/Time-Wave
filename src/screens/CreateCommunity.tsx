@@ -104,6 +104,7 @@ const CreateCommunity = ({
     await batch.commit();
 
     // Navigate to CommunityInfo screen with the new community ID
+    console.log("CommunityInfo", { ...data, id: communityRef.id });
     navigation.navigate("CommunityInfo", { ...data, id: communityRef.id });
   };
 
