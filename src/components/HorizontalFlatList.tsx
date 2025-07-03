@@ -51,6 +51,7 @@ export default function HorizontalFlatList<T>({
             <Text style={styles.emptyText}>No data available</Text>
           </View>
         }
+        scrollEnabled={data.length > 1} // 只允许多于1个item时滚动
       />
     </View>
   );

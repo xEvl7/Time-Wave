@@ -32,11 +32,13 @@ const styles = StyleSheet.create({
   horizontalTextContainer: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    height: 88,
+    // height: 105, // for two lines of text
+    height: 90,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    paddingTop: 5,
-    paddingLeft: 10,
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
 
   // Vertical Reward Item styles
@@ -56,13 +58,18 @@ const styles = StyleSheet.create({
   verticalImage: {
     borderRadius: 20,
     width: 150,
+    // height: 125,
     aspectRatio: 1.2,
     resizeMode: "contain",
     zIndex: 1,
   },
   verticalTextContainer: {
-    flex: 1,
     marginLeft: 15,
+    // marginHorizontal: 10,
+    paddingVertical: 10,
+    // maxWidth: 210, // 限制最大宽度
+    // width: 206,  // 所有item宽度完全一致
+    width: "55%",
   },
 
   overlayContainer: {
@@ -87,17 +94,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 4,
+    // marginBottom: 4,
   },
   itemSubTitle: {
     fontSize: 13,
     color: "#888",
-    marginBottom: 6,
+    marginBottom: 5,
   },
 
   pointContainer: {
     flexDirection: "row",
-    marginTop: 10,
+    // marginTop: 10,
+    // justifyContent: "flex-end",
+    // alignItems: "flex-end",
   },
   pointIcon: {
     width: 20,
@@ -113,7 +122,7 @@ const styles = StyleSheet.create({
   // myReward extra styles
   myRewardGridItem: {
     flexDirection: "row",
-    alignItems: "center",
+    // alignItems: "center",
     marginHorizontal: 10,
     marginTop: 12,
     backgroundColor: "#FFFFFF",
@@ -170,7 +179,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     width: 70,
     alignSelf: "flex-end",
-    marginTop: 20,
+    marginTop: 8,
     textAlign: "center",
   },
   usedBadge: {
@@ -186,7 +195,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     width: 65,
     alignSelf: "flex-end",
-    marginTop: 20,
+    marginTop: 8,
     textAlign: "center",
   },
   expiredBadge: {
@@ -202,7 +211,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     width: 65,
     alignSelf: "flex-end",
-    marginTop: 5,
+    marginTop: 8,
     textAlign: "center",
   },
 

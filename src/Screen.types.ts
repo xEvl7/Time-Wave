@@ -64,7 +64,7 @@ export type RootStackParamList = {
   RewardSeeAll: { data: RewardType[] };
   // RewardDetails: { item: { RID: string } };
   RewardDetails: {
-    item: { RID: string };
+    item: { RID: string, name: string };
     type?: string;
     redeemedCode?: string;
     expiredDate: any;
@@ -72,6 +72,7 @@ export type RootStackParamList = {
     usedDate: any;
   };
   MyRewards: undefined;
+  SplashScreen: undefined; // New splash screen added
 };
 
 export type BottomTabParamList = {

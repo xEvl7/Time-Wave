@@ -176,12 +176,9 @@ export const fetchUserData = createAsyncThunk(
 export const loadUserDataFromStore = createAsyncThunk(
   "user/loadUserDataFromCache",
   async () => {
-    let userDataJson: string | null = (await SecureStore.getItemAsync(
-      USER_DATA
-    )) as string | null;
-
+    let userDataJson: string | null = await SecureStore.getItemAsync(USER_DATA);
     if (userDataJson) return JSON.parse(userDataJson);
-    return userDataJson;
+    return null;
   }
 );
 
@@ -507,6 +504,8 @@ export const fetchRewardsObtainedData = createAsyncThunk(
         firestore.Timestamp.fromDate(endDate)
       );
     }
+
+    query = query.orderBy("redeemedDate", "desc");
 
     const rewardObtainedSnapshot = await query.get();
     const rewardObtainedData: RewardsObtainedData[] = [];
@@ -947,21 +946,21 @@ const userSlice = createSlice({
 const selectUserName = (state: RootState) => {
   if (state.user.data) return state.user.data.name;
 
-  console.warn("User's data is null or undefined.");
+  // console.warn("User's data is null or undefined.");
   return "";
 };
 
 const selectEmail = (state: RootState) => {
   if (state.user.data) return state.user.data.emailAddress;
 
-  console.warn("User's data is null or undefined.");
+  // console.warn("User's data is null or undefined.");
   return "";
 };
 
 const selectUserData = (state: RootState) => {
   if (state.user.data) return state.user.data;
 
-  console.warn("User's data is null or undefined.");
+  // console.warn("User's data is null or undefined.");
   return null;
 };
 

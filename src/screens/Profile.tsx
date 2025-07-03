@@ -26,6 +26,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ImagePickerResult } from "expo-image-picker";
 import storage from "@react-native-firebase/storage";
 import firestore from "@react-native-firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Profile = ({
   navigation,
@@ -170,6 +171,7 @@ const Profile = ({
       await SecureStore.deleteItemAsync(USER_DATA);
       await auth().signOut();
       dispatch(logOut());
+      await AsyncStorage.setItem("hasSeenAppInfo", "false");
       console.log("Successfully signed out.");
     } catch (error) {
       console.error("Error signing out:", error);
@@ -224,7 +226,10 @@ const Profile = ({
       title: "About Us",
       subtitle: "",
       subItems: [
-        { title: "App Info", onNavigate: () => navigation.navigate("AppInfo2") },
+        {
+          title: "App Info",
+          onNavigate: () => navigation.navigate("AppInfo2"),
+        },
         {
           title: "Benefits",
           onNavigate: () => navigation.navigate("Benefits"),

@@ -19,7 +19,7 @@ import HorizontalFlatList from "../../components/HorizontalFlatList";
 import RewardItem from "../../components/RewardItem";
 import SearchBar from "../../components/SearchBar";
 import { calculateLevel } from "../../utils/levelUtils";
-import { fetchRewardsData } from "../../utils/firebaseUtils";
+import { fetchActiveRewardsData } from "../../utils/firebaseUtils";
 import { RewardType } from "../../types";
 import { getTotalContributedHours } from "../../utils/contributionUtils";
 import {
@@ -66,7 +66,7 @@ const TimeBankRewards = ({
       await Promise.all([
         dispatch(fetchUserData(email)),
         dispatch(fetchUserContributionData(email)),
-        fetchRewardsData().then(setRewardsData),
+        fetchActiveRewardsData().then(setRewardsData),
       ]);
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -285,6 +285,7 @@ const styles = StyleSheet.create({
 
   listContainer: {
     flex: 4,
+    paddingVertical: 15,
   },
 });
 

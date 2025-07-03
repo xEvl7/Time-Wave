@@ -19,6 +19,7 @@ import SecondaryText from "../../components/text_components/SecondaryText";
 import PrimaryText from "../../components/text_components/PrimaryText";
 import { DateTime } from "luxon";
 import styles from "../../styles";
+import { truncateText } from "../../utils/commonUtils";
 
 export default function MyRewards({
   navigation,
@@ -64,7 +65,7 @@ export default function MyRewards({
       <Pressable
         onPress={() =>
           navigation.navigate("RewardDetails", {
-            item: { RID: item.reference },
+            item: { RID: item.reference, name: item.rewardInfo.name },
             type: item.status,
             redeemedCode: item.code,
             expiredDate: item.expiredDate,
@@ -99,10 +100,10 @@ export default function MyRewards({
           </View>
           <View style={styles.verticalTextContainer}>
             <PrimaryText style={styles.itemTitle}>
-              {item.rewardInfo.name}
+              {truncateText(item.rewardInfo.name, 30)}
             </PrimaryText>
             <SecondaryText style={styles.itemSubTitle}>
-              {item.rewardInfo.supplierName}
+              {truncateText(item.rewardInfo.supplierName, 30)}
             </SecondaryText>
             {activeTab === "active" && (
               <SecondaryText style={styles.expiryDateText}>
@@ -121,7 +122,7 @@ export default function MyRewards({
             )}
             {activeTab === "past" && item.usedDate !== "N/A" && (
               <SecondaryText style={styles.expiryDateText}>
-                Used on{" "}
+                Used on{"\n"}
                 {typeof DateTime.fromISO(item.usedDate).setZone(userTimeZone)
                   ?.toFormat === "function"
                   ? DateTime.fromISO(item.usedDate)
@@ -136,7 +137,7 @@ export default function MyRewards({
             )}
             {activeTab === "past" && item.usedDate === "N/A" && (
               <SecondaryText style={styles.expiryDateText}>
-                Expired on{" "}
+                Expired on{"\n"}
                 {typeof DateTime.fromISO(item.expiredDate).setZone(userTimeZone)
                   ?.toFormat === "function"
                   ? DateTime.fromISO(item.expiredDate)
@@ -204,9 +205,16 @@ export default function MyRewards({
             <RefreshControl
               refreshing={refreshing}
               onRefresh={fetchData}
-              colors={["#FF8D13"]} // 仅适用于 Android
-              tintColor="#FF8D13" // 仅适用于 iOS
+              colors={["#FF8D13"]}
+              tintColor="#FF8D13"
             />
+          }
+          ListEmptyComponent={
+            <View style={{ alignItems: "center", marginTop: 40 }}>
+              <Text style={{ color: "#888", fontSize: 16 }}>
+                No {activeTab === "active" ? "Active" : "Past"} Rewards
+              </Text>
+            </View>
           }
         />
       )}

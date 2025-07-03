@@ -16,7 +16,7 @@ import {
   selectUserName,
 } from "../features/userSlice";
 import { NavigationProp, useFocusEffect } from "@react-navigation/native";
-import { fetchCommunitiesData, fetchRewardsData } from "../utils/firebaseUtils";
+import { fetchCommunitiesData, fetchActiveRewardsData } from "../utils/firebaseUtils";
 import HorizontalFlatList from "../components/HorizontalFlatList";
 import RewardItem from "../components/RewardItem";
 import { CommunityType, RewardType } from "../types";
@@ -49,7 +49,7 @@ const HomePage = ({ navigation }: { navigation: NavigationProp<any> }) => {
       await Promise.all([
         dispatch(fetchUserData(email)),
         fetchCommunitiesData().then(setCommunitiesData),
-        fetchRewardsData().then(setRewardsData),
+        fetchActiveRewardsData().then(setRewardsData),
       ]);
     } catch (error) {
       console.error("Error fetching user data:", error);
