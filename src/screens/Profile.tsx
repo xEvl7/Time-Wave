@@ -195,6 +195,12 @@ const Profile = ({
 
   const navigationItems = [
     {
+      title: "My Account",
+      subtitle: "Level " + currentLevel,
+      screen: "Account",
+    },
+    { title: "Admin Panel", subtitle: "", screen: "AdminControl" },
+    {
       title: "Community",
       subtitle: "",
       subItems: [
@@ -205,22 +211,16 @@ const Profile = ({
       ],
     },
     {
-      title: "My Account",
-      subtitle: "Level " + currentLevel,
-      screen: "Account",
-    },
-    { title: "Admin Panel", subtitle: "", screen: "AdminControl" },
-    {
       title: "Settings",
       subtitle: "",
       screen: "Setting",
-      subButtom: [{ title: "Notification" }],
       subItems: [
         {
           title: "Edit Profile",
           onNavigate: () => navigation.navigate("NewProfile"),
         },
       ],
+      subButtom: [{ title: "Notification" }],
     },
     {
       title: "About Us",
@@ -273,7 +273,7 @@ const Profile = ({
             title={item.title}
             children={item.subtitle}
             subItems={item.subItems}
-            subButtom={item.subButtom}
+            subSwitch={item.subButtom}
           />
         )}
         contentContainerStyle={styles.flatListContainer}
@@ -310,6 +310,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 50,
+    paddingLeft: 20,
   },
   profileImage: {
     width: 100,

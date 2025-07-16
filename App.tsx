@@ -2,7 +2,7 @@ import { Provider } from "react-redux";
 import { useEffect, useRef } from "react";
 import * as SecureStore from "expo-secure-store";
 import { useFonts } from "expo-font";
-import { Provider as PaperProvider } from "react-native-paper";
+import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 
 import Navigation from "./src/Navigation";
 import store from "./src/store";
@@ -10,6 +10,20 @@ import { USER_DATA } from "./src/constants";
 import React from "react";
 import { Alert, Linking } from "react-native";
 import { NavigationContainerRef } from "@react-navigation/native";
+
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#000",
+    accent: "#FFB26B",
+    background: "#FFF",
+    surface: "#FFFFFF",
+    text: "#000",
+    placeholder: "#888",
+    outline: "#888",
+  },
+};
 
 export default function App() {
   const navigationRef = useRef<NavigationContainerRef<any> | null>(null);
@@ -45,7 +59,7 @@ export default function App() {
   return (
     <>
       <Provider store={store}>
-        <PaperProvider>
+        <PaperProvider theme={theme}>
           <Navigation navigationRef={navigationRef} />
           {/* <Navigation /> */}
 

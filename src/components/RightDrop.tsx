@@ -2,78 +2,96 @@ import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { List, Divider, useTheme } from "react-native-paper";
 import ToggleButton from "../components/togglebutton";
+import ToggleSwitch from "./ToggleSwitch";
 
 type RightDropProps = {
-  onNavigate: () => void; // 导航到指定的页面
-  title: string; // 标题
-  children: string; // 子标题或描述
-  subItems?: { title: string; onNavigate: () => void }[]; // 子项目，带有单独的导航功能
-  subButtom?: { title: string }[]; // 子项目带按钮
+  onNavigate: () => void;
+  title: string;
+  children: string;
+  subItems?: { title: string; onNavigate: () => void }[];
+  subSwitch?: { title: string }[];
 };
 
-const RightDrop = ({ onNavigate, title, children, subItems, subButtom }: RightDropProps) => {
+const RightDrop = ({
+  onNavigate,
+  title,
+  children,
+  subItems,
+  subSwitch,
+}: RightDropProps) => {
   const { colors } = useTheme();
-  const [expanded, setExpanded] = useState(false); // 默认不展开
+  const [expanded, setExpanded] = useState(false);
+
+  const primaryColor = colors.primary ?? "#FF8D13";
+  const chevronColor = "#FF8D13";
 
   const handlePress = () => setExpanded(!expanded);
 
-  // 如果有 subItems 和/或 subButtom，则显示可以展开的列表
-  if ((subItems && subItems.length > 0) || (subButtom && subButtom.length > 0)) {
+  const renderItemStyle = {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  };
+
+  if ((subItems && subItems.length > 0) || (subSwitch && subSwitch.length > 0)) {
     return (
-      <View style={styles.accordionContainer}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <List.Accordion
           title={title}
           description={children}
           expanded={expanded}
           onPress={handlePress}
-          titleStyle={{ color: colors.primary }}
-          style={{ backgroundColor: colors.background }}
-          right={props => (
+          titleStyle={[styles.title, { color: primaryColor }]}
+          descriptionStyle={styles.description}
+          style={styles.accordion}
+          right={(props) => (
             <List.Icon
               {...props}
               icon={expanded ? "chevron-up" : "chevron-down"}
-              color={"#FF8D13"}
+              color={chevronColor}
             />
           )}
         >
-          {/* 渲染 subItems 列表 */}
-          {subItems && subItems.map((item, index) => (
+          {subItems?.map((item, index) => (
             <List.Item
-              key={index}
+              key={`item-${index}`}
               title={item.title}
               onPress={item.onNavigate}
+              style={renderItemStyle}
+              titleStyle={styles.subItemTitle}
               right={(props) => (
-                <List.Icon {...props} icon="chevron-right" color={"#FF8D13"} />
+                <List.Icon {...props} icon="chevron-right" color={chevronColor} />
               )}
             />
           ))}
-          {/* 渲染 subButtom 列表 */}
-          {subButtom && subButtom.map((item, index) => (
+          {subSwitch?.map((item, index) => (
             <List.Item
-              key={index}
+              key={`toggle-${index}`}
               title={item.title}
-              right={() => <ToggleButton />}
+              style={renderItemStyle}
+              titleStyle={styles.subItemTitle}
+              right={() => <ToggleSwitch />}
             />
           ))}
         </List.Accordion>
-        <Divider />
+        <Divider style={[styles.divider, { backgroundColor: colors.outline }]} />
       </View>
     );
   }
 
-  // 如果没有 subItems 和 subButtom，直接导航到指定页面
   return (
-    <View>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <List.Item
         title={title}
         description={children}
-        right={(props) => (
-          <List.Icon {...props} icon="chevron-right" color={"#FF8D13"} />
-        )}
-        onPress={onNavigate} // 直接导航
+        onPress={onNavigate}
         style={styles.item}
+        titleStyle={[styles.title, { color: primaryColor }]}
+        descriptionStyle={styles.description}
+        right={(props) => (
+          <List.Icon {...props} icon="chevron-right" color={chevronColor} />
+        )}
       />
-      <Divider />
+      <Divider style={[styles.divider, { backgroundColor: colors.outline }]} />
     </View>
   );
 };
@@ -81,10 +99,32 @@ const RightDrop = ({ onNavigate, title, children, subItems, subButtom }: RightDr
 export default RightDrop;
 
 const styles = StyleSheet.create({
-  item: {
-    paddingVertical: 10,
+  container: {
+    borderRadius: 8,
+    overflow: "hidden",
+    marginVertical: 4,
   },
-  accordionContainer: {
-    backgroundColor: "white",
+  item: {
+    // paddingVertical: 10,
+    // paddingHorizontal: 16,
+    paddingHorizontal: 8,
+  },
+  accordion: {
+    paddingHorizontal: 8,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  description: {
+    fontSize: 13,
+    color: "#888",
+  },
+  subItemTitle: {
+    fontSize: 15,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: 8,
   },
 });

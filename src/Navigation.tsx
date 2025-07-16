@@ -322,7 +322,12 @@ const Navigation: React.FC<NavigationProps> = ({ navigationRef }) => {
       console.log("hasSeenAppInfo value:", value);
       setHasSeenAppInfo(value === "true");
 
-      setIsLoading(false); // Splash 可隐藏
+      // setIsLoading(false); // Splash 可隐藏
+
+      // 等待5秒再隐藏Splash
+      setTimeout(() => {
+        setIsLoading(false); // Splash 可隐藏
+      }, 1500);
     };
 
     init();
