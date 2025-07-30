@@ -165,8 +165,11 @@ const GroupedContributions: React.FC<Props> = ({ data }) => {
           display={Platform.OS === "ios" ? "inline" : "default"}
           onChange={(event, date) => {
             setShowPicker(null);
-            if (showPicker === "start" && date) setStartDate(date);
-            if (showPicker === "end" && date) setEndDate(date);
+            if (event.type === "set" && date) {
+              if (showPicker === "start") setStartDate(date);
+              if (showPicker === "end") setEndDate(date);
+            }
+            // 如果是"dismissed"，什么都不做
           }}
         />
       )}
@@ -191,6 +194,7 @@ const GroupedContributions: React.FC<Props> = ({ data }) => {
 const styles = StyleSheet.create({
   filterContainer: {
     flexDirection: "row",
+    flexWrap: "wrap", // 允许换行
     justifyContent: "space-around",
     marginVertical: 8,
   },
@@ -235,11 +239,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 6,
     marginHorizontal: 4,
+    marginVertical: 4, // 增加竖直间距，防止重叠
+    minWidth: 120, // 可选：让按钮宽度一致
+    alignItems: "center",
   },
   buttonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 14, // 可适当减小字体
+    textAlign: "center",
   },
 });
 
