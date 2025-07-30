@@ -105,11 +105,11 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   item: {
-    // paddingVertical: 10,
-    // paddingHorizontal: 16,
+    paddingVertical: 4,
     paddingHorizontal: 8,
   },
   accordion: {
+    paddingVertical: 4,
     paddingHorizontal: 8,
   },
   title: {

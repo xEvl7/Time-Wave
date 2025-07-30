@@ -27,10 +27,13 @@ import { ImagePickerResult } from "expo-image-picker";
 import storage from "@react-native-firebase/storage";
 import firestore from "@react-native-firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Divider, useTheme } from "react-native-paper";
 
 const Profile = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "Profile">) => {
+  const { colors } = useTheme();
+  
   const { name, emailAddress } =
     useAppSelector((state) => state.user.data) || {};
   const dispatch = useAppDispatch();
@@ -264,6 +267,12 @@ const Profile = ({
           <Text style={styles.saveButtonText}>Save Picture</Text>
         </TouchableOpacity>
       )}
+
+      {/* Divider 在这里 */}
+      <View>
+         <Divider style={[styles.divider, { backgroundColor: colors.outline }]} />
+      </View>
+
       <FlatList
         data={navigationItems}
         keyExtractor={(item) => item.title}
@@ -304,12 +313,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFF",
     paddingHorizontal: 20,
+    paddingTop: 50,
   },
   profileHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 50,
+    marginBottom: 20,
     paddingLeft: 20,
   },
   profileImage: {
@@ -332,7 +342,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   flatListContainer: {
-    paddingVertical: 20,
+    // paddingVertical: 20,
   },
   saveButton: {
     backgroundColor: "#2C8CFF",
@@ -352,6 +362,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     fontWeight: "bold",
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: 8,
   },
 });
 

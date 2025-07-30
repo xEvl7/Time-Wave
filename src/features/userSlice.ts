@@ -287,7 +287,9 @@ export const fetchUserContributionData2 = createAsyncThunk(
         groupedData[year].push({
           month,
           totalContrHours: contribution.totalContrHours,
-          updatedDate: contribution.updatedDate.toDate().toISOString(),
+          updatedDate: contribution.updatedDate && typeof contribution.updatedDate.toDate === "function"
+    ? contribution.updatedDate.toDate().toISOString()
+    : "",
         });
       });
     });
@@ -802,6 +804,7 @@ const userSlice = createSlice({
         ) => {
           state.contributionData = action.payload;
           console.log(`Successfully fetched User Contribution's data`);
+          // console.log(state.contributionData);
         }
       )
       .addCase(fetchUserContributionData.rejected, (_, action) => {
