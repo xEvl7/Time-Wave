@@ -26,7 +26,7 @@ import { getTotalContributedHours } from "../utils/contributionUtils";
 import { calculateLevel } from "../utils/levelUtils";
 import { getLastDayOfMonth } from "../utils/dateUtils";
 import { RewardType } from "../types";
-import { fetchRewardsData } from "../utils/firebaseUtils";
+import { fetchActiveRewardsData } from "../utils/firebaseUtils";
 import PrimaryText from "../components/text_components/PrimaryText";
 
 const Account = ({
@@ -48,7 +48,7 @@ const Account = ({
       await Promise.all([
         dispatch(fetchUserData(email)),
         dispatch(fetchUserContributionData(email)),
-        fetchRewardsData().then(setRewardsData),
+        fetchActiveRewardsData().then(setRewardsData),
       ]);
     } catch (error) {
       console.error("Error fetching user data:", error);

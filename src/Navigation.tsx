@@ -53,6 +53,7 @@ import TimeBankRewards from "./screens/Reward/TimeBankRewards";
 import ApproveVolunteer from "./screens/ApproveVolunteer";  
 import RemoveVolunteer from "./screens/RemoveVolunteer";
 import CommunityOptions from "./screens/CommunityOptions";
+import SplashScreen from "./screens/SplashScreen";
 
 // Lazy load screens
 const HomePage = React.lazy(() => import("./screens/HomePage"));
@@ -310,29 +311,37 @@ const renderAuthScreens = () => (
 
 const Navigation: React.FC<NavigationProps> = ({ navigationRef }) => {
   const dispatch = useAppDispatch();
-  const isSignedIn = useAppSelector((state) => state.user.data) !== undefined;
-
+  const isSignedIn = useAppSelector((state) => state.user.data) != undefined;
+  console.log("isSignedIn:", isSignedIn);
   const [hasSeenAppInfo, setHasSeenAppInfo] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkHasSeenAppInfo = async () => {
+    const init = async () => {
+      // Load user data
+      await dispatch(loadUserDataFromStore());
+
+      // Get hasSeenAppInfo flag from AsyncStorage
       const value = await AsyncStorage.getItem("hasSeenAppInfo");
-      console.log("hasSeenAppInfo before: ", value);
-      setHasSeenAppInfo(value === "true"); // 确保转换成布尔值
+      console.log("hasSeenAppInfo value:", value);
+      setHasSeenAppInfo(value === "true");
+
+      // setIsLoading(false); // Splash 可隐藏
+
+      // 等待5秒再隐藏Splash
+      setTimeout(() => {
+        setIsLoading(false); // Splash 可隐藏
+      }, 1500);
     };
 
-    checkHasSeenAppInfo();
-  }, []);
-
-  useEffect(() => {
-    dispatch(loadUserDataFromStore());
+    init();
   }, [dispatch]);
 
   return (
     <NavigationContainer ref={navigationRef}>
       <StatusBar />
       <Stack.Navigator
-        initialRouteName={isSignedIn ? "HomeTabs" : "Welcome"} // 根据状态设置初始路由
+        // initialRouteName={isSignedIn ? "HomeTabs" : "Welcome"} // 根据状态设置初始路由
         screenOptions={{
           headerStyle: {
             backgroundColor: "#FF8D13",
@@ -345,7 +354,14 @@ const Navigation: React.FC<NavigationProps> = ({ navigationRef }) => {
           headerTitleAlign: "center",
         }}
       >
-        {isSignedIn ? (
+        {isLoading ? (
+          // 显示进入app一开始显示的画面
+          <Stack.Screen
+            name="SplashScreen"
+            component={SplashScreen}
+            options={{ headerShown: false }}
+          />
+        ) : isSignedIn ? (
           <>
             {/* 动态添加 AppInfo */}
             {!hasSeenAppInfo && (

@@ -9,6 +9,7 @@ import {
 import { RewardType } from "../types";
 import styles from "../styles";
 import { useRef } from "react";
+import { truncateText } from "../utils/commonUtils";
 
 export default function RewardItem({
   item,
@@ -57,14 +58,17 @@ export default function RewardItem({
       onPressOut={handlePressOut}
     >
       <Animated.View
-        style={[styles.horizontalGridItem, { transform: [{ scale: scaleAnim }] }]}
+        style={[
+          styles.horizontalGridItem,
+          { transform: [{ scale: scaleAnim }] },
+        ]}
       >
         <View style={styles.horizontalImageBox}>
           <Image source={{ uri: item.image }} style={styles.horizontalImage} />
         </View>
         <View style={styles.horizontalTextContainer}>
-          <Text style={styles.itemTitle}>{item.name}</Text>
-          <Text style={styles.itemSubTitle}>{item.supplierName}</Text>
+          <Text style={styles.itemTitle}>{truncateText(item.name, 22)}</Text>
+          <Text style={styles.itemSubTitle}>{truncateText(item.supplierName, 30)}</Text>
           <View style={styles.pointContainer}>
             <Text style={styles.point}>{item.price} points</Text>
           </View>

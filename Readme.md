@@ -10,18 +10,19 @@ This is a React Native app using Expo framework and written in Typescript.
 ## Run project in development
 
 1. Clone this git repository
-2. Install dependencies: `npm install` 
-(all dependencies need to be compatible with the version in package.json)
-3. Install development build version on Android to use Firebase: `npx expo run:android` 
-(if build failed then must be the version in package.json not compatible, 
-please check for it by run `npx expo install --fix` 
-but for "react-native": "0.71.14" cannot, need "react-native": "0.71.8")
+2. Install dependencies: 
+`npm install`
+3. If build failed then must be the version in package.json not compatible, please check for it by run 
+`npx expo install --fix` 
+4. Install development build version on Android to use Firebase: 
+`npx expo run:android`
+5. After first time install dev build version, can use this command to open easily: 
+`npx expo start --dev-client`
+
 https://blog.expo.dev/expo-sdk-48-ccb8302e231
 # can add a 'local.properties' under file 'android'
 like：
 sdk.dir=C\:\\Users\\USER\\AppData\\Local\\Android\\sdk
-
-4. After first time install dev build version, can use this command to open easily: `npx expo start --dev-client`
 
 # Development tips
 

@@ -27,10 +27,14 @@ import { ImagePickerResult } from "expo-image-picker";
 import storage from "@react-native-firebase/storage";
 import firestore from "@react-native-firebase/firestore";
 import { CommunityProps } from "../features/communitySlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Divider, useTheme } from "react-native-paper";
 
 const Profile = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "Profile">) => {
+  const { colors } = useTheme();
+  
   const { name, emailAddress } =
     useAppSelector((state) => state.user.data) || {};
   const dispatch = useAppDispatch();
@@ -327,6 +331,7 @@ const Profile = ({
       await SecureStore.deleteItemAsync(USER_DATA);
       await auth().signOut();
       dispatch(logOut());
+      await AsyncStorage.setItem("hasSeenAppInfo", "false");
       console.log("Successfully signed out.");
     } catch (error) {
       console.error("Error signing out:", error);
@@ -350,6 +355,12 @@ const Profile = ({
 
   const navigationItems = [
     
+    {
+      title: "My Account",
+      subtitle: "Level " + currentLevel,
+      screen: "Account",
+    },
+    { title: "Admin Panel", subtitle: "", screen: "AdminControl" },
     {
       title: "Community",
       subtitle: "",
@@ -375,28 +386,25 @@ const Profile = ({
       ),
     },
     {
-      title: "My Account",
-      subtitle: "Level " + currentLevel,
-      screen: "Account",
-    },
-    { title: "Admin Panel", subtitle: "", screen: "AdminControl" },
-    {
       title: "Settings",
       subtitle: "",
       screen: "Setting",
-      subButtom: [{ title: "Notification" }],
       subItems: [
         {
           title: "Edit Profile",
           onNavigate: () => navigation.navigate("NewProfile"),
         },
       ],
+      subButtom: [{ title: "Notification" }],
     },
     {
       title: "About Us",
       subtitle: "",
       subItems: [
-        { title: "App Info", onNavigate: () => navigation.navigate("AppInfo2") },
+        {
+          title: "App Info",
+          onNavigate: () => navigation.navigate("AppInfo2"),
+        },
         {
           title: "Benefits",
           onNavigate: () => navigation.navigate("Benefits"),
@@ -431,6 +439,12 @@ const Profile = ({
           <Text style={styles.saveButtonText}>Save Picture</Text>
         </TouchableOpacity>
       )}
+
+      {/* Divider 在这里 */}
+      <View>
+         <Divider style={[styles.divider, { backgroundColor: colors.outline }]} />
+      </View>
+
       <FlatList
         data={navigationItems}
         keyExtractor={(item) => item.title}
@@ -440,7 +454,7 @@ const Profile = ({
             title={item.title}
             children={item.subtitle}
             subItems={item.subItems}
-            subButtom={item.subButtom}
+            subSwitch={item.subButtom}
           />
         )}
         contentContainerStyle={styles.flatListContainer}
@@ -471,12 +485,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFF",
     paddingHorizontal: 20,
+    paddingTop: 50,
   },
   profileHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 50,
+    marginBottom: 20,
+    paddingLeft: 20,
   },
   profileImage: {
     width: 100,
@@ -498,7 +514,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   flatListContainer: {
-    paddingVertical: 20,
+    // paddingVertical: 20,
   },
   saveButton: {
     backgroundColor: "#2C8CFF",
@@ -518,6 +534,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     fontWeight: "bold",
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: 8,
   },
 });
 

@@ -4,6 +4,7 @@ export type RewardType = {
   name: string;
   supplierName: string;
   price: number;
+  status: string;
 };
 
 export type RewardCodesType = {

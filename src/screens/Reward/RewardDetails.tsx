@@ -214,7 +214,7 @@ export default function RewardDetails({
       if (points >= price) {
         showCustomAlert(
           "Get This Reward!",
-          `Redeem with ${price} points?\n\nYour current points: ${points}`,
+          `Redeem with ${price} points?\nYour current points: ${points}`,
           [
             { text: "Cancel", style: "cancel" },
             {
@@ -272,16 +272,32 @@ export default function RewardDetails({
         await dispatch(fetchUserData(emailAddress)).unwrap();
         await dispatch(fetchRewardData(item.RID)).unwrap(); // 重新获取奖励数据，确保库存更新
 
-        const redeemedCode = await redeemRandomVoucherCode(
+        const redeemedCodeData = await redeemRandomVoucherCode(
           item.RID,
           rewardData?.price,
           emailAddress
         );
-        if (redeemedCode) {
+        if (redeemedCodeData) {
+          console.log("Redeemed Code Data: ", redeemedCodeData);
           showCustomAlert(
             "Redeemed Successfully!",
             `You have used ${rewardData?.price} points.\n\nRemaining Balance: ${points} points.`,
-            [{ text: "OK" }]
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  // go to the active reward screen
+                  navigation.replace("RewardDetails", {
+                    item: { ...item, RID: item.RID },
+                    type: "active",
+                    redeemedCode: redeemedCodeData.code,
+                    expiredDate: redeemedCodeData.expiresAt,
+                    redeemedDate: redeemedCodeData.claimedBy,
+                    usedDate: "",
+                  });
+                },
+              },
+            ]
           );
         } else {
           showCustomAlert("Redeemed Failed!", "No available stock.", [
@@ -331,14 +347,76 @@ export default function RewardDetails({
         [{ text: "OK" }]
       );
       // update the reward obtained status to "used"
-      await updateRewardsObtained(redeemedCode, emailAddress);
+      const successUsedTime = await updateRewardsObtained(redeemedCode, emailAddress);
 
-      // @todo here you can add the logic to send the link to the email
+      console.log("updateRewardsObtained success: ", successUsedTime);
+      // send the link to the email
+      if (!successUsedTime) {
+        showCustomAlert(
+          "Error",
+          "Failed to update reward status. Please try again later.",
+          [{ text: "OK" }]
+        );
+        return;
+      } else {
+        // await sendEmail(item.name, redeemedCode, emailAddress);
+        await sendEmail(item.name, redeemedCode, "yf828w@gmail.com");
+        showCustomAlert("Reward link sent to your email:", `${emailAddress}`, [
+          {
+            text: "OK",
+            onPress: () => {
+              // go to the active reward screen
+              navigation.replace("RewardDetails", {
+                item: { ...item, RID: item.RID },
+                type: "used",
+                redeemedCode: redeemedCode,
+                expiredDate: "",
+                redeemedDate: "",
+                usedDate: successUsedTime?.toDate()?.toISOString(),
+              });
+            },
+          },
+        ]);
+      }
     } else {
       showCustomAlert("Unexpected error", "Please contact administrator", [
         { text: "OK" },
       ]);
     }
+  };
+
+  const sendEmail = async (
+    rewardName: string,
+    redeemedCode: string | undefined,
+    emailAddress: string | undefined
+  ) => {
+    console.log(
+      "Sending email to: ",
+      emailAddress + ", rewardName: ",
+      rewardName + ", redeemedCode: ",
+      redeemedCode
+    );
+    await fetch(
+      "https://cboozpvnnhyvembttsnc.supabase.co/functions/v1/send-email",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNib296cHZubmh5dmVtYnR0c25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwMzgxNTMsImV4cCI6MjA2NDYxNDE1M30.GJHo7KjuBjq2Bz0TZ4rZrr0VL1lNX5hkAtyzbzbjbfs`,
+          // "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: emailAddress,
+          subject: "Time Wave - You've Redeemed a Reward!",
+          message: `<p>Hello,</p>
+      <p>You have redeemed: <strong>${rewardName}</strong></p>
+      <p>Your link is: <strong>https://voucher.paysgift.com/MY/${redeemedCode}</strong></p>
+      <p>Enjoy your reward!</p>
+`,
+        }),
+      }
+    );
+    console.log("Email sent!");
   };
 
   const copyRewardCode = () => {
@@ -357,182 +435,192 @@ export default function RewardDetails({
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: "#fff" }}
-      contentContainerStyle={{ flexGrow: 1 }}
-    >
-      <View style={styles.headerContainer}>
-        <Image
-          style={styles.rewardImage}
-          source={{
-            uri: rewardData?.image ?? defaultImg,
-          }}
-        />
-        <Image
-          style={styles.supplierLogo}
-          source={{
-            uri: rewardData?.supplierLogo ?? defaultImg,
-          }}
-        />
-      </View>
-
-      <ContentContainer>
-        <View style={styles.titleContainer}>
-          <HeaderText>{String(rewardData?.name ?? "")}</HeaderText>
+    <>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: "#fff" }}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        <View style={styles.headerContainer}>
+          <Image
+            style={styles.rewardImage}
+            source={{
+              uri: rewardData?.image ?? defaultImg,
+            }}
+          />
+          <Image
+            style={styles.supplierLogo}
+            source={{
+              uri: rewardData?.supplierLogo ?? defaultImg,
+            }}
+          />
         </View>
 
-        {(type === "active" || type === "used" || type === "expired") && (
-          <View style={styles.statusLabelWrapper}>
-            <View
-              style={[
-                styles.statusLabelContainer,
-                type === "active"
-                  ? styles.activeBg
-                  : type === "used"
-                  ? styles.usedBg
-                  : styles.expiredBg,
-              ]}
-            >
-              <PrimaryText
+        <ContentContainer>
+          <View style={styles.titleContainer}>
+            <HeaderText>{String(rewardData?.name ?? "")}</HeaderText>
+          </View>
+
+          {(type === "active" || type === "used" || type === "expired") && (
+            <View style={styles.statusLabelWrapper}>
+              <View
                 style={[
-                  styles.baseLabelText,
+                  styles.statusLabelContainer,
                   type === "active"
-                    ? styles.activeText
+                    ? styles.activeBg
                     : type === "used"
-                    ? styles.usedText
-                    : styles.expiredText,
+                    ? styles.usedBg
+                    : styles.expiredBg,
                 ]}
               >
-                {type === "used"
-                  ? "Used"
-                  : type === "expired"
-                  ? "Expired"
-                  : "Active"}
+                <PrimaryText
+                  style={[
+                    styles.baseLabelText,
+                    type === "active"
+                      ? styles.activeText
+                      : type === "used"
+                      ? styles.usedText
+                      : styles.expiredText,
+                  ]}
+                >
+                  {type === "used"
+                    ? "Used"
+                    : type === "expired"
+                    ? "Expired"
+                    : "Active"}
+                </PrimaryText>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.alternativesContainer}>
+            <View style={styles.pointsContainer}>
+              <SecondaryText>
+                {type === "unredeemed" ? "Points" : "Redeemed With"}
+              </SecondaryText>
+              <PrimaryText style={{ color: "#FF8D13" }}>
+                {String(rewardData?.price)} points
+              </PrimaryText>
+            </View>
+
+            <View style={styles.verticalLine} />
+
+            <View style={styles.validityContainer}>
+              <SecondaryText>
+                {type === "unredeemed"
+                  ? "Validity"
+                  : type === "used"
+                  ? "Used On"
+                  : "Expired On"}
+              </SecondaryText>
+              <PrimaryText>
+                {type === "unredeemed"
+                  ? `${
+                      typeof startluxonDateTime?.toFormat === "function"
+                        ? startluxonDateTime.toFormat("d MMM yyyy")
+                        : "Unknown"
+                    } to ${
+                      typeof endluxonDateTime?.toFormat === "function"
+                        ? endluxonDateTime.toFormat("d MMM yyyy")
+                        : "Unknown"
+                    }`
+                  : type === "used"
+                  ? typeof usedluxonDateTime?.toFormat === "function"
+                    ? usedluxonDateTime.toFormat("d MMM yyyy, hh:mm:ss a")
+                    : usedluxonDateTime
+                    ? String(usedluxonDateTime)
+                    : "Unknown"
+                  : typeof expiredluxonDateTime?.toFormat === "function"
+                  ? expiredluxonDateTime.toFormat("d MMM yyyy, hh:mm:ss a")
+                  : expiredluxonDateTime
+                  ? String(expiredluxonDateTime)
+                  : "Unknown"}
               </PrimaryText>
             </View>
           </View>
-        )}
 
-        <View style={styles.alternativesContainer}>
-          <View style={styles.pointsContainer}>
-            <SecondaryText>
-              {type === "unredeemed" ? "Points" : "Redeemed With"}
-            </SecondaryText>
-            <PrimaryText style={{ color: "#FF8D13" }}>{String(rewardData?.price)} points</PrimaryText>
-          </View>
-
-          <View style={styles.verticalLine} />
-
-          <View style={styles.validityContainer}>
-            <SecondaryText>
-              {type === "unredeemed"
-                ? "Validity"
-                : type === "used"
-                ? "Used On"
-                : "Expired On"}
-            </SecondaryText>
-            <PrimaryText>
-              {type === "unredeemed"
-                ? `${
-                    typeof startluxonDateTime?.toFormat === "function"
-                      ? startluxonDateTime.toFormat("d MMM yyyy")
-                      : "Unknown"
-                  } to ${
-                    typeof endluxonDateTime?.toFormat === "function"
-                      ? endluxonDateTime.toFormat("d MMM yyyy")
-                      : "Unknown"
-                  }`
-                : type === "used"
-                ? typeof usedluxonDateTime?.toFormat === "function"
-                  ? usedluxonDateTime.toFormat("d MMM yyyy, hh:mm:ss a")
-                  : usedluxonDateTime
-                  ? String(usedluxonDateTime)
-                  : "Unknown"
-                : typeof expiredluxonDateTime?.toFormat === "function"
-                ? expiredluxonDateTime.toFormat("d MMM yyyy, hh:mm:ss a")
-                : expiredluxonDateTime
-                ? String(expiredluxonDateTime)
-                : "Unknown"}
-            </PrimaryText>
-          </View>
-        </View>
-
-        <View style={[styles.hairlineBase, styles.horizontalLine]} />
-
-        {type === "unredeemed" && (
-          <View style={styles.sectionContainer}>
-            <PrimaryText>Highlight</PrimaryText>
-            <ParagraphText>{String(rewardData?.highlight ?? "")}</ParagraphText>
-          </View>
-        )}
-        {type !== "unredeemed" && (
-          <View style={styles.sectionContainer}>
-            <PrimaryText>How To Use</PrimaryText>
-            <ParagraphText>{String(rewardData?.howToUse ?? "")}</ParagraphText>
-          </View>
-        )}
-
-        <View style={styles.sectionContainer}>
-          <PrimaryText>Terms & Conditions</PrimaryText>
-          <ParagraphText>
-            {String(rewardData?.termsConditions ?? "")}
-          </ParagraphText>
-        </View>
-
-        <View style={styles.sectionContainer}>
-          <PrimaryText>Contact Info</PrimaryText>
-          <ParagraphText>{String(rewardData?.contactInfo ?? "")}</ParagraphText>
-        </View>
-
-        <View style={styles.redeemContainer}>
           <View style={[styles.hairlineBase, styles.horizontalLine]} />
-          {type === "unredeemed" && (
-            <View style={styles.redeemButton}>
-              <TextButton
-                onPress={
-                  isInvalid
-                    ? () =>
-                        showCustomAlert(
-                          "Reward Invalid!",
-                          "This reward is invalid or expired.",
-                          [{ text: "OK" }]
-                        )
-                    : () => checkIsFeedbackFilled()
-                }
-              >
-                Redeem
-              </TextButton>
-            </View>
-          )}
-          {type === "active" && (
-            <View style={styles.redeemButton}>
-              {isCodeDisplayed ? (
-                <>
-                  {/* <View style={styles.redeemedCodeBorder}>
-                    <PrimaryText style={{ textAlign: "center" }}>
-                      {` ${redeemedCode ?? ""}`}
-                    </PrimaryText>
-                  </View>
-                  <TextButton onPress={copyRewardCode}>
-                    Copy Reward Code
-                  </TextButton> */}
-                </>
-              ) : (
-                <TextButton onPress={showRewardCode}>Use Now</TextButton>
-              )}
-            </View>
-          )}
-        </View>
 
-        <CustomAlert
-          visible={alertVisible}
-          title={alertTitle}
-          message={alertMessage}
-          buttons={alertButtons}
-          onClose={() => setAlertVisible(false)}
-        />
-      </ContentContainer>
-    </ScrollView>
+          {type === "unredeemed" && (
+            <View style={styles.sectionContainer}>
+              <PrimaryText>Highlight</PrimaryText>
+              <ParagraphText>
+                {String(rewardData?.highlight ?? "")}
+              </ParagraphText>
+            </View>
+          )}
+          {type !== "unredeemed" && (
+            <View style={styles.sectionContainer}>
+              <PrimaryText>How To Use</PrimaryText>
+              <ParagraphText>
+                {String(rewardData?.howToUse ?? "")}
+              </ParagraphText>
+            </View>
+          )}
+
+          <View style={styles.sectionContainer}>
+            <PrimaryText>Terms & Conditions</PrimaryText>
+            <ParagraphText>
+              {String(rewardData?.termsConditions ?? "")}
+            </ParagraphText>
+          </View>
+
+          <View style={styles.sectionContainer}>
+            <PrimaryText>Contact Info</PrimaryText>
+            <ParagraphText>
+              {String(rewardData?.contactInfo ?? "")}
+            </ParagraphText>
+          </View>
+
+          <View style={styles.redeemContainer}>
+            <View style={[styles.hairlineBase, styles.horizontalLine]} />
+            {type === "unredeemed" && (
+              <View style={styles.redeemButton}>
+                <TextButton
+                  onPress={
+                    isInvalid
+                      ? () =>
+                          showCustomAlert(
+                            "Reward Invalid!",
+                            "This reward is invalid or expired.",
+                            [{ text: "OK" }]
+                          )
+                      : () => checkIsFeedbackFilled()
+                  }
+                >
+                  Redeem
+                </TextButton>
+              </View>
+            )}
+            {type === "active" && (
+              <View style={styles.redeemButton}>
+                {isCodeDisplayed ? (
+                  <>
+                    {/* <View style={styles.redeemedCodeBorder}>
+                      <PrimaryText style={{ textAlign: "center" }}>
+                        {` ${redeemedCode ?? ""}`}
+                      </PrimaryText>
+                    </View>
+                    <TextButton onPress={copyRewardCode}>
+                      Copy Reward Code
+                    </TextButton> */}
+                  </>
+                ) : (
+                  <TextButton onPress={showRewardCode}>Use Now</TextButton>
+                )}
+              </View>
+            )}
+          </View>
+        </ContentContainer>
+      </ScrollView>
+      <CustomAlert
+        visible={alertVisible}
+        title={alertTitle}
+        message={alertMessage}
+        buttons={alertButtons}
+        onClose={() => setAlertVisible(false)}
+        position="bottom"
+      />
+    </>
   );
 }
 
