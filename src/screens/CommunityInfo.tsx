@@ -8,6 +8,7 @@ import {
   ImageSourcePropType,
   GestureResponderEvent,
   TouchableOpacity,
+  RefreshControl,
   ScrollView,
   Alert,
 } from "react-native";
@@ -17,10 +18,11 @@ import { ImagePickerResult } from "expo-image-picker";
 import storage from "@react-native-firebase/storage";
 import { RootState } from "../store";
 import firestore from "@react-native-firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import ContentContainer from "../components/ContentContainer";
 import ProfilePicture from "../components/ProfilePicture";
 import ParagraphText from "../components/text_components/ParagraphText";
+import HorizontalFlatList from "../components/HorizontalFlatList";
 import { RootStackParamList } from "../Screen.types";
 import auth from "@react-native-firebase/auth";
 import {
@@ -31,8 +33,8 @@ import "@react-native-firebase/firestore";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import PrimaryText from "../components/text_components/PrimaryText";
 import { useAppSelector, useAppDispatch } from "../hooks";
-import { selectUserName } from "../features/userSlice";
-import { NavigationProp } from "@react-navigation/native";
+import { fetchUserData, selectEmail, selectUserName } from "../features/userSlice";
+import { NavigationProp, useFocusEffect } from "@react-navigation/native";
 import ButtonText from "../components/text_components/ButtonText";
 import HeaderText from "../components/text_components/HeaderText";
 import TextButton from "../components/TextButton";
@@ -40,26 +42,65 @@ import { TextInput } from "react-native-paper";
 import Navigation from "../Navigation";
 import { Header } from "react-native/Libraries/NewAppScreen";
 import { ActivityProps } from "../features/activitySlice";
+import { fetchCommunitiesData, fetchRewardsData } from "../utils/firebaseUtils";
+import { CommunityType, RewardType } from "../types";
+import { set } from "react-hook-form";
+
 
 const CommunityInfo = ({
   navigation,
   route,
 }: NativeStackScreenProps<RootStackParamList, "CommunityInfo">) => {
+  const dispatch = useAppDispatch();
+
+  //community data, id
   const item = route.params;  
-  const docId = route.params.id;
-  console.log("route.params ", route.params);
-  console.log("comm item ", item); 
+  const docId = route.params.id;  
+  const email = useAppSelector(selectEmail);
+  const [CommunitiesData, setCommunitiesData] = useState<CommunityType[]>([]);
 
   const userId = useAppSelector((state) => state.user.data?.uid) || "";
 
+  //user data
   const [isAdmin, setIsAdmin] = useState(false);
   const [editDescription, setEditDescription] = useState(
     route.params.description
   );
   const [editName, setEditName] = useState(route.params.name);
   const [image, setImage] = useState<string | null>(route.params.logo || null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const [editState,setEditState] = useState(false);
+  const [joinedState,setJoinedState] = useState(false);
 
   const update = firebase.firestore().collection("Communities").doc(docId);
+
+    // // fetch user & contribution data again from firebase into redux store
+    // const refreshData = useCallback(async () => {
+    //   if (!email) return;
+    //   try {
+    //     await Promise.all([
+    //       dispatch(fetchUserData(email)),
+    //       fetchCommunitiesData().then(setCommunitiesData),
+    //       fetchRewardsData().then(setRewardsData),
+    //     ]);
+    //   } catch (error) {
+    //     console.error("Error fetching user data:", error);
+    //   }
+    // }, [email, dispatch]);
+  
+    // const onRefresh = async () => {
+    //   setRefreshing(true);
+    //   await refreshData();
+    //   setRefreshing(false);
+    // };
+  
+    // useFocusEffect(
+    //   useCallback(() => {
+    //     refreshData();
+    //   }, [refreshData])
+    // );
+
 
 
   useEffect(() => {
@@ -75,7 +116,11 @@ const CommunityInfo = ({
     }
   }, []);
 
-  const handleEdit = () => {
+  const handleEditPage = () => {
+    setEditState(true);
+  };
+
+  const handleEditSave = () => {
     savePicture();
     console.log("item");
     console.log(route.params.id);
@@ -91,9 +136,13 @@ const CommunityInfo = ({
       [{ text: "OK", onPress: () => console.log("OK Pressed") }],
       { cancelable: true }
     );
+
+    setEditState(false);
   };
 
   const handlePressJoin = () => {
+    setJoinedState(true);
+
     update.update({
       volunteerRequest: firebase.firestore.FieldValue.arrayUnion(userId),
     });
@@ -199,6 +248,10 @@ const CommunityInfo = ({
     <>
       <View>
         <ScrollView>
+                {/* <Pressable  onPress={handleEditSave}>
+                  <Text >Click here to Edit</Text>
+                </Pressable> */}
+
           <TouchableOpacity onPress={pickImage} style={styles.pictureContainer}>
             <Image
               source={{
@@ -207,37 +260,44 @@ const CommunityInfo = ({
               style={styles.iconImage}
             />
           </TouchableOpacity>
+
           <ContentContainer>
             <View style={styles.HeaderContainer}>
-              {isAdmin ? (
-                <TextInput
-                  style={styles.editingText}
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholder="Enter your text here... "
-                  placeholderTextColor={"#3F51B5"}
-                />
+              {isAdmin ? ( editState ? (
+                  <TextInput
+                    style={styles.editingText}
+                    value={editName}
+                    onChangeText={setEditName}
+                    placeholder="Enter your text here... "
+                    placeholderTextColor={"#3F51B5"}
+                  />
+                ):(
+                  <Text style={{fontSize:30, fontWeight:"bold"}}>{route.params.name}</Text>
+                )
               ) : (
-                <PrimaryText>{route.params.name}</PrimaryText>
+                 <Text style={{fontSize:30, fontWeight:"bold"}}>{route.params.name}</Text>
               )}
             </View>
 
             <View style={styles.contentContainer}>
-              <Text style={styles.subHeadertext}>About Our Community</Text>
-              {isAdmin ? (
-                <TextInput
-                  style={styles.editingText}
-                  value={editDescription}
-                  onChangeText={setEditDescription}
-                  placeholder="Enter your text here... "
-                  placeholderTextColor={"#3F51B5"}
-                />
-              ) : (
-                <Text style={styles.descriptionText}>
-                  {" "}
-                  {route.params.description}{" "}
-                </Text>
-              )}
+              <View style={styles.listHeader}><PrimaryText>
+                About Our Community
+                </PrimaryText></View>
+              <View style={{marginLeft: 17}}>
+                {isAdmin ? ( editState ? (
+                  <TextInput
+                    style={styles.editingText}
+                    value={editDescription}
+                    onChangeText={setEditDescription}
+                    placeholder="Enter your text here... "
+                    placeholderTextColor={"#3F51B5"}
+                  />):(
+                    <Text style={{fontSize:16}}>{route.params.description}</Text>
+                  )
+                ) : (      
+                  <Text style={{fontSize:16}}>{route.params.description}</Text>
+                )}
+              </View>              
             </View>
 
             <View style={styles.listHeader}></View>
@@ -261,7 +321,68 @@ const CommunityInfo = ({
                 docId={docId}
               />
             </View>
-            <View style={styles.listHeader}></View>
+           
+
+           <View style={styles.listcontainerActivity}>
+                   <ScrollView
+                     scrollEventThrottle={16}
+                     refreshControl={
+                       <RefreshControl
+                         refreshing={refreshing}
+                        //  onRefresh={onRefresh}
+                         colors={["#FF8D13"]} // 仅适用于 Android
+                         tintColor="#FF8D13" // 仅适用于 iOS
+                       />
+                     }
+                   >
+                     {/* <HorizontalFlatList
+                       title="Past Activities"
+                       data={CommunitiesData}
+                       navigation={navigation}
+                       renderItem={({ item }) => (
+                         <CommunityItem item={item} navigation={navigation} />
+                       )}
+                       seeAllPage="Communities"
+                     />
+                     <HorizontalFlatList
+                       title="Ongoing Activities"
+                       data={RewardsData}
+                       navigation={navigation}
+                       renderItem={({ item }) => (
+                         <RewardItem item={item} navigation={navigation} />
+                       )}
+                       seeAllPage="Rewards"
+                     /> */}
+
+                    <View style={styles.listcontainerActivity}>
+                      <HorizontalActivityList
+                          title="Past Activities"
+                          docId={docId}
+                          isPast={true}
+                          item={item}
+                          navigation={navigation}
+                          renderItem={({ item }) => renderActivityItems({ item, navigation })}
+                          seeAllPage="ActivitySeeAll"
+                        />
+                    </View>
+
+                    <View style={styles.listcontainerActivity}>
+                      <HorizontalActivityList
+                        title="Ongoing Activities"
+                        docId={docId}
+                        isPast={false}
+                        item={item}
+                        navigation={navigation}
+                        renderItem={({ item }) => renderActivityItems({ item, navigation })}
+                        seeAllPage="ActivitySeeAll"
+                      />
+                    </View>
+
+                   </ScrollView>
+                 </View>
+           
+           
+            {/* <View style={styles.listHeader}></View>
             <View style={styles.listContainer}>
               <OngoingListSection
                 title={"Ongoing Activities"}
@@ -282,7 +403,10 @@ const CommunityInfo = ({
                 isAdmin={isAdmin}
                 // isPast={false}
               />
-            </View>
+            </View> */}
+           
+           
+           
             <View style={styles.listFooter}></View>
           </ContentContainer>
         </ScrollView>
@@ -294,12 +418,21 @@ const CommunityInfo = ({
             width: "50%",
           }}
         >
-          {isAdmin ? (
-            <TextButton onPress={handleEdit}> Save Changes </TextButton>
-          ) : (
-            <TextButton onPress={handlePressJoin}>
-                 Join this community      
-            </TextButton>
+          {isAdmin ? ( editState ? (
+              <TextButton onPress={handleEditSave}> Save Changes </TextButton> 
+            ):(
+              <TextButton onPress={handleEditPage}> Edit Page </TextButton>
+              )
+          ) : (joinedState ? (
+              <Text></Text>  
+              // <Text style={{ color: "#3D5A80", textAlign: "center", backgroundColor: "#FF8D1342", padding: 10, borderRadius: 5 }}>
+              //   Request sent
+              // </Text>
+            ):(
+              <TextButton onPress={handlePressJoin}>
+                  Join this community      
+              </TextButton>
+            )            
           )}
         </View>
       </View>
@@ -500,10 +633,11 @@ const AdminListSection = ({
         ListEmptyComponent={() => (
           <Text
             style={{
-              color: "red",
+              color: "#3f2e00ff",
               textAlign: "center",
               marginBottom: 20,
               marginLeft: 20,
+              opacity:0.6
             }}
           >
             No data available
@@ -663,10 +797,11 @@ const VolunteerListSection = ({
         ListEmptyComponent={() => (
           <Text
             style={{
-              color: "red",
+              color: "#3f2e00ff",
               textAlign: "center",
               marginBottom: 20,
               marginLeft: 20,
+              opacity:0.6
             }}
           >
             No data available
@@ -758,6 +893,7 @@ const ActivityListSection = ({
       activities: activitiesData,
       item: item,
     });
+    console.log("transfer see all ", activitiesData);
   };
 
   return (
@@ -779,10 +915,11 @@ const ActivityListSection = ({
         ListEmptyComponent={() => (
           <Text
             style={{
-              color: "red",
+              color: "#3f2e00ff",
               textAlign: "center",
               marginBottom: 20,
               marginLeft: 20,
+              opacity:0.6
             }}
           >
             No data available
@@ -826,146 +963,95 @@ const PastListSection = ({
 );
 
 
-// const renderActivityItems = ({
-//   item,
-//   navigation,
-// }: {
-//   item: ActivityProps;
-//   navigation: any;
-// }) => (
-//   <Pressable onPress={() => navigation.navigate("ActivityInfo", { item })}>
-//     <View style={styles.gridItem}>
-//       <View style={styles.imageBox}>
-//         <Image source={{ uri: item.logo }} style={styles.image} />
-//       </View>
-//       <View style={styles.text}>
-//         <Text style={styles.description}>{item.name}</Text>
-//         <Text style={styles.subDescription}>{item.description}</Text>
-//         <View style={styles.pointContainer}></View>
-//       </View>
-//     </View>
-//   </Pressable>
-// );
+const HorizontalActivityList = ({
+  title,
+  docId,
+  isPast,
+  item,
+  navigation,
+  renderItem,
+  seeAllPage,
+}: {
+  title: string;
+  docId: string;
+  isPast: boolean;
+  item: any;
+  navigation: any;
+  renderItem: ({ item }: { item: ActivityProps }) => JSX.Element;
+  seeAllPage: string;
+}) => {
+  const [activitiesData, setActivitiesData] = useState<ActivityProps[]>([]);
+  const [loading, setLoading] = useState(true);
 
-// const ActivityListSection = ({
-//   title,
-//   navigation,
-//   item,
-//   docId,
-//   isPast,
-// }: ListProps & { isPast: boolean }) => {
-//   const [activitiesData, setActivitiesData] = useState<ActivityProps[]>([]);
-//   const [communityData, setCommunityData] = useState(null);
-//   const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const fetchActivitiesData = async () => {
+      try {
+        const now = firebase.firestore.Timestamp.now();
 
-//   useEffect(() => {
-//     const fetchActivitiesData = async () => {
-//       try {
-//         const communityId = docId;// item.id; // Ensure `item.id` is correctly passed
-//         console.log("Fetching activities for communityId:", communityId);
+        let query = firebase
+          .firestore()
+          .collection("Activities")
+          .where("communityId", "==", docId);
 
-//         const activitiesRef = firebase.firestore().collection("Activities");
+        query = isPast
+          ? query.where("endDate", "<=", now)
+          : query.where("endDate", ">=", now);
 
-//         // Filter activities by communityId
-//        const now = firebase.firestore.Timestamp.now(); // Get Firestore Timestamp
+        const querySnapshot = await query.get();
 
-//         let query = firebase.firestore()
-//           .collection("Activities")
-//           .where("communityId", "==", communityId);
+        const fetched = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as ActivityProps[];
 
-//         if (isPast) {
-//           query = query.where("endDate", "<=", now);
-//         } else {
-//           query = query.where("endDate", ">=", now);
-//         }
+        setActivitiesData(fetched);
+      } catch (error) {
+        console.error("Error fetching activities:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-//         const querySnapshot = await query.get();
-//         const fetchedActivitiesData = querySnapshot.docs.map((doc) => ({
-//           id: doc.id, // Ensure `id` is included
-//           ...doc.data(),
-//         })) as ActivityProps[];
+    fetchActivitiesData();
+  }, [docId, isPast]);
 
-//         console.log("Fetched activities:", fetchedActivitiesData);
-//         setActivitiesData(fetchedActivitiesData);
-//       } catch (error) {
-//         console.error(
-//           "Error fetching activities data for communityId:",
-//           item.id,
-//           error
-//         );
-//       }
-//     };
+  const limitedData = activitiesData.slice(0, 5);
 
-//     fetchActivitiesData();
-//   }, [isPast, item.id]);
+  const handleSeeAll = () => {
+    navigation.navigate(seeAllPage, {
+      activities: activitiesData,
+      item,
+    });
+  };
 
-//   const limit = 5;
-//   const limitedActivitiesData = activitiesData.slice(0, limit);
+  return (
+    <View>
+      <View style={styles.listHeader}>
+        <PrimaryText>{title}</PrimaryText>
+        <Pressable onPress={handleSeeAll}>
+          <ButtonText>See all</ButtonText>
+        </Pressable>
+      </View>
 
-//   const handleSeeAllPress = () => {
-//     navigation.navigate("ActivitySeeAll", { activities: activitiesData, item: item });
-//   };
-
-//   return (
-//     <View>
-//       <View style={styles.listHeader}>
-//         <PrimaryText>{title}</PrimaryText>
-//         <Pressable onPress={handleSeeAllPress}>
-//           <ButtonText>See all</ButtonText>
-//         </Pressable>
-//       </View>
-
-//       <FlatList
-//         horizontal
-//         showsHorizontalScrollIndicator={false}
-//         data={limitedActivitiesData}
-//         keyExtractor={(item) => item.id}
-//         renderItem={({ item }) => renderActivityItems({ item, navigation })}
-//         contentContainerStyle={{ paddingTop: 5, paddingRight: 25 }}
-//         ListEmptyComponent={() => (
-//           <Text
-//             style={{
-//               color: "red",
-//               textAlign: "center",
-//               marginBottom: 20,
-//               marginLeft: 20,
-//             }}
-//           >
-//             No data available
-//           </Text>
-//         )}
-//       />
-//     </View>
-//   );
-// };
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={limitedData}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{  paddingRight: 10, borderColor: "#BDBDBD", borderRadius: 10, borderWidth: 1 }} //paddingTop: 5,
+        ListEmptyComponent={() => (
+          <Text style={{ color: "#604300ff", textAlign: "center", marginLeft: 20, opacity:0.6 }}>
+            No data available
+          </Text>
+        )}
+      />
+    </View>
+  );
+};
 
 
 
-// const OngoingListSection = ({ title, navigation, item, docId, isAdmin }: ListProps) => {
-//   return (
-//     <ActivityListSection
-//       title={title}
-//       navigation={navigation}
-//       item={item}
-//       docId={docId}
-//       isPast={false}
-//       isAdmin={isAdmin}
-//     />
-//   );
-// };
-
-// const PastListSection = ({ title, navigation, item, docId, isAdmin }: ListProps) => {
-//   return (
-//     <ActivityListSection
-//       title={title}
-//       navigation={navigation}
-//       item={item}
-//       docId={docId}
-//       isPast={true}
-//       isAdmin={isAdmin}
-//     />
-//   );
-// };
 
 export default CommunityInfo;
 
@@ -981,26 +1067,27 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   HeaderContainer: {
-    height  : 50,
+    height  : 54,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
-    backgroundColor: "#F1CFA3",
+    padding: 1,
+    // backgroundColor: "#F1CFA3",
 
   },
   contentContainer: {
     borderColor: "#BDBDBD",
     borderRadius: 10,
-    height: 200,
+    // height: 200,
     borderWidth: 1,
     marginTop: 7,
-    flex: 3,
+    paddingBottom: 16,
+    // flex: 3,
   },
   subHeadertext: {
     fontSize: 18,
     fontWeight: "bold",
-    marginLeft: 10,
+    marginLeft: 17,
     marginTop: 16,
     marginBottom: 4,
   },
@@ -1038,6 +1125,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 10,
+  },
+  listcontainerActivity: {
+    flex: 1,
+    backgroundColor: "white",
+    paddingTop: 10,
+    paddingBottom: 8,
+    marginBottom: 15,
+    height: "530%",
   },
 
   viewButton: {
@@ -1082,13 +1177,23 @@ const styles = StyleSheet.create({
     width: "95&",
   },
   gridItem: {
-    marginLeft: 25,
     width: 200,
-    height: 200,
+    marginLeft: 25,
     marginBottom: 10,
     backgroundColor: "#F1CFA3",
     borderRadius: 20,
-    borderColor: "#BDBDBD",
+    shadowColor: "#000",
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+    // marginLeft: 25,
+    // width: 200,
+    // height: 200,
+    // marginBottom: 10,
+    // backgroundColor: "#F1CFA3",
+    // borderRadius: 20,
+    // borderColor: "#000000ff",
   },
   imageBox: {
     alignSelf: "center",

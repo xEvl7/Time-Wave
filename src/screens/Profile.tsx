@@ -26,6 +26,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ImagePickerResult } from "expo-image-picker";
 import storage from "@react-native-firebase/storage";
 import firestore from "@react-native-firebase/firestore";
+import { CommunityProps } from "../features/communitySlice";
 
 const Profile = ({
   navigation,
@@ -37,6 +38,12 @@ const Profile = ({
   const [logo, setLogo] = useState<string | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [volunteerCommunities, setVolunteerCommunities] = useState<any[]>([]);
+  const [adminCommunities, setAdminCommunities] = useState<any[]>([]);
+
+  const [isAdminOfAnyCommunity, setIsAdminOfAnyCommunity] = useState(false);
+  console.log("adminCommunities:", adminCommunities);
+  console.log("isAdminOfAnyCommunity:", isAdminOfAnyCommunity);
 
   const contributionData = useAppSelector(
     (state: RootState) => state.user.contributionData
@@ -156,6 +163,156 @@ const Profile = ({
     ]);
   };
 
+  //check admin of community
+//   useEffect(() => {
+//   const fetchAdminCommunities = async () => {
+//     if (!emailAddress) return;
+//     try {
+//       const usersRef = firestore().collection("Users");
+//       const querySnapshot = await usersRef
+//         .where("emailAddress", "==", emailAddress)
+//         .get();
+
+//       if (!querySnapshot.empty) {
+//         const userDoc = querySnapshot.docs[0];
+//         const userData = userDoc.data();
+//         const adminOf = userData.adminOf || []; // Array of community IDs
+
+//         setAdminCommunities(adminOf); // Only set the array of community file IDs
+//         setIsAdminOfAnyCommunity(adminOf.length > 0);
+//       } else {
+//         setAdminCommunities([]);
+//         setIsAdminOfAnyCommunity(false);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching admin communities:", error);
+//       setAdminCommunities([]);
+//       setIsAdminOfAnyCommunity(false);
+//     }
+//   };
+
+//   fetchAdminCommunities();
+// }, [emailAddress]);
+
+//獲得 Admin of 的社區
+    useEffect(() => {
+      const fetchAdminCommunities = async () => {
+        if (!emailAddress) return;
+        try {
+          const usersRef = firestore().collection("Users");
+          const querySnapshot = await usersRef
+            .where("emailAddress", "==", emailAddress)
+            .get();
+
+          if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data();
+            const adminOf = userData.adminOf || []; // Array of community IDs
+
+            if (adminOf.length > 0) {
+              const communitiesRef = firestore().collection("Communities");
+              const communityPromises = adminOf.map((commId: string) =>
+                communitiesRef.doc(commId).get()
+              );
+              const communityDocs = await Promise.all(communityPromises);
+              const communities = communityDocs
+                .filter(doc => doc.exists)
+                .map(doc => ({
+                  id: doc.id,
+                  name: doc.data().name || "",
+                }));
+
+              setAdminCommunities(communities);
+              setIsAdminOfAnyCommunity(communities.length > 0);
+            } else {
+              setAdminCommunities([]);
+              setIsAdminOfAnyCommunity(false);
+            }
+          } else {
+            setAdminCommunities([]);
+            setIsAdminOfAnyCommunity(false);
+          }
+        } catch (error) {
+          console.error("Error fetching admin communities:", error);
+          setAdminCommunities([]);
+          setIsAdminOfAnyCommunity(false);
+        }
+      };
+
+      fetchAdminCommunities();
+    }, [emailAddress]);
+
+    // 獲得 Volunteer 的社區
+    useEffect(() => {
+  const fetchAdminAndVolunteerCommunities = async () => {
+    if (!emailAddress) return;
+    try {
+      const usersRef = firestore().collection("Users");
+      const querySnapshot = await usersRef
+        .where("emailAddress", "==", emailAddress)
+        .get();
+
+      if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data();
+        const adminOf = userData.adminOf || []; // Array of admin community IDs
+        const volunteerOf = userData.volunteerOf || []; // Array of volunteer community IDs
+
+        // Fetch admin communities
+        if (adminOf.length > 0) {
+          const communitiesRef = firestore().collection("Communities");
+          const adminPromises = adminOf.map((commId: string) =>
+            communitiesRef.doc(commId).get()
+          );
+          const adminDocs = await Promise.all(adminPromises);
+          const adminComms = adminDocs
+            .filter(doc => doc.exists)
+            .map(doc => ({
+              id: doc.id,
+             ...(doc.data() as Omit<CommunityProps, "id">),
+            }));
+
+          setAdminCommunities(adminComms);
+          setIsAdminOfAnyCommunity(adminComms.length > 0);
+        } else {
+          setAdminCommunities([]);
+          setIsAdminOfAnyCommunity(false);
+        }
+
+        // Fetch volunteer communities
+        if (volunteerOf.length > 0) {
+          const communitiesRef = firestore().collection("Communities");
+          const volunteerPromises = volunteerOf.map((commId: string) =>
+            communitiesRef.doc(commId).get()
+          );
+          const volunteerDocs = await Promise.all(volunteerPromises);
+          const volunteerComms = volunteerDocs
+            .filter(doc => doc.exists)
+            .map(doc => ({
+              id: doc.id,
+              ...(doc.data() as Omit<CommunityProps, "id">),
+            }));
+
+          setVolunteerCommunities(volunteerComms);
+        } else {
+          setVolunteerCommunities([]);
+        }
+      } else {
+        setAdminCommunities([]);
+        setIsAdminOfAnyCommunity(false);
+        setVolunteerCommunities([]);
+      }
+    } catch (error) {
+      console.error("Error fetching communities:", error);
+      setAdminCommunities([]);
+      setIsAdminOfAnyCommunity(false);
+      setVolunteerCommunities([]);
+    }
+  };
+
+  fetchAdminAndVolunteerCommunities();
+}, [emailAddress]);
+
   const calculateLevel = (hours: number) => {
     if (hours <= 10) return 1;
     if (hours <= 20) return 2;
@@ -192,15 +349,30 @@ const Profile = ({
   }, [dispatch, emailAddress]);
 
   const navigationItems = [
+    
     {
       title: "Community",
       subtitle: "",
-      subItems: [
-        {
-          title: "Create a new community",
-          onNavigate: () => navigation.navigate("CreateCommunity"),
-        },
-      ],
+      subItems: (
+        isAdminOfAnyCommunity && adminCommunities.length > 0
+          ? adminCommunities.map(comm => ({
+              title: comm.name,
+              subtitle: comm.description,
+              onNavigate: () => navigation.navigate("CommunityOptions", { ...comm }),
+            }))
+        : volunteerCommunities.length > 0
+          ? volunteerCommunities.map(comm => ({
+              title: comm.name,
+              subtitle: comm.description,
+              onNavigate: () => navigation.navigate("CommunityInfo", { ...comm }),
+            }))
+          : [
+              {
+                title: "Create a new community",
+                onNavigate: () => navigation.navigate("CreateCommunity"),
+              }
+            ]
+      ),
     },
     {
       title: "My Account",
