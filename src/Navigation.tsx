@@ -50,6 +50,9 @@ import GoogleFormScreen from "./screens/GoogleFormScreen";
 import RewardDetails from "./screens/Reward/RewardDetails";
 import MyRewards from "./screens/Reward/MyRewards";
 import TimeBankRewards from "./screens/Reward/TimeBankRewards";
+import ApproveVolunteer from "./screens/ApproveVolunteer";  
+import RemoveVolunteer from "./screens/RemoveVolunteer";
+import CommunityOptions from "./screens/CommunityOptions";
 import SplashScreen from "./screens/SplashScreen";
 
 // Lazy load screens
@@ -236,6 +239,7 @@ const renderSignedInScreens = () => (
     <Stack.Screen name="OngoingActivities" component={OngoingActivities} />
     <Stack.Screen name="CreateActivity" component={CreateActivity} />
     <Stack.Screen name="EditActivity" component={EditActivity} />
+    <Stack.Screen name="CommunityOptions" component={CommunityOptions} />
     <Stack.Screen
       name="Account"
       component={Account}
