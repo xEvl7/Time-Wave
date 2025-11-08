@@ -25,7 +25,7 @@ import {
   updateRewardsObtained,
 } from "../../utils/firebaseUtils";
 import PrimaryText from "../../components/text_components/PrimaryText";
-import * as Clipboard from "expo-clipboard";
+// import * as Clipboard from "expo-clipboard";
 
 export default function RewardDetails({
   navigation,

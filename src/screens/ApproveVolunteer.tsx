@@ -13,63 +13,170 @@ import firestore from "@react-native-firebase/firestore";import {
     firebase,
   } from "@react-native-firebase/firestore";
   import "@react-native-firebase/firestore";
+  import { CommunityProps } from "../features/communitySlice";
 
 const ApproveVolunteer = () => {
-  const [communities, setCommunities] = useState([]);
-  const [selectedCommunity, setSelectedCommunity] = useState(null);
+
+  type Community = {
+    id: string;
+    name: string;
+    admins: string[];
+    // add other fields as needed
+  };
+  
+  // const [communities, setCommunities] = useState<Community[]>([]);
+  // const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
+  // const [volunteerCommunities, setVolunteerCommunities] = useState<Community[]>([]);  
   const [volunteers, setVolunteers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch communities from Firestore
-  useEffect(() => {
-    const fetchCommunities = async () => {
+  // Fetch user managed communities from Firestore
+  // useEffect(() => {
+  //   const fetchCommunities = async () => {
+  //     try {
+  //       setLoading(true);
+
+  //       const user = firebase.auth().currentUser;
+  //       if (!user) {
+  //         console.warn("User not logged in.");
+  //         return;
+  //       }
+
+  //       const currentUserUid = user.uid;
+
+        
+
+  //       const response = await firebase
+  //         .firestore()
+  //         .collection("Communities")
+  //         .where("admins", "array-contains", currentUserUid)
+  //         .get();
+
+  //         const fetchedCommunities: Community[] = response.docs.map((doc) => {
+  //           const data = doc.data();
+  //           return {
+  //             id: doc.id,
+  //             name: data.name,
+  //             admins: data.admins, // match your Firestore field name
+  //           };
+  //         });
+
+  //       setCommunities(fetchedCommunities);
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error("Error fetching communities:", error);
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchCommunities();
+  // }, []);
+
+  // console.log("Communities:", communities); // Log the fetched communities
+
+  //       const response = await firebase.firestore().collection("Communities").get();
+        
+  //       const fetchedCommunities = response.docs.map((doc) => ({
+  //         id: doc.id,
+  //         ...doc.data(),
+  //       }));
+  //       setCommunities(fetchedCommunities);
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error("Error fetching communities:", error);
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchCommunities();
+  // }, []);
+
+  // Fetch volunteers for the selected community
+  // useEffect(() => {
+  //   if (selectedCommunity) {
+  //     const fetchVolunteers = async () => {
+  //       try {
+  //         setLoading(true);
+  //         const response = await firebase
+  //           .firestore()
+  //           .collection("Communities")
+  //           .doc(selectedCommunity.id)
+  //           .collection("volunteerRequest")
+  //           .get();
+
+  //         const fetchedVolunteers = response.docs.map((doc) => ({
+  //           id: doc.id,
+  //           ...doc.data(),
+  //         }));
+
+  //         setVolunteers(fetchedVolunteers);
+  //         setLoading(false);
+  //       } catch (error) {
+  //         console.error("Error fetching volunteers:", error);
+  //         setLoading(false);
+  //       }
+  //     };
+
+  //     fetchVolunteers();
+  //   }
+  // }, [selectedCommunity]);
+
+
+  
+useEffect(() => {
+  if (selectedCommunity) {
+    const fetchVolunteers = async () => {
       try {
         setLoading(true);
-        const response = await firebase.firestore().collection("Communities").get();
-        const fetchedCommunities = response.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setCommunities(fetchedCommunities);
-        setLoading(false);
+        const response = await firebase
+          .firestore()
+          .collection("Communities")
+          .doc(selectedCommunity.id)
+          .collection("volunteerRequest")
+          .get();
+
+        console.log("Fetched volunteer request data:", response.docs); // Log the data
+
+        const fetchedVolunteers = response.docs.map((doc) => {
+          const volunteer = doc.data();
+          return {
+            id: doc.id,
+            ...volunteer,  // Add all volunteer fields here
+          };
+        });
+
+        console.log("Formatted volunteers:", fetchedVolunteers); // Log the formatted volunteers
+
+        setVolunteers(fetchedVolunteers);
       } catch (error) {
-        console.error("Error fetching communities:", error);
+        console.error("Error fetching volunteers:", error);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchCommunities();
-  }, []);
-
-  // Fetch volunteers for the selected community
-  useEffect(() => {
-    if (selectedCommunity) {
-      const fetchVolunteers = async () => {
-        try {
-          setLoading(true);
-          const response = await firebase
-            .firestore()
-            .collection("Communities")
-            .doc(selectedCommunity.id)
-            .collection("volunteerRequest")
-            .get();
-
-          const fetchedVolunteers = response.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-
-          setVolunteers(fetchedVolunteers);
-          setLoading(false);
-        } catch (error) {
-          console.error("Error fetching volunteers:", error);
-          setLoading(false);
-        }
+    const fetchedVolunteers = response.docs.map((doc) => {
+      const volunteer = doc.data();
+      return {
+        id: doc.id,  // This is Firestore's document ID
+        name: volunteer.name,  // Ensure you're fetching the correct fields
+        email: volunteer.email,
+        status: volunteer.status,
       };
+    });
 
-      fetchVolunteers();
-    }
-  }, [selectedCommunity]);
+    fetchVolunteers();
+  } else {
+    // Clear the list if no community is selected
+    setVolunteers([]);
+  }
+}, [selectedCommunity]);
+
+
+
+
+  
+  
 
   // Approve a volunteer and add them to the "volunteer" section
   const approveVolunteer = async (volunteer) => {

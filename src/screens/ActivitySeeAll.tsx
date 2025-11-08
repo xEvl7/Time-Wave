@@ -48,7 +48,7 @@ import CreateActivity from "./CreateActivity";
                 //item={item}
               />
             </ScrollView>
-            <TextButton onPress={()=>navigation.navigate("CreateActivity", item )}> New Activity</TextButton>
+            <TextButton onPress={()=>navigation.navigate("CreateActivity", {item} )}> Create Activity </TextButton>
           </View>
         </ContentContainer>
       </>
@@ -187,7 +187,7 @@ import CreateActivity from "./CreateActivity";
     },
   
     listContainer: {
-      flex: 1,
+      // flex: 1,
       backgroundColor: "white",
     },
     listHeader: {
@@ -216,8 +216,8 @@ import CreateActivity from "./CreateActivity";
     },
     imageBox: {
       flex:1,
-      width: "100%",
-      height:"60%",
+      // width: "100%",
+      // height:"60%",
       backgroundColor: "#F5DEB3",
       borderRadius: 10,
       justifyContent: "center",
@@ -226,11 +226,11 @@ import CreateActivity from "./CreateActivity";
       padding: 1,
     },
     image: {
-      // width: 50,
-      // height: 50,
+      width: 130,
+      height: 100,
       marginRight: 1,
-      width: "100%",
-      height: "140%",
+      // width: "100%",
+      // height: "60%",
       resizeMode: "stretch",
       borderRadius: 5,
       // borderTopRightRadius: 5,

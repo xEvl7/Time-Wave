@@ -33,6 +33,7 @@ export type RootStackParamList = {
   Communities: undefined;
   CommunityInfo: CommunityProps;
   ProfileInfo: { item: any };
+  CommunityOptions: { item: any };
   // CommunityProfile: { item: any };
 
   MemberSeeAll: { item: any; member: any };
@@ -44,6 +45,7 @@ export type RootStackParamList = {
   OngoingActivities: undefined;
   ActivityInfo: ActivityProps;
   ActivitySeeAll: { activities: any; item: any };
+
   // ActivitySeeAll: { item: any };
 
   Profile: undefined;
