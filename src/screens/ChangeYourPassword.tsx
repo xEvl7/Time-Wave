@@ -26,10 +26,10 @@ const ChangeYourPassword = ({
     
   };
 
-  const test =() => {
-    reauthenticate(password);
-    console.log('this is correct pasword')
-  }
+  // const test =() => {
+  //   reauthenticate(password);
+  //   console.log('this is correct pasword')
+  // }
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -78,7 +78,7 @@ const ChangeYourPassword = ({
       </View>
       {message ? <Text>{message}</Text> : null}
       <TextButton onPress={handleChangePassword}>Save</TextButton>
-      <TextButton onPress={test}>test</TextButton>
+      {/* <TextButton onPress={test}>test</TextButton> */}
     </ContentContainer>
   );
 };

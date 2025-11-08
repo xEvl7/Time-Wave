@@ -10,7 +10,7 @@ import { DateTime } from "luxon";
 type UserData = {
   uid: string;
   name: string;
-  identityCardNumber: string;
+  // identityCardNumber: string;
   phoneNumber: string;
   emailAddress: string;
   points: number;

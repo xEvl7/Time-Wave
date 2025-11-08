@@ -1,4 +1,12 @@
-import { StyleSheet, View, Text, Pressable, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  Image,
+  Alert,
+} from "react-native";
 import React from "react";
 import { Control, useForm } from "react-hook-form";
 
@@ -9,6 +17,7 @@ import BackgroundImageBox from "../components/BackgroundImageBox";
 import ContentContainer from "../components/ContentContainer";
 import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { useAppDispatch } from "../hooks";
@@ -31,7 +40,7 @@ const InputFields = ({ control, password }: InputFieldsProps) => {
           required: "Full name is required.",
         }}
       />
-      <ValidatedTextInput
+      {/* <ValidatedTextInput
         control={control}
         name="identityCardNumber"
         placeholder="Identity Card Number"
@@ -42,7 +51,7 @@ const InputFields = ({ control, password }: InputFieldsProps) => {
             message: "Identity card number must contain 12 digits.",
           },
         }}
-      />
+      /> */}
       <ValidatedTextInput
         control={control}
         name="phoneNumber"
@@ -98,7 +107,7 @@ const InputFields = ({ control, password }: InputFieldsProps) => {
 
 type SignUpFormData = {
   name: string;
-  identityCardNumber: string;
+  // identityCardNumber: string;
   emailAddress: string;
   phoneNumber: string;
   password: string;
@@ -108,12 +117,12 @@ type SignUpFormData = {
 const SignUp = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "SignUp">) => {
-  const { handleSubmit, control, watch } = useForm<SignUpFormData>({
+  const { handleSubmit, control, watch, setError } = useForm<SignUpFormData>({
     defaultValues: {
-      name: "Bobby",
-      identityCardNumber: "060712110533",
-      emailAddress: "test@gmail.com",
-      phoneNumber: "0123456789",
+      name: "YF",
+      // identityCardNumber: "010666016666",
+      emailAddress: "yf828w@gmail.com",
+      phoneNumber: "01166666666",
       password: "123456789",
       confirmPassword: "123456789",
     },
@@ -123,62 +132,137 @@ const SignUp = ({
 
   const password = watch("password");
 
+  const [emailExists, setEmailExists] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+
   const handleSignUp = async (data: SignUpFormData) => {
+    setLoading(true);
     const userCollection = firestore().collection("Users");
 
-    console.log(
-      "Checking whether user's identity card number has been used by existing users ..."
-    );
-
-    // Every citizen can only sign up for an account
     try {
-      const querySnapshot = await userCollection
-        .where("identityCardNumber", "==", data.identityCardNumber)
+      // Check phone number uniqueness
+      const phoneSnapshot = await userCollection
+        .where("phoneNumber", "==", data.phoneNumber)
         .get();
 
-      if (!querySnapshot.empty) {
-        console.log("Identity card number already used by existing user.");
+      if (!phoneSnapshot.empty) {
+        setError("phoneNumber", {
+          type: "manual",
+          message: "This phone number is already registered.",
+        });
+        setLoading(false);
         return;
       }
-    } catch (error) {
-      console.error(error);
-    }
 
-    console.log("Preparing to sign new user up ...");
+      console.log("Creating new Firebase Auth user...");
 
-    try {
       const userCredential = await auth().createUserWithEmailAndPassword(
         data.emailAddress,
         data.password
       );
 
-      console.log(userCredential.user.email, "Signed up successfully.");
-      console.log("Adding user document to firestore ...");
+      // Send verification email （commented out for testing purposes）
+      // await userCredential.user.sendEmailVerification();
+      // console.log("Verification email sent to:", data.emailAddress);
 
-      try {
-        const userData = {
-          uid: userCredential.user.uid,
-          name: data.name,
-          identityCardNumber: data.identityCardNumber,
-          phoneNumber: data.phoneNumber,
-          emailAddress: data.emailAddress,
-          points: 0,
-          logo: null,
-          feedbackStatus: false,
-          isFeedbackFilled: false,
-        };
+      const userData = {
+        uid: userCredential.user.uid,
+        name: data.name,
+        phoneNumber: data.phoneNumber,
+        emailAddress: data.emailAddress,
+        points: 0,
+        logo: null,
+        isFeedbackFilled: false,
+        adminOf: [],
+        volunteerOf: [],
+      };
 
-        dispatch(updateUserData(userData));
+      // Save in Firestore
+      await firestore()
+        .collection("Users")
+        .doc(userCredential.user.uid)
+        .set(userData);
+      dispatch(updateUserData(userData));
 
-        // 保存到 AsyncStorage
-        await AsyncStorage.setItem("hasSeenAppInfo", "false");
-      } catch (error) {
-        console.error(error);
-        return;
+      await AsyncStorage.setItem("hasSeenAppInfo", "false");
+
+      console.log("User registered successfully:", userData);
+
+      // Neutral success message
+      Alert.alert(
+        "Check Your Email",
+        "We've sent you a verification link. Please verify your email before logging in."
+      );
+
+      navigation.navigate("LogIn");
+    } catch (error: any) {
+      console.error("SignUp Error:", error);
+
+      // Neutral error handling
+      if (error.code === "auth/email-already-in-use") {
+        setError("emailAddress", {
+          type: "manual",
+          message: "This email cannot be used. Try another one or log in.",
+        });
+      } else if (error.code === "auth/invalid-email") {
+        setError("emailAddress", {
+          type: "manual",
+          message: "Invalid email format.",
+        });
+      } else if (error.code === "auth/weak-password") {
+        setError("password", {
+          type: "manual",
+          message: "Password is too weak (min 8 characters).",
+        });
+      } else {
+        Alert.alert("SignUp Failed", "Something went wrong. Please try again.");
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      setLoading(true);
+      // 1. 获取 Google 帐号
+      await GoogleSignin.hasPlayServices();
+      const { idToken } = await GoogleSignin.signIn();
+
+      if (!idToken) throw new Error("Google Sign-In failed: No idToken");
+
+      // 2. 用 Google 凭证登录 Firebase
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+      const userCredential = await auth().signInWithCredential(
+        googleCredential
+      );
+
+      // 3. 在 Firestore 建立用户文档
+      const userData = {
+        uid: userCredential.user.uid,
+        name: userCredential.user.displayName || "",
+        emailAddress: userCredential.user.email || "",
+        phoneNumber: userCredential.user.phoneNumber || "",
+        points: 0,
+        logo: userCredential.user.photoURL || null,
+        isFeedbackFilled: false,
+        adminOf: [],
+        volunteerOf: [],
+      };
+
+      await firestore()
+        .collection("Users")
+        .doc(userCredential.user.uid)
+        .set(userData, { merge: true });
+
+      dispatch(updateUserData(userData));
+      await AsyncStorage.setItem("hasSeenAppInfo", "false");
+
+      console.log("Google SignUp Success:", userData);
+      setLoading(false);
     } catch (error) {
-      console.error(error);
-      return;
+      console.error("Google SignUp Error:", error);
+      setLoading(false);
     }
   };
 
@@ -190,8 +274,70 @@ const SignUp = ({
       ></BackgroundImageBox>
       <ContentContainer>
         <HeaderText>Register Now</HeaderText>
+        {emailExists && (
+          <Pressable
+            onPress={() => navigation.navigate("LogIn")}
+            style={{
+              marginVertical: 10,
+              padding: 10,
+              backgroundColor: "#FFF3E0",
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: "#FF8D13",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#FF8D13",
+                textAlign: "center",
+                fontWeight: "bold",
+                fontSize: 16,
+              }}
+            >
+              Email is already in use. {"\n"}Click here go to Login.
+            </Text>
+          </Pressable>
+        )}
         <InputFields control={control} password={password} />
-        <TextButton onPress={handleSubmit(handleSignUp)}>Sign up</TextButton>
+
+        <TextButton onPress={handleSubmit(handleSignUp)} disabled={loading}>
+          {loading ? "Signing up..." : "Sign up"}
+        </TextButton>
+
+        {/* <Pressable
+          onPress={handleGoogleSignUp}
+          style={{
+            marginTop: 15,
+            padding: 12,
+            borderRadius: 8,
+            backgroundColor: "#DB4437", // Google 红色
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>
+            {loading ? "Loading..." : "Sign up with Google"}
+          </Text>
+        </Pressable> */}
+        <View style={styles.alternativesContainer}>
+          <Text style={{ marginTop: 10, marginBottom: 10 }}>
+            Or sign up with:
+          </Text>
+          <View style={styles.thirdPartyAuthContainer}>
+            <Pressable onPress={handleGoogleSignUp}>
+              <Image source={require("../assets/logo/google-logo.png")}></Image>
+            </Pressable>
+            {/* <Pressable>
+            <Image source={require("../assets/logo/apple-logo.png")}></Image>
+          </Pressable> */}
+            <Pressable>
+              <Image
+                source={require("../assets/logo/facebook-logo.png")}
+              ></Image>
+            </Pressable>
+          </View>
+        </View>
+
         <View style={styles.DisclaimerPrivacyLabel}>
           <Text>By continuing, I agree to the</Text>
           <Pressable onPress={() => navigation.navigate("DisclaimerPrivacy")}>
@@ -215,5 +361,14 @@ const styles = StyleSheet.create({
   },
   ErrorText: {
     color: "red",
+  },
+  alternativesContainer: {
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  thirdPartyAuthContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
   },
 });

@@ -10,6 +10,11 @@ import { USER_DATA } from "./src/constants";
 import React from "react";
 import { Alert, Linking } from "react-native";
 import { NavigationContainerRef } from "@react-navigation/native";
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+GoogleSignin.configure({
+  webClientId: '666062417383-tbs9e9pumegap8o4g1qdf488eq2mnfjr.apps.googleusercontent.com', // Firebase 控制台 > Authentication > Sign-in method > Google > Web client ID
+});
 
 const theme = {
   ...DefaultTheme,

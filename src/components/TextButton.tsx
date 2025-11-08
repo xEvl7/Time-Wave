@@ -15,6 +15,7 @@ type TextButtonProps = {
   textStyle?: StyleProp<TextStyle>;
   onPress: (event: GestureResponderEvent) => void;
   children: string;
+  disabled?: boolean;
 };
 
 export default function TextButton({
@@ -22,6 +23,7 @@ export default function TextButton({
   textStyle,
   onPress,
   children,
+  disabled,
 }: TextButtonProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current; // 初始缩放值为 1
 

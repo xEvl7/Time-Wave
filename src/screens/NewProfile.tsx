@@ -1,11 +1,11 @@
-import { StyleSheet, View, Text, TouchableOpacity,Image } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Image } from "react-native";
 import React, { useState, useEffect } from "react";
 import ContentContainer from "../components/ContentContainer";
 import { useAppSelector } from "../hooks";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import firestore from "@react-native-firebase/firestore";
-import auth from '@react-native-firebase/auth';
+import auth from "@react-native-firebase/auth";
 
 const NewProfile = ({
   navigation,
@@ -13,7 +13,7 @@ const NewProfile = ({
   const name = useAppSelector((state) => state.user.data?.name);
   const email = useAppSelector((state) => state.user.data?.emailAddress);
   const phone = useAppSelector((state) => state.user.data?.phoneNumber);
-  const ic = useAppSelector((state) => state.user.data?.identityCardNumber);
+  // const ic = useAppSelector((state) => state.user.data?.identityCardNumber);
   const [logo, setLogo] = useState<string | null>(null); // Firebase 中的 logo URL
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -24,7 +24,8 @@ const NewProfile = ({
       const usersRef = firestore().collection("Users");
 
       // 订阅 Firestore 数据变化
-      const unsubscribe = usersRef.where("emailAddress", "==", currentUserEmail)
+      const unsubscribe = usersRef
+        .where("emailAddress", "==", currentUserEmail)
         .onSnapshot((querySnapshot) => {
           if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
@@ -53,7 +54,9 @@ const NewProfile = ({
 
       <View style={styles.centercontainer}>
         <Image
-          source={logo ? { uri: logo } : require("../assets/profile-picture.png")}
+          source={
+            logo ? { uri: logo } : require("../assets/profile-picture.png")
+          }
           style={styles.circleImage}
         />
       </View>
@@ -61,19 +64,28 @@ const NewProfile = ({
       {/* 用户信息展示部分 */}
       <View style={styles.alternativesContainer}>
         <View style={styles.pointContainer}>
-          <Text style={styles.boldtext}>Name:</Text>
+          <Text style={styles.boldtext}>Full Name:</Text>
         </View>
         <View style={styles.validityContainer}>
           <Text style={{ fontSize: 14 }}>{name}</Text>
         </View>
       </View>
 
-      <View style={styles.alternativesContainer}>
+      {/* <View style={styles.alternativesContainer}>
         <View style={styles.pointContainer}>
           <Text style={styles.boldtext}>IC:</Text>
         </View>
         <View style={styles.validityContainer}>
           <Text style={{ fontSize: 14 }}>{ic}</Text>
+        </View>
+      </View> */}
+
+      <View style={styles.alternativesContainer}>
+        <View style={styles.pointContainer}>
+          <Text style={styles.boldtext}>Email:</Text>
+        </View>
+        <View style={styles.validityContainer}>
+          <Text style={{ fontSize: 14 }}>{email}</Text>
         </View>
       </View>
 
@@ -88,19 +100,12 @@ const NewProfile = ({
 
       <View style={styles.alternativesContainer}>
         <View style={styles.pointContainer}>
-          <Text style={styles.boldtext}>Email:</Text>
-        </View>
-        <View style={styles.validityContainer}>
-          <Text style={{ fontSize: 14 }}>{email}</Text>
-        </View>
-      </View>
-
-      <View style={styles.alternativesContainer}>
-        <View style={styles.pointContainer}>
           <Text>Change Password</Text>
         </View>
         <View style={styles.nextcontainer}>
-          <TouchableOpacity onPress={() => navigation.navigate("ChangeYourPassword")}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ChangeYourPassword")}
+          >
             <Image source={require("../assets/next_icon_orange.png")} />
           </TouchableOpacity>
         </View>

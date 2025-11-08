@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View, Image } from "react-native";
+import { Pressable, StyleSheet, Text, View, Image, Alert } from "react-native";
 import auth from "@react-native-firebase/auth";
 
 import TextButton from "../components/TextButton";
@@ -14,6 +14,8 @@ import { fetchUserData } from "../features/userSlice";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../Screen.types";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 type FormData = {
   emailAddress: string;
@@ -33,10 +35,22 @@ export default function Login({
   // const userData = useAppSelector((state) => state.user.data);
   const dispatch = useAppDispatch();
 
-  const handleLogin = async (data: FormData) => {
-    // @todo Indicate sign in process is running in UI
+  const MAX_ATTEMPTS = 5;
+  let attempts = 0;
+  let lastAttemptTime = 0;
 
+  const handleLogin = async (data: FormData) => {
     console.log("Signing in user ...");
+    const now = Date.now();
+
+    // Throttling: allow only 5 attempts per minute
+    if (attempts >= MAX_ATTEMPTS && now - lastAttemptTime < 60_000) {
+      Alert.alert(
+        "Too Many Attempts",
+        "Please wait a minute before trying again."
+      );
+      return;
+    }
 
     try {
       const userCredential = await auth().signInWithEmailAndPassword(
@@ -44,20 +58,61 @@ export default function Login({
         data.password
       );
 
+      // Require email verification (commented out for testing purposes)
+      // if (userCredential.user && !userCredential.user.emailVerified) {
+      //   await auth().signOut();
+      //   Alert.alert(
+      //     "Email Not Verified",
+      //     "Please verify your email before logging in. We’ve sent you a link."
+      //   );
+      //   await userCredential.user.sendEmailVerification();
+      //   return;
+      // }
+
+      // Reset attempts if login successful
+      attempts = 0;
+      lastAttemptTime = 0;
+
       console.log(userCredential.user.email, "has successfully signed in.");
-    } catch (error) {
-      console.error(error);
-      return;
+
+      // Fetch Firestore user data
+      if (userCredential.user.email) {
+        await dispatch(fetchUserData(userCredential.user.email)).unwrap();
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      attempts++;
+      lastAttemptTime = now;
+
+      // Neutral message → prevents user enumeration
+      Alert.alert("Login Failed", "Invalid credentials or unverified account.");
     }
-    // @todo Display error if login failed
+  };
 
-    console.log("Fetching user's data ...");
-
+  const handleGoogleLogin = async () => {
     try {
-      await dispatch(fetchUserData(data.emailAddress)).unwrap();
+      // 1. Check Google Play Services
+      await GoogleSignin.hasPlayServices();
+
+      // 2. Sign in and get the ID token
+      const { idToken } = await GoogleSignin.signIn();
+      if (!idToken) throw new Error("Google Sign-In failed: No idToken");
+
+      // 3. Get Firebase credential
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+      // 4. Sign in with Firebase
+      const userCredential = await auth().signInWithCredential(
+        googleCredential
+      );
+
+      console.log("Google login success:", userCredential.user.email);
+
+      // 5. Fetch user’s Firestore document
+      await dispatch(fetchUserData(userCredential.user.uid)).unwrap();
     } catch (error) {
-      console.error(error);
-      return;
+      console.error("Google login error:", error);
     }
   };
 
@@ -101,9 +156,11 @@ export default function Login({
               Forgot Password
             </Text>
           </Pressable>
-          <Text style={{ marginTop: 30, marginBottom: 20 }}>Log in with:</Text>
+          <Text style={{ marginTop: 30, marginBottom: 20 }}>
+            Or log in with:
+          </Text>
           <View style={styles.thirdPartyAuthContainer}>
-            <Pressable>
+            <Pressable onPress={handleGoogleLogin}>
               <Image source={require("../assets/logo/google-logo.png")}></Image>
             </Pressable>
             {/* <Pressable>

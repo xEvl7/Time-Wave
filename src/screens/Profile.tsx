@@ -22,18 +22,19 @@ import {
 } from "../features/userSlice";
 import RightDrop from "../components/RightDrop";
 import { RootState } from "../store";
-import * as ImagePicker from "expo-image-picker";
-import { ImagePickerResult } from "expo-image-picker";
+// import * as ImagePicker from "expo-image-picker";
+// import { ImagePickerResult } from "expo-image-picker";
 import storage from "@react-native-firebase/storage";
 import firestore from "@react-native-firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Divider, useTheme } from "react-native-paper";
+import ImageCropPicker from "react-native-image-crop-picker";
 
 const Profile = ({
   navigation,
 }: NativeStackScreenProps<RootStackParamList, "Profile">) => {
   const { colors } = useTheme();
-  
+
   const { name, emailAddress } =
     useAppSelector((state) => state.user.data) || {};
   const dispatch = useAppDispatch();
@@ -93,25 +94,22 @@ const Profile = ({
 
   // 选择图片
   const pickImage = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission to access camera roll is required!");
-      return;
-    }
-
-    let result: ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets && result.assets[0].uri) {
-      setImage(result.assets[0].uri); // Update user-selected image
-    } else {
-      console.log("Image selection cancelled or no image selected.");
+    try {
+      const image = await ImageCropPicker.openPicker({
+        width: 300,
+        height: 300,
+        cropping: true,
+        cropperCircleOverlay: true, // 圆形头像
+        compressImageQuality: 0.8,
+        mediaType: "photo",
+      });
+      if (image && image.path) {
+        setImage(image.path); // image.path 是本地文件路径
+      } else {
+        console.log("Image selection cancelled or no image selected.");
+      }
+    } catch (error) {
+      console.log("Image picker error:", error);
     }
   };
 
@@ -270,7 +268,9 @@ const Profile = ({
 
       {/* Divider 在这里 */}
       <View>
-         <Divider style={[styles.divider, { backgroundColor: colors.outline }]} />
+        <Divider
+          style={[styles.divider, { backgroundColor: colors.outline }]}
+        />
       </View>
 
       <FlatList
@@ -304,6 +304,7 @@ const Field = ({ label, value }: FieldProps) => {
     <View style={styles.fieldContainer}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <Text style={styles.fieldValue}>{value || ""}</Text>
+      {/* <Text style={styles.fieldValue}>tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt</Text> */}
     </View>
   );
 };
@@ -331,15 +332,21 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 20,
   },
+  textValue: {
+    fontSize: 16,
+    lineHeight: 24, // 控制文字行高
+  },
   fieldContainer: {
-    marginVertical: 15,
+    marginVertical: 5,
   },
   fieldLabel: {
     fontWeight: "bold",
     fontSize: 14,
+    marginBottom: 6,
   },
   fieldValue: {
     fontSize: 16,
+    lineHeight: 24,
   },
   flatListContainer: {
     // paddingVertical: 20,

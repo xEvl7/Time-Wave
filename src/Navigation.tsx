@@ -222,10 +222,28 @@ const renderSignedInScreens = () => (
         title: "Google Form Screen",
       }}
     />
-    <Stack.Screen name="NewProfile" component={NewProfile} />
+    <Stack.Screen
+      name="NewProfile"
+      options={{
+        title: "Profile",
+      }}
+      component={NewProfile}
+    />
     <Stack.Screen name="Setting" component={Setting} />
-    <Stack.Screen name="ChangeYourPassword" component={ChangeYourPassword} />
-    <Stack.Screen name="EditProfile" component={EditProfile} />
+    <Stack.Screen
+      name="ChangeYourPassword"
+      options={{
+        title: "Change Password",
+      }}
+      component={ChangeYourPassword}
+    />
+    <Stack.Screen
+      name="EditProfile"
+      options={{
+        title: "Edit Profile",
+      }}
+      component={EditProfile}
+    />
     <Stack.Screen name="Communities" component={Communities} />
     <Stack.Screen name="ActivitySeeAll" component={ActivitySeeAll} />
     {/* <Stack.Screen name="CommunityProfile" component={CommunityProfile} /> */}

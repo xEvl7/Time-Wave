@@ -8,28 +8,36 @@ import ParagraphText from "../components/text_components/ParagraphText";
 const Benefits = () => {
   return (
     <>
-      <BackgroundImageBox source={0} />
+      <BackgroundImageBox
+        source={require("../assets/background/clock.png")}
+        imageStyle={{ width: 170, height: 165, resizeMode: "contain" }}
+        style={{ height: "25%" }}
+      />
       <ContentContainer>
-        <HeaderText>Benefits of Time Wave</HeaderText>
-        <Text style={styles.highlight}>
-          Happier, Healthier & Considerate Residents
-        </Text>
+        <HeaderText style={{ marginVertical: 10 }}>
+          Benefits of Time Wave
+        </HeaderText>
+        <ParagraphText style={styles.highlight}>
+          &gt; Happier, Healthier & Considerate Residents
+        </ParagraphText>
         <ParagraphText>
           These ideas help people stay active that may otherwise be unconnected.
         </ParagraphText>
-        <Text style={styles.highlight}>
-          Positive ways to connect with the community
-        </Text>
+        <ParagraphText style={styles.highlight}>
+          &gt; Positive ways to connect with the community
+        </ParagraphText>
         <ParagraphText>
           People get to interact in their community and make friends.
         </ParagraphText>
-        <Text style={styles.highlight}>Everyone takes part and benefits</Text>
+        <ParagraphText style={styles.highlight}>
+          &gt; Everyone takes part and benefits
+        </ParagraphText>
         <ParagraphText>
           Giving is a valuable way to help people and to add value to your life.
         </ParagraphText>
-        <Text style={styles.highlight}>
-          Stronger community spirit & empowerment
-        </Text>
+        <ParagraphText style={styles.highlight}>
+          &gt; Stronger community spirit & empowerment
+        </ParagraphText>
         <ParagraphText>
           Offering and receiving help on a Time Wave is also a social experience
         </ParagraphText>
